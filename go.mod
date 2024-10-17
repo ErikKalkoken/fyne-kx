@@ -2,7 +2,10 @@ module github.com/ErikKalkoken/fyne-kx
 
 go 1.23
 
-require fyne.io/fyne/v2 v2.5.2
+require (
+	fyne.io/fyne/v2 v2.5.2
+	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
+)
 
 require (
 	github.com/fredbi/uri v1.1.0 // indirect

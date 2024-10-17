@@ -1,22 +1,28 @@
 package widget
 
 import (
-	"strconv"
+	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/widget"
+	"golang.org/x/exp/constraints"
 
 	"github.com/ErikKalkoken/fyne-kx/layout"
 )
 
+type Numeric interface {
+	constraints.Integer | constraints.Float
+}
+
 // Slider is a widget that can slide between two fixed values
-// and always shows the current value.
-type Slider struct {
+// and always displays the current value.
+// The widget can be instantiated for any numeric type.
+type Slider[T Numeric] struct {
 	widget.BaseWidget
 
-	OnChangeEnded func(int)
+	OnChangeEnded func(T)
 
 	data   binding.Float
 	label  *widget.Label
@@ -25,12 +31,12 @@ type Slider struct {
 }
 
 // NewSlider returns a new instance of a [Slider] widget.
-func NewSlider(min, max, start int) *Slider {
-	temp := widget.NewLabel(strconv.Itoa(max))
-	minW := temp.MinSize().Width
+func NewSlider[T Numeric](min, max, step T) *Slider[T] {
+	x := widget.NewLabel(fmt.Sprintf("%v", max+step))
+	minW := x.MinSize().Width
 	d := binding.NewFloat()
-	w := &Slider{
-		label:  widget.NewLabelWithData(binding.FloatToStringWithFormat(d, "%.0f")),
+	w := &Slider[T]{
+		label:  widget.NewLabelWithData(binding.FloatToStringWithFormat(d, "%v")),
 		slider: widget.NewSliderWithData(float64(min), float64(max), d),
 		data:   d,
 		layout: layout.NewColumnsLayout(minW, 2*minW),
@@ -40,24 +46,24 @@ func NewSlider(min, max, start int) *Slider {
 		if w.OnChangeEnded == nil {
 			return
 		}
-		w.OnChangeEnded(int(v))
+		w.OnChangeEnded(T(v))
 	}
-	w.slider.SetValue(float64(start))
+	w.slider.Step = float64(step)
 	w.ExtendBaseWidget(w)
 	return w
 }
 
 // Value returns the current value of a slider.
-func (w *Slider) Value() int {
-	return int(w.slider.Value)
+func (w *Slider[T]) Value() T {
+	return T(w.slider.Value)
 }
 
 // SetValue set the value of a slider.
-func (w *Slider) SetValue(v int) {
+func (w *Slider[T]) SetValue(v T) {
 	w.slider.SetValue(float64(v))
 }
 
-func (w *Slider) CreateRenderer() fyne.WidgetRenderer {
+func (w *Slider[T]) CreateRenderer() fyne.WidgetRenderer {
 	c := container.New(w.layout, w.label, w.slider)
 	return widget.NewSimpleRenderer(c)
 }
