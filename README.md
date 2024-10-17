@@ -1,2 +1,3 @@
-# fyne-kwidget
-Erik Kalkoken's widgets for the Fyne GUI toolkit
+# fyne-kx
+
+Kalkoken's eXtensions for the Fyne GUI toolkit
