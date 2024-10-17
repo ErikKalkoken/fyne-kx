@@ -1,4 +1,4 @@
-module github.com/ErikKalkoken/fyne-kwidget
+module github.com/ErikKalkoken/fyne-kx
 
 go 1.23
 

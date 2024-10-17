@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/ErikKalkoken/fyne-kwidget/layout"
+	"github.com/ErikKalkoken/fyne-kx/layout"
 )
 
 // Slider is a widget that can slide between two fixed values
