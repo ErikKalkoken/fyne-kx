@@ -10,11 +10,14 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+// Badge is a variant of Fyne label widget that renders as badge.
+// Badges are common UI elements to display counts.
 type Badge struct {
 	widget.BaseWidget
 	label *widget.Label
 }
 
+// NewBadge returns a new instance of a [Badge] widget.
 func NewBadge(text string) *Badge {
 	l := widget.NewLabel(fmt.Sprintf(" %s ", text))
 	l.Alignment = fyne.TextAlignCenter
@@ -23,6 +26,7 @@ func NewBadge(text string) *Badge {
 	return w
 }
 
+// SetText sets the text of a badge.
 func (w *Badge) SetText(text string) {
 	w.label.SetText(fmt.Sprintf(" %s ", text))
 }
