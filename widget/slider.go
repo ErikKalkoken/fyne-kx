@@ -39,7 +39,7 @@ func NewSlider[T Numeric](min, max, step T) *Slider[T] {
 		label:  widget.NewLabelWithData(binding.FloatToStringWithFormat(d, "%v")),
 		slider: widget.NewSliderWithData(float64(min), float64(max), d),
 		data:   d,
-		layout: layout.NewColumnsLayout(minW, 2*minW),
+		layout: layout.NewColumns(minW, 2*minW),
 	}
 	w.label.Alignment = fyne.TextAlignTrailing
 	w.slider.OnChangeEnded = func(v float64) {
