@@ -13,6 +13,8 @@ type columnsLayout struct {
 
 // NewColumnsLayout returns a new ColumnsLayout instance.
 // ColumnsLayout arranges all widgets in columns by widths.
+// The number of provided widths has to match the number of objects.
+// EXPERIMENTAL
 func NewColumnsLayout(widths ...float32) fyne.Layout {
 	if len(widths) == 0 {
 		panic("Need to define at least one width")

@@ -1,8 +1,9 @@
 # fyne-kx
 
-**K**alkoken e**X**tensions for the Fyne GUI toolkit.
+This library contains several extensions for the Fyne GUI toolkit:
 
-This library contains various extensions for the Fyne GUI toolkit:
-
+- modals
 - layouts
 - widgets
+
+For examples please see the example directory.
