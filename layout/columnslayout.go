@@ -1,8 +1,6 @@
 package layout
 
 import (
-	"fmt"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/theme"
 )
@@ -12,9 +10,11 @@ type columnsLayout struct {
 }
 
 // NewColumns returns a new columns layout.
-// This layout arranges all widgets in columns by widths.
-// The number of provided widths has to match the number of objects.
-// EXPERIMENTAL
+//
+// This layout arranges all objects in a row, with each in their own column with a given minimum width.
+// The last width will be re-used for additional columns if needed.
+//
+// This layout can be used to arrange subsequent rows of objects in columns.
 func NewColumns(widths ...float32) fyne.Layout {
 	if len(widths) == 0 {
 		panic("Need to define at least one width")
@@ -26,40 +26,44 @@ func NewColumns(widths ...float32) fyne.Layout {
 }
 
 func (l columnsLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
-	w, h := float32(0), float32(0)
+	wTotal, hTotal := float32(0), float32(0)
 	if len(objects) > 0 {
-		h = objects[0].MinSize().Height
+		hTotal = objects[0].MinSize().Height
 	}
-	for i, x := range l.widths {
-		w += x
+	var w float32
+	for i := range objects {
 		if i < len(l.widths) {
-			w += theme.Padding()
+			w = l.widths[i]
+		}
+		wTotal += w
+		if i < len(l.widths) {
+			wTotal += theme.Padding()
 		}
 	}
-	s := fyne.NewSize(w, h)
-	return s
+	return fyne.NewSize(wTotal, hTotal)
 }
 
 func (l columnsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size) {
-	if len(l.widths) < len(objects) {
-		panic(fmt.Sprintf("not enough columns defined. Need: %d, Have: %d", len(objects), len(l.widths))) // FIXME
-	}
 	var lastX float32
 	pos := fyne.NewPos(0, 0)
 	padding := theme.Padding()
+	var w1 float32
 	for i, o := range objects {
 		size := o.MinSize()
-		var w float32
-		if i < len(objects)-1 || containerSize.Width < 0 {
-			w = l.widths[i]
-		} else {
-			w = max(containerSize.Width-pos.X-padding, l.widths[i])
+		if i < len(l.widths) {
+			w1 = l.widths[i]
 		}
-		o.Resize(fyne.Size{Width: w, Height: size.Height})
+		var w2 float32
+		if i < len(objects)-1 || containerSize.Width < 0 {
+			w2 = w1
+		} else {
+			w2 = max(containerSize.Width-pos.X-padding, w1)
+		}
+		o.Resize(fyne.Size{Width: w2, Height: size.Height})
 		o.Move(pos)
 		var x float32
 		if len(l.widths) > i {
-			x = w
+			x = w2
 			lastX = x
 		} else {
 			x = lastX
