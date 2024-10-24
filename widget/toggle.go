@@ -11,6 +11,14 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+// toggle theme params
+const (
+	toggleColorBackgroundOff = theme.ColorNameInputBackground
+	toggleColorBackgroundOn  = theme.ColorNamePrimary
+	toggleColorPin           = theme.ColorNameForeground
+	toggleBaseUnitSize       = theme.SizeNameText
+)
+
 // TODO: Add disabled feature
 
 // Toggle is a widget implementing a digital switch with two mutually exclusive states: on/off.
@@ -25,8 +33,6 @@ type Toggle struct {
 
 var _ fyne.Tappable = (*Toggle)(nil)
 var _ desktop.Hoverable = (*Toggle)(nil)
-
-var u float32 = theme.TextSize() // used for sizing the UI: 4u x 2u
 
 // NewToggle returns a new [Toggle] instance.
 func NewToggle(changed func(on bool)) *Toggle {
@@ -93,9 +99,11 @@ func (w *Toggle) MouseOut() {
 
 // CreateRenderer is a private method to Fyne which links this widget to its renderer.
 func (w *Toggle) CreateRenderer() fyne.WidgetRenderer {
+	th := w.Theme()
+	v := fyne.CurrentApp().Settings().ThemeVariant()
 	w.ExtendBaseWidget(w)
-	bg := theme.Color(theme.ColorNameDisabled)
-	fg := theme.Color(theme.ColorNameForeground)
+	bg := th.Color(toggleColorBackgroundOff, v)
+	fg := th.Color(toggleColorPin, v)
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	r := &toogleRenderer{
@@ -117,15 +125,22 @@ type toogleRenderer struct {
 	toggle   *Toggle
 }
 
+func (r *toogleRenderer) themeBase() (float32, fyne.Theme) {
+	th := r.toggle.Theme()
+	return th.Size(toggleBaseUnitSize), th
+}
+
 func (r *toogleRenderer) Destroy() {
 }
 
 func (r *toogleRenderer) MinSize() (size fyne.Size) {
+	u, _ := r.themeBase()
 	size = fyne.Size{Width: 3.5 * u, Height: 2.0 * u}
 	return
 }
 
 func (r *toogleRenderer) Layout(size fyne.Size) {
+	u, _ := r.themeBase()
 	r.bgLeft.Position1 = fyne.NewPos(0, 0)
 	r.bgLeft.Position2 = fyne.NewPos(2*u, 2*u)
 	r.bgRight.Position1 = fyne.NewPos(1.5*u, 0)
@@ -137,6 +152,7 @@ func (r *toogleRenderer) Layout(size fyne.Size) {
 
 // updateState updates the rendered toggle based on it's current state.
 func (r *toogleRenderer) updateState() {
+	u, th := r.themeBase()
 	border := theme.SelectionRadiusSize() / 2
 	var x float32
 	if r.toggle.On {
@@ -147,10 +163,11 @@ func (r *toogleRenderer) updateState() {
 	r.pin.Refresh()
 
 	var bg color.Color
+	v := fyne.CurrentApp().Settings().ThemeVariant()
 	if r.toggle.On {
-		bg = theme.Color(theme.ColorNamePrimary)
+		bg = th.Color(toggleColorBackgroundOn, v)
 	} else {
-		bg = theme.Color(theme.ColorNameDisabled)
+		bg = th.Color(toggleColorBackgroundOff, v)
 	}
 	r.bgLeft.FillColor = bg
 	r.bgLeft.Refresh()
