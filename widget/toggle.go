@@ -13,26 +13,34 @@ import (
 
 // toggle theme params
 const (
-	toggleColorBackgroundOff = theme.ColorNameInputBackground
-	toggleColorBackgroundOn  = theme.ColorNamePrimary
-	toggleColorPin           = theme.ColorNameForeground
-	toggleBaseUnitSize       = theme.SizeNameText
-)
+	toggleBaseUnitSize    = theme.SizeNameText
+	toggleSizeFocusBorder = theme.SizeNamePadding
+	toggleSizePinBorder   = theme.SizeNameSelectionRadius
 
-// TODO: Add disabled feature
+	toggleColorBackgroundOff = theme.ColorNameButton
+	toggleColorBackgroundOn  = theme.ColorNamePrimary
+	toggleColorPinDisabled   = theme.ColorNameDisabled
+	toggleColorPinEnabled    = theme.ColorNameForeground
+	toggleColorPinFocused    = theme.ColorNameFocus
+)
 
 // Toggle is a widget implementing a digital switch with two mutually exclusive states: on/off.
 type Toggle struct {
-	widget.BaseWidget
+	widget.DisableableWidget
 	OnChanged func(on bool)
 
-	mu      sync.RWMutex // own property lock
-	On      bool
+	focused bool
 	hovered bool
+
+	mu sync.RWMutex // own property lock
+	On bool
 }
 
+var _ fyne.Widget = (*Toggle)(nil)
 var _ fyne.Tappable = (*Toggle)(nil)
+var _ fyne.Focusable = (*Toggle)(nil)
 var _ desktop.Hoverable = (*Toggle)(nil)
+var _ fyne.Disableable = (*Toggle)(nil)
 
 // NewToggle returns a new [Toggle] instance.
 func NewToggle(changed func(on bool)) *Toggle {
@@ -59,8 +67,39 @@ func (w *Toggle) SetState(on bool) {
 	w.Refresh()
 }
 
+// FocusGained is called when the Check has been given focus.
+func (w *Toggle) FocusGained() {
+	if w.Disabled() {
+		return
+	}
+	w.focused = true
+	w.Refresh()
+}
+
+// FocusLost is called when the Check has had focus removed.
+func (w *Toggle) FocusLost() {
+	w.focused = false
+	w.Refresh()
+}
+
+// TypedRune receives text input events when the Check is focused.
+func (w *Toggle) TypedRune(r rune) {
+	if w.Disabled() {
+		return
+	}
+	if r == ' ' {
+		w.SetState(!w.On)
+	}
+}
+
+// TypedKey receives key input events when the Check is focused.
+func (w *Toggle) TypedKey(key *fyne.KeyEvent) {}
+
 // Tapped is called when a pointer tapped event is captured and triggers any change handler
 func (w *Toggle) Tapped(_ *fyne.PointEvent) {
+	if w.Disabled() {
+		return
+	}
 	w.SetState(!w.On)
 }
 
@@ -103,17 +142,17 @@ func (w *Toggle) CreateRenderer() fyne.WidgetRenderer {
 	v := fyne.CurrentApp().Settings().ThemeVariant()
 	w.ExtendBaseWidget(w)
 	bg := th.Color(toggleColorBackgroundOff, v)
-	fg := th.Color(toggleColorPin, v)
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	r := &toogleRenderer{
 		bgLeft:   canvas.NewCircle(bg),
 		bgMiddle: canvas.NewRectangle(bg),
 		bgRight:  canvas.NewCircle(bg),
-		pin:      canvas.NewCircle(fg),
+		pin:      canvas.NewCircle(th.Color(toggleColorPinEnabled, v)),
+		shadow:   canvas.NewCircle(color.Transparent),
 		toggle:   w,
 	}
-	r.updateState()
+	r.updateToggle()
 	return r
 }
 
@@ -122,6 +161,7 @@ type toogleRenderer struct {
 	bgMiddle *canvas.Rectangle
 	bgRight  *canvas.Circle
 	pin      *canvas.Circle
+	shadow   *canvas.Circle
 	toggle   *Toggle
 }
 
@@ -147,23 +187,38 @@ func (r *toogleRenderer) Layout(size fyne.Size) {
 	r.bgRight.Position2 = fyne.NewPos(3.5*u, 2*u)
 	r.bgMiddle.Move(fyne.NewPos(1*u, 0))
 	r.bgMiddle.Resize(fyne.NewSize(1.5*u, 2*u))
-	r.updateState()
+	r.updateToggle()
 }
 
-// updateState updates the rendered toggle based on it's current state.
-func (r *toogleRenderer) updateState() {
+// updateToggle updates the rendered toggle based on it's current state.
+func (r *toogleRenderer) updateToggle() {
 	u, th := r.themeBase()
-	border := theme.SelectionRadiusSize() / 2
+	v := fyne.CurrentApp().Settings().ThemeVariant()
 	var x float32
 	if r.toggle.On {
 		x = 1.5 * u
 	}
-	r.pin.Position1 = fyne.NewPos(border+x, border)
-	r.pin.Position2 = fyne.NewPos(2*u-1.5*border+x, 2*u-1.5*border)
+	border1 := th.Size(toggleSizePinBorder) / 1.5
+	r.pin.Position1 = fyne.NewPos(border1+x, border1)
+	r.pin.Position2 = fyne.NewPos(2*u-2*border1+x, 2*u-2*border1)
+	if r.toggle.Disabled() {
+		r.pin.FillColor = th.Color(toggleColorPinDisabled, v)
+	} else {
+		r.pin.FillColor = th.Color(toggleColorPinEnabled, v)
+	}
 	r.pin.Refresh()
 
+	border2 := th.Size(toggleSizeFocusBorder)
+	r.shadow.Position1 = fyne.NewPos(x-border2, 0-border2)
+	r.shadow.Position2 = fyne.NewPos(2*u+x+border2, 2*u-1.5+border2)
+	if r.toggle.focused {
+		r.shadow.FillColor = th.Color(toggleColorPinFocused, v)
+	} else {
+		r.shadow.FillColor = color.Transparent
+	}
+	r.shadow.Refresh()
+
 	var bg color.Color
-	v := fyne.CurrentApp().Settings().ThemeVariant()
 	if r.toggle.On {
 		bg = th.Color(toggleColorBackgroundOn, v)
 	} else {
@@ -181,12 +236,12 @@ func (r *toogleRenderer) Refresh() {
 	func() {
 		r.toggle.mu.RLock()
 		defer r.toggle.mu.RUnlock()
-		r.updateState()
+		r.updateToggle()
 
 	}()
 	canvas.Refresh(r.toggle)
 }
 
 func (r *toogleRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.bgLeft, r.bgRight, r.bgMiddle, r.pin}
+	return []fyne.CanvasObject{r.bgLeft, r.bgRight, r.bgMiddle, r.shadow, r.pin}
 }
