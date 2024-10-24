@@ -1,6 +1,6 @@
 module github.com/ErikKalkoken/fyne-kx
 
-go 1.23
+go 1.19
 
 require (
 	fyne.io/fyne/v2 v2.5.2
