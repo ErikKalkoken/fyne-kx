@@ -15,13 +15,15 @@ import (
 const (
 	toggleBaseUnitSize    = theme.SizeNameText
 	toggleSizeFocusBorder = theme.SizeNamePadding
-	toggleSizePinBorder   = theme.SizeNameSelectionRadius
+	toggleSizePinBorder   = theme.SizeNameInputBorder
 
 	toggleColorBackgroundOff = theme.ColorNameButton
 	toggleColorBackgroundOn  = theme.ColorNamePrimary
 	toggleColorPinDisabled   = theme.ColorNameDisabled
 	toggleColorPinEnabled    = theme.ColorNameForeground
 	toggleColorPinFocused    = theme.ColorNameFocus
+
+	toggleScale = 1.75
 )
 
 // Toggle is a widget implementing a digital switch with two mutually exclusive states: on/off.
@@ -126,6 +128,7 @@ func (w *Toggle) MouseIn(e *desktop.MouseEvent) {
 	w.Refresh()
 }
 
+// MouseMoved is called when a desktop pointer hovers over the widget
 func (w *Toggle) MouseMoved(*desktop.MouseEvent) {
 	// needed to satisfy the interface only
 }
@@ -156,6 +159,7 @@ func (w *Toggle) CreateRenderer() fyne.WidgetRenderer {
 	return r
 }
 
+// toogleRenderer represents the renderer for the Toggle widget.
 type toogleRenderer struct {
 	bgLeft   *canvas.Circle
 	bgMiddle *canvas.Rectangle
@@ -167,27 +171,28 @@ type toogleRenderer struct {
 
 func (r *toogleRenderer) themeBase() (float32, fyne.Theme) {
 	th := r.toggle.Theme()
-	return th.Size(toggleBaseUnitSize), th
+	return th.Size(toggleBaseUnitSize) * toggleScale, th
 }
 
 func (r *toogleRenderer) Destroy() {
 }
 
+// MinSize returns the minimum size of the widget that is rendered by this renderer.
 func (r *toogleRenderer) MinSize() (size fyne.Size) {
 	u, _ := r.themeBase()
-	size = fyne.Size{Width: 3.5 * u, Height: 2.0 * u}
+	size = fyne.Size{Width: 2 * u, Height: 1 * u}
 	return
 }
 
+// Layout lays out the objects of this widget.
 func (r *toogleRenderer) Layout(size fyne.Size) {
 	u, _ := r.themeBase()
 	r.bgLeft.Position1 = fyne.NewPos(0, 0)
-	r.bgLeft.Position2 = fyne.NewPos(2*u, 2*u)
-	r.bgRight.Position1 = fyne.NewPos(1.5*u, 0)
-	r.bgRight.Position2 = fyne.NewPos(3.5*u, 2*u)
-	r.bgMiddle.Move(fyne.NewPos(1*u, 0))
-	r.bgMiddle.Resize(fyne.NewSize(1.5*u, 2*u))
-	r.updateToggle()
+	r.bgLeft.Position2 = fyne.NewPos(u, u)
+	r.bgRight.Position1 = fyne.NewPos(u, 0)
+	r.bgRight.Position2 = fyne.NewPos(2*u, u)
+	r.bgMiddle.Move(fyne.NewPos(0.5*u, 0))
+	r.bgMiddle.Resize(fyne.NewSize(u, u))
 }
 
 // updateToggle updates the rendered toggle based on it's current state.
@@ -196,11 +201,11 @@ func (r *toogleRenderer) updateToggle() {
 	v := fyne.CurrentApp().Settings().ThemeVariant()
 	var x float32
 	if r.toggle.On {
-		x = 1.5 * u
+		x = u
 	}
-	border1 := th.Size(toggleSizePinBorder) / 1.5
+	border1 := th.Size(toggleSizePinBorder)
 	r.pin.Position1 = fyne.NewPos(border1+x, border1)
-	r.pin.Position2 = fyne.NewPos(2*u-2*border1+x, 2*u-2*border1)
+	r.pin.Position2 = fyne.NewPos(u+x-2*border1, u-2*border1)
 	if r.toggle.Disabled() {
 		r.pin.FillColor = th.Color(toggleColorPinDisabled, v)
 	} else {
@@ -210,7 +215,7 @@ func (r *toogleRenderer) updateToggle() {
 
 	border2 := th.Size(toggleSizeFocusBorder)
 	r.shadow.Position1 = fyne.NewPos(x-border2, 0-border2)
-	r.shadow.Position2 = fyne.NewPos(2*u+x+border2, 2*u-1.5+border2)
+	r.shadow.Position2 = fyne.NewPos(u+x+border2, u+border2)
 	if r.toggle.focused {
 		r.shadow.FillColor = th.Color(toggleColorPinFocused, v)
 	} else {
@@ -230,18 +235,23 @@ func (r *toogleRenderer) updateToggle() {
 	r.bgRight.Refresh()
 	r.bgMiddle.FillColor = bg
 	r.bgMiddle.Refresh()
+
+	// fmt.Printf("bgLeft: %+v - %+v\n", r.bgLeft.Position1, r.bgLeft.Position2)
+	// fmt.Printf("bgRight: %+v - %+v\n", r.bgRight.Position1, r.bgRight.Position2)
+	// fmt.Printf("pin: %+v - %+v\n", r.pin.Position1, r.pin.Position2)
+	// fmt.Println()
 }
 
+// Refresh is called if the widget has updated and needs to be redrawn.
 func (r *toogleRenderer) Refresh() {
 	func() {
 		r.toggle.mu.RLock()
 		defer r.toggle.mu.RUnlock()
 		r.updateToggle()
-
 	}()
-	canvas.Refresh(r.toggle)
 }
 
+// Objects returns the objects that should be rendered.
 func (r *toogleRenderer) Objects() []fyne.CanvasObject {
 	return []fyne.CanvasObject{r.bgLeft, r.bgRight, r.bgMiddle, r.shadow, r.pin}
 }
