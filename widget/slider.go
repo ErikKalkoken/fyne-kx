@@ -7,22 +7,15 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/widget"
-	"golang.org/x/exp/constraints"
 
 	"github.com/ErikKalkoken/fyne-kx/layout"
 )
 
-type Numeric interface {
-	constraints.Integer | constraints.Float
-}
-
-// Slider is a widget that can slide between two fixed values
-// and always displays the current value.
-// The widget can be instantiated for any numeric type.
-type Slider[T Numeric] struct {
+// SliderWithValue an extension of the Slider widget that also displays the current value.
+type SliderWithValue struct {
 	widget.BaseWidget
 
-	OnChangeEnded func(T)
+	OnChangeEnded func(float64)
 
 	data   binding.Float
 	label  *widget.Label
@@ -30,40 +23,50 @@ type Slider[T Numeric] struct {
 	slider *widget.Slider
 }
 
-// NewSlider returns a new instance of a [Slider] widget.
-func NewSlider[T Numeric](min, max, step T) *Slider[T] {
-	x := widget.NewLabel(fmt.Sprintf("%v", max+step))
-	minW := x.MinSize().Width
+// NewSliderWithValue returns a new instance of a [SliderWithValue] widget.
+func NewSliderWithValue(min, max float64) *SliderWithValue {
 	d := binding.NewFloat()
-	w := &Slider[T]{
+	w := &SliderWithValue{
 		label:  widget.NewLabelWithData(binding.FloatToStringWithFormat(d, "%v")),
-		slider: widget.NewSliderWithData(float64(min), float64(max), d),
+		slider: widget.NewSliderWithData(min, max, d),
 		data:   d,
-		layout: layout.NewColumns(minW, 2*minW),
 	}
+	w.updateLayout()
 	w.label.Alignment = fyne.TextAlignTrailing
 	w.slider.OnChangeEnded = func(v float64) {
 		if w.OnChangeEnded == nil {
 			return
 		}
-		w.OnChangeEnded(T(v))
+		w.OnChangeEnded(v)
 	}
-	w.slider.Step = float64(step)
 	w.ExtendBaseWidget(w)
 	return w
 }
 
+// SetStep sets a custom step for a slider.
+func (w *SliderWithValue) SetStep(step float64) {
+	w.slider.Step = step
+	w.updateLayout()
+}
+
+func (w *SliderWithValue) updateLayout() {
+	x := widget.NewLabel(fmt.Sprintf("%v", w.slider.Max+w.slider.Step))
+	minW := x.MinSize().Width
+	// w.slider.Step = step
+	w.layout = layout.NewColumns(minW, minW)
+}
+
 // Value returns the current value of a slider.
-func (w *Slider[T]) Value() T {
-	return T(w.slider.Value)
+func (w *SliderWithValue) Value() float64 {
+	return w.slider.Value
 }
 
 // SetValue set the value of a slider.
-func (w *Slider[T]) SetValue(v T) {
+func (w *SliderWithValue) SetValue(v float64) {
 	w.slider.SetValue(float64(v))
 }
 
-func (w *Slider[T]) CreateRenderer() fyne.WidgetRenderer {
+func (w *SliderWithValue) CreateRenderer() fyne.WidgetRenderer {
 	c := container.New(w.layout, w.label, w.slider)
 	return widget.NewSimpleRenderer(c)
 }
