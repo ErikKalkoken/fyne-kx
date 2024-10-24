@@ -148,12 +148,14 @@ func (w *Toggle) CreateRenderer() fyne.WidgetRenderer {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	r := &toogleRenderer{
-		bgLeft:   canvas.NewCircle(bg),
-		bgMiddle: canvas.NewRectangle(bg),
-		bgRight:  canvas.NewCircle(bg),
-		pin:      canvas.NewCircle(th.Color(toggleColorPinEnabled, v)),
-		shadow:   canvas.NewCircle(color.Transparent),
-		toggle:   w,
+		bgLeft:      canvas.NewCircle(bg),
+		bgMiddle:    canvas.NewRectangle(bg),
+		bgRight:     canvas.NewCircle(bg),
+		pinLeft:     canvas.NewCircle(th.Color(toggleColorPinEnabled, v)),
+		pinRight:    canvas.NewCircle(color.Transparent),
+		shadowLeft:  canvas.NewCircle(color.Transparent),
+		shadowRight: canvas.NewCircle(color.Transparent),
+		toggle:      w,
 	}
 	r.updateToggle()
 	return r
@@ -161,12 +163,14 @@ func (w *Toggle) CreateRenderer() fyne.WidgetRenderer {
 
 // toogleRenderer represents the renderer for the Toggle widget.
 type toogleRenderer struct {
-	bgLeft   *canvas.Circle
-	bgMiddle *canvas.Rectangle
-	bgRight  *canvas.Circle
-	pin      *canvas.Circle
-	shadow   *canvas.Circle
-	toggle   *Toggle
+	bgLeft      *canvas.Circle
+	bgMiddle    *canvas.Rectangle
+	bgRight     *canvas.Circle
+	pinLeft     *canvas.Circle
+	pinRight    *canvas.Circle
+	shadowLeft  *canvas.Circle
+	shadowRight *canvas.Circle
+	toggle      *Toggle
 }
 
 func (r *toogleRenderer) themeBase() (float32, fyne.Theme) {
@@ -179,49 +183,77 @@ func (r *toogleRenderer) Destroy() {
 
 // MinSize returns the minimum size of the widget that is rendered by this renderer.
 func (r *toogleRenderer) MinSize() (size fyne.Size) {
-	u, _ := r.themeBase()
-	size = fyne.Size{Width: 2 * u, Height: 1 * u}
+	u, th := r.themeBase()
+	innerPadding := th.Size(theme.SizeNameInnerPadding) * 2
+	size = fyne.NewSize(2*u+innerPadding, u+innerPadding)
 	return
 }
 
 // Layout lays out the objects of this widget.
 func (r *toogleRenderer) Layout(size fyne.Size) {
-	u, _ := r.themeBase()
-	r.bgLeft.Position1 = fyne.NewPos(0, 0)
-	r.bgLeft.Position2 = fyne.NewPos(u, u)
-	r.bgRight.Position1 = fyne.NewPos(u, 0)
-	r.bgRight.Position2 = fyne.NewPos(2*u, u)
-	r.bgMiddle.Move(fyne.NewPos(0.5*u, 0))
-	r.bgMiddle.Resize(fyne.NewSize(u, u))
+	u, th := r.themeBase()
+	innerPadding := th.Size(theme.SizeNameInnerPadding)
+	orig := fyne.NewPos(innerPadding, (size.Height-u)/2) // center vertically
+	r.bgLeft.Position1 = orig
+	r.bgLeft.Position2 = orig.AddXY(u, u)
+	r.bgRight.Position1 = orig.AddXY(u, 0)
+	r.bgRight.Position2 = orig.AddXY(2*u, u)
+	r.bgMiddle.Move(orig.AddXY(0.5*u, 0))
+	r.bgMiddle.Resize(fyne.NewSquareSize(u))
+
+	border1 := th.Size(toggleSizePinBorder)
+	r.pinLeft.Position1 = orig.AddXY(border1, border1)
+	r.pinLeft.Position2 = orig.AddXY(u-2*border1, u-2*border1)
+
+	r.pinRight.Position1 = orig.AddXY(border1+u, border1)
+	r.pinRight.Position2 = orig.AddXY(2*u-2*border1, u-2*border1)
+
+	border2 := th.Size(toggleSizeFocusBorder)
+	r.shadowLeft.Position1 = orig.AddXY(0-border2, 0-border2)
+	r.shadowLeft.Position2 = orig.AddXY(u+border2, u+border2)
+
+	r.shadowRight.Position1 = orig.AddXY(u-border2, 0-border2)
+	r.shadowRight.Position2 = orig.AddXY(2*u+border2, u+border2)
+
+	// fmt.Printf("bgLeft: %+v - %+v\n", r.bgLeft.Position1, r.bgLeft.Position2)
+	// fmt.Printf("bgRight: %+v - %+v\n", r.bgRight.Position1, r.bgRight.Position2)
+	// fmt.Printf("pin: %+v - %+v\n", r.pin.Position1, r.pin.Position2)
+	// fmt.Println()
 }
 
 // updateToggle updates the rendered toggle based on it's current state.
 func (r *toogleRenderer) updateToggle() {
-	u, th := r.themeBase()
+	_, th := r.themeBase()
 	v := fyne.CurrentApp().Settings().ThemeVariant()
-	var x float32
-	if r.toggle.On {
-		x = u
-	}
-	border1 := th.Size(toggleSizePinBorder)
-	r.pin.Position1 = fyne.NewPos(border1+x, border1)
-	r.pin.Position2 = fyne.NewPos(u+x-2*border1, u-2*border1)
-	if r.toggle.Disabled() {
-		r.pin.FillColor = th.Color(toggleColorPinDisabled, v)
-	} else {
-		r.pin.FillColor = th.Color(toggleColorPinEnabled, v)
-	}
-	r.pin.Refresh()
 
-	border2 := th.Size(toggleSizeFocusBorder)
-	r.shadow.Position1 = fyne.NewPos(x-border2, 0-border2)
-	r.shadow.Position2 = fyne.NewPos(u+x+border2, u+border2)
-	if r.toggle.focused {
-		r.shadow.FillColor = th.Color(toggleColorPinFocused, v)
+	var pinColor color.Color
+	if r.toggle.Disabled() {
+		pinColor = th.Color(toggleColorPinDisabled, v)
 	} else {
-		r.shadow.FillColor = color.Transparent
+		pinColor = th.Color(toggleColorPinEnabled, v)
 	}
-	r.shadow.Refresh()
+	var focusColor color.Color
+	if r.toggle.focused {
+		focusColor = th.Color(toggleColorPinFocused, v)
+	} else {
+		focusColor = color.Transparent
+	}
+
+	if r.toggle.On {
+		r.pinLeft.FillColor = color.Transparent
+		r.shadowLeft.FillColor = color.Transparent
+		r.pinRight.FillColor = pinColor
+		r.shadowRight.FillColor = focusColor
+	} else {
+		r.pinLeft.FillColor = pinColor
+		r.shadowLeft.FillColor = focusColor
+		r.pinRight.FillColor = color.Transparent
+		r.shadowRight.FillColor = color.Transparent
+	}
+	r.pinLeft.Refresh()
+	r.shadowLeft.Refresh()
+	r.pinRight.Refresh()
+	r.shadowRight.Refresh()
 
 	var bg color.Color
 	if r.toggle.On {
@@ -235,11 +267,6 @@ func (r *toogleRenderer) updateToggle() {
 	r.bgRight.Refresh()
 	r.bgMiddle.FillColor = bg
 	r.bgMiddle.Refresh()
-
-	// fmt.Printf("bgLeft: %+v - %+v\n", r.bgLeft.Position1, r.bgLeft.Position2)
-	// fmt.Printf("bgRight: %+v - %+v\n", r.bgRight.Position1, r.bgRight.Position2)
-	// fmt.Printf("pin: %+v - %+v\n", r.pin.Position1, r.pin.Position2)
-	// fmt.Println()
 }
 
 // Refresh is called if the widget has updated and needs to be redrawn.
@@ -253,5 +280,5 @@ func (r *toogleRenderer) Refresh() {
 
 // Objects returns the objects that should be rendered.
 func (r *toogleRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.bgLeft, r.bgRight, r.bgMiddle, r.shadow, r.pin}
+	return []fyne.CanvasObject{r.bgLeft, r.bgRight, r.bgMiddle, r.pinLeft, r.pinRight, r.shadowLeft, r.shadowRight}
 }
