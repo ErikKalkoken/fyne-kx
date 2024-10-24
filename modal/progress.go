@@ -1,3 +1,4 @@
+// Package modal defines modals for the Fyne GUI toolkit.
 package modal
 
 import (
@@ -36,8 +37,8 @@ func NewProgress(title, message string, action func(progress binding.Float) erro
 	return m
 }
 
-// Show shows the modal and runs the action function.
-func (m *ProgressModal) Show() {
+// Start starts the action function and shows the modal while it is running.
+func (m *ProgressModal) Start() {
 	m.d.Show()
 	go func() {
 		err := m.action(m.pg)
@@ -47,6 +48,168 @@ func (m *ProgressModal) Show() {
 				m.OnError(err)
 			}
 		} else {
+			if m.OnSuccess != nil {
+				m.OnSuccess()
+			}
+		}
+	}()
+}
+
+// ProgressCancelModal is a modal that shows a progress indicator while a function is running.
+// The progress indicator is updated by the function.
+type ProgressCancelModal struct {
+	// Optional callback when the action failed.
+	OnError func(err error)
+
+	// Optional callback when the action succeeded.
+	OnSuccess func()
+
+	action   func(binding.Float, chan struct{}) error
+	canceled chan struct{}
+	d        *dialog.CustomDialog
+	pb       *widget.ProgressBar
+	pg       binding.Float
+}
+
+// NewProgress returns a new [ProgressModal] instance.
+func NewProgressWithCancel(title, message string, action func(progress binding.Float, canceled chan struct{}) error, max float64, parent fyne.Window) *ProgressCancelModal {
+	m := &ProgressCancelModal{
+		action: action,
+		pg:     binding.NewFloat(),
+	}
+	m.pb = widget.NewProgressBarWithData(m.pg)
+	m.pb.Max = max
+	content := container.NewVBox(
+		widget.NewLabel(message),
+		m.pb,
+		container.NewPadded(),
+		container.NewCenter(widget.NewButton("Cancel", func() {
+			closeChannelIfOpen(m.canceled)
+		})))
+	m.d = dialog.NewCustomWithoutButtons(title, content, parent)
+	return m
+}
+
+// Start starts the action function and shows the modal while it is running.
+func (m *ProgressCancelModal) Start() {
+	m.canceled = make(chan struct{})
+	m.d.Show()
+	go func() {
+		err := m.action(m.pg, m.canceled)
+		m.d.Hide()
+		if err != nil {
+			if m.OnError != nil {
+				m.OnError(err)
+			}
+		} else {
+			closeChannelIfOpen(m.canceled)
+			if m.OnSuccess != nil {
+				m.OnSuccess()
+			}
+		}
+	}()
+}
+
+func closeChannelIfOpen(c chan struct{}) {
+	select {
+	case <-c:
+	default:
+		close(c)
+	}
+}
+
+// ProgressInfiniteModal is a modal that shows an infinite progress indicator while a function is running.
+type ProgressInfiniteModal struct {
+	// Optional callback when the action failed.
+	OnError func(err error)
+
+	// Optional callback when the action succeeded.
+	OnSuccess func()
+
+	action func() error
+	d      *dialog.CustomDialog
+	pb     *widget.ProgressBarInfinite
+}
+
+// NewProgressInfinite returns a new [ProgressInfiniteModal] instance.
+func NewProgressInfinite(title, message string, action func() error, parent fyne.Window) *ProgressInfiniteModal {
+	m := &ProgressInfiniteModal{
+		action: action,
+		pb:     widget.NewProgressBarInfinite(),
+	}
+	content := container.NewVBox(widget.NewLabel(message), m.pb)
+	m.d = dialog.NewCustomWithoutButtons(title, content, parent)
+	return m
+}
+
+// Start starts the action function and shows the modal while it is running.
+func (m *ProgressInfiniteModal) Start() {
+	m.pb.Start()
+	m.d.Show()
+	go func() {
+		err := m.action()
+		m.d.Hide()
+		if err != nil {
+			if m.OnError != nil {
+				m.OnError(err)
+			}
+		} else {
+			if m.OnSuccess != nil {
+				m.OnSuccess()
+			}
+		}
+	}()
+}
+
+// ProgressInfiniteCancelModal is a modal that shows an infinite progress indicator while a function is running.
+// The modal has a button for canceling the function.
+type ProgressInfiniteCancelModal struct {
+	// Optional callback when the action failed.
+	OnError func(err error)
+
+	// Optional callback when the action succeeded.
+	OnSuccess func()
+
+	action   func(chan struct{}) error
+	canceled chan struct{}
+	d        *dialog.CustomDialog
+	pb       *widget.ProgressBarInfinite
+}
+
+// NewProgressInfiniteWithCancel returns a new [ProgressInfiniteCancelModal] instance.
+// The action function needs to check the canceled channel and abort if it is closed.
+func NewProgressInfiniteWithCancel(
+	title, message string, action func(canceled chan struct{}) error, parent fyne.Window,
+) *ProgressInfiniteCancelModal {
+	m := &ProgressInfiniteCancelModal{
+		action: action,
+		pb:     widget.NewProgressBarInfinite(),
+	}
+	content := container.NewVBox(
+		widget.NewLabel(message),
+		m.pb,
+		container.NewPadded(),
+		container.NewCenter(widget.NewButton("Cancel", func() {
+			closeChannelIfOpen(m.canceled)
+		})))
+	m.d = dialog.NewCustomWithoutButtons(title, content, parent)
+	return m
+}
+
+// Start starts the action function and shows the modal while it is running.
+func (m *ProgressInfiniteCancelModal) Start() {
+	m.canceled = make(chan struct{})
+	m.pb.Show()
+	m.d.Show()
+	go func() {
+		err := m.action(m.canceled)
+		m.d.Hide()
+		if err != nil {
+			if m.OnError != nil {
+				m.OnError(err)
+			}
+		} else {
+			closeChannelIfOpen(m.canceled)
 			if m.OnSuccess != nil {
 				m.OnSuccess()
 			}
