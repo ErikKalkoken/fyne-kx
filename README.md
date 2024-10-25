@@ -31,7 +31,7 @@ Modals are similar to Fyne dialogs, but do not require user interaction. They ar
 
 Progress modals are modals that show a progress indicator while an action function is running. The library provides several variants.
 
-![progress modal](https://cdn.imgpile.com/f/p8NDn3O_xl.png)
+![progress modal](https://cdn.imgpile.com/f/vZkxURa_xl.png)
 
 ### Widgets
 

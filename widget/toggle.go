@@ -19,8 +19,8 @@ const (
 
 	toggleColorBackgroundOff    = theme.ColorNameInputBorder
 	toggleColorBackgroundOn     = theme.ColorNamePrimary
-	toggleColorPinDisabledDark  = theme.ColorNameBackground
-	toggleColorPinDisabledLight = theme.ColorNameForeground
+	toggleColorPinDisabledDark  = theme.ColorNameDisabledButton
+	toggleColorPinDisabledLight = theme.ColorNamePlaceHolder
 	toggleColorPinEnabledDark   = theme.ColorNameForeground
 	toggleColorPinEnabledLight  = theme.ColorNameBackground
 	toggleColorPinFocused       = theme.ColorNameFocus
