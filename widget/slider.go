@@ -11,7 +11,7 @@ import (
 	"github.com/ErikKalkoken/fyne-kx/layout"
 )
 
-// SliderWithValue an extension of the Slider widget that also displays the current value.
+// SliderWithValue is a variation of the Slider widget that also displays the current value.
 type SliderWithValue struct {
 	widget.BaseWidget
 

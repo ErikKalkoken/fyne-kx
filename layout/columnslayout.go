@@ -11,10 +11,12 @@ type columnsLayout struct {
 
 // NewColumns returns a new columns layout.
 //
-// This layout arranges all objects in a row, with each in their own column with a given minimum width.
-// The last width will be re-used for additional columns if needed.
+// Columns arranges all objects in a row, with each in their own column with a given minimum width.
+// It can be used to arrange subsequent rows of objects in columns.
 //
-// This layout can be used to arrange subsequent rows of objects in columns.
+// The layout will fill the available space. This means that the trailing column might be wider,
+// when the parent container has more space available. But it can never shrink below the given width.
+// The last width will be re-used for additional columns if needed.
 func NewColumns(widths ...float32) fyne.Layout {
 	if len(widths) == 0 {
 		panic("Need to define at least one width")

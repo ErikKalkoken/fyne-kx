@@ -3,6 +3,7 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -13,6 +14,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
+	kxlayout "github.com/ErikKalkoken/fyne-kx/layout"
 	kxmodal "github.com/ErikKalkoken/fyne-kx/modal"
 	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
@@ -21,6 +23,7 @@ func main() {
 	app := app.New()
 	w := app.NewWindow("KX Demo")
 	tabs := container.NewAppTabs(
+		container.NewTabItem("Layouts", makeLayouts()),
 		container.NewTabItem("Modals", makeModals(w)),
 		container.NewTabItem("Widgets", makeWidgets()),
 	)
@@ -28,6 +31,30 @@ func main() {
 	w.SetContent(tabs)
 	w.Resize(fyne.NewSize(600, 400))
 	w.ShowAndRun()
+}
+
+func makeLayouts() fyne.CanvasObject {
+	layout := kxlayout.NewColumns(150, 100, 50)
+	makeBox := func(h float32) fyne.CanvasObject {
+		x := canvas.NewRectangle(theme.Color(theme.ColorNameDisabled))
+		w := rand.Float32()*100 + 50
+		x.SetMinSize(fyne.NewSize(w, h))
+		return x
+	}
+	c := container.NewVBox(
+		container.New(layout, makeBox(50), makeBox(50), makeBox(50)),
+		container.New(layout, makeBox(150), makeBox(150), makeBox(150)),
+		container.New(layout, makeBox(30), makeBox(30), makeBox(30)),
+	)
+	x := widget.NewLabel("Columns")
+	x.TextStyle.Bold = true
+	return container.NewBorder(
+		container.NewVBox(x, widget.NewSeparator()),
+		nil,
+		nil,
+		nil,
+		c,
+	)
 }
 
 func makeWidgets() fyne.CanvasObject {
@@ -42,28 +69,23 @@ func makeWidgets() fyne.CanvasObject {
 	label := kxwidget.NewTappableLabel("Tap me", func() {
 		log.Println("TappableLabel")
 	})
+	toggle := kxwidget.NewToggle(func(on bool) {
+		log.Println("Toggle: ", on)
+	})
+	toggle.On = true
 	f := &widget.Form{
 		Items: []*widget.FormItem{
-			{
-				Text:   "Badge",
-				Widget: kxwidget.NewBadge("1234"),
-			},
-			{
-				Text:   "SliderWithValue",
-				Widget: kxwidget.NewSliderWithValue(0, 50),
-			},
-			{
-				Text:   "TappableIcon",
-				Widget: icon,
-			},
-			{
-				Text:   "TappableImage",
-				Widget: img,
-			},
-			{
-				Text:   "TappableLabel",
-				Widget: label,
-			},
+			{Text: "Badge", Widget: kxwidget.NewBadge("1234")},
+			{Text: "", Widget: container.NewPadded()},
+			{Text: "SliderWithValue", Widget: kxwidget.NewSliderWithValue(0, 50)},
+			{Text: "", Widget: container.NewPadded()},
+			{Text: "TappableIcon", Widget: icon},
+			{Text: "", Widget: container.NewPadded()},
+			{Text: "TappableImage", Widget: img},
+			{Text: "", Widget: container.NewPadded()},
+			{Text: "TappableLabel", Widget: label},
+			{Text: "", Widget: container.NewPadded()},
+			{Text: "Toggle", Widget: toggle},
 		},
 	}
 	return f
@@ -72,12 +94,12 @@ func makeWidgets() fyne.CanvasObject {
 func makeModals(w fyne.Window) *fyne.Container {
 	b1 := widget.NewButton("ProgressModal", func() {
 		m := kxmodal.NewProgress("ProgressModal", "Please wait...", func(progress binding.Float) error {
-			for i := 1; i < 10; i++ {
+			for i := 1; i < 50; i++ {
 				progress.Set(float64(i))
-				time.Sleep(250 * time.Millisecond)
+				time.Sleep(100 * time.Millisecond)
 			}
 			return nil
-		}, 10, w)
+		}, 50, w)
 		m.Start()
 	})
 
@@ -99,9 +121,7 @@ func makeModals(w fyne.Window) *fyne.Container {
 
 	b3 := widget.NewButton("ProgressInfiniteModal", func() {
 		m := kxmodal.NewProgressInfinite("ProgressInfiniteModal", "Please wait...", func() error {
-			for i := 1; i < 10; i++ {
-				time.Sleep(250 * time.Millisecond)
-			}
+			time.Sleep(3 * time.Second)
 			return nil
 		}, w)
 		m.Start()

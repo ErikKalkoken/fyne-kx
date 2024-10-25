@@ -14,8 +14,8 @@ const (
 	badgeBackgroundColorDefault = theme.ColorNameInputBackground
 )
 
-// Badge is a variant of Fyne label widget that renders as badge.
-// Badges are common UI elements to display counts.
+// Badge is a variant of the Fyne label widget that renders a rounded box around the text.
+// Badges are commonly used to display counts.
 type Badge struct {
 	*widget.Label
 }

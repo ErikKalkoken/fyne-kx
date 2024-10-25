@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// TappableImage is widget that shows an image and has an event callback when tapped.
+// TappableImage is widget which shows an image and runs a function when tapped.
 type TappableImage struct {
 	widget.BaseWidget
 	image *canvas.Image

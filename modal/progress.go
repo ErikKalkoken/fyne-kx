@@ -1,4 +1,25 @@
-// Package modal defines modals for the Fyne GUI toolkit.
+/*
+Package modal defines modals for the Fyne GUI toolkit.
+
+Modals are similar to Fyne dialogs, but do not require user interaction.
+They are useful when you have a longer running process that the user needs to wait for before he can continue. e.g. opening a large file.
+
+Progress modals are modals that show a progress indicator while an action function is running.
+The are several variant, which all share a similar API:
+
+- Title and message
+- Action function callback that return an error
+- Callback hooks for success and error, e.g. to inform the user about an error
+- Start() method is called to start the action
+
+A progress modal can be used similar to Fyne dialogs:
+
+	m := kxmodal.NewProgressInfinite("Loading file", "Loading file XX. Please wait.", func() error {
+		time.Sleep(3 * time.Second)  // simulate a long running process
+		return nil
+	}, w)
+	m.Start()
+*/
 package modal
 
 import (
@@ -9,8 +30,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// ProgressModal is a modal that shows a progress indicator while a function is running.
-// The progress indicator is updated by the function.
+// ProgressModal is a modal that shows a progress indicator while an action function is running.
+// The progress indicator must be updated by the action function.
 type ProgressModal struct {
 	// Optional callback when the action failed.
 	OnError func(err error)

@@ -6,7 +6,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// TappableLabel is a Label that can be tapped.
+// TappableLabel is a variant of the Fyne Label which runs a function when tapped.
 type TappableLabel struct {
 	*widget.Label
 
