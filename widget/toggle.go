@@ -200,7 +200,7 @@ func (r *toogleRenderer) MinSize() (size fyne.Size) {
 func (r *toogleRenderer) Layout(size fyne.Size) {
 	u, th := r.themeBase()
 	innerPadding := th.Size(theme.SizeNameInnerPadding)
-	orig := fyne.NewPos(innerPadding, (size.Height-u)/2) // center vertically
+	orig := fyne.NewPos(innerPadding, size.Height/2-u/2) // center vertically
 	r.bgLeft.Position1 = orig
 	r.bgLeft.Position2 = orig.AddXY(u, u)
 	r.bgRight.Position1 = orig.AddXY(u, 0)
@@ -208,12 +208,15 @@ func (r *toogleRenderer) Layout(size fyne.Size) {
 	r.bgMiddle.Move(orig.AddXY(0.5*u, 0))
 	r.bgMiddle.Resize(fyne.NewSquareSize(u))
 
-	border1 := th.Size(toggleSizePinBorder)
-	r.pinLeft.Position1 = orig.AddXY(border1, border1)
-	r.pinLeft.Position2 = orig.AddXY(u-2*border1, u-2*border1)
+	// fmt.Printf("%+v\n", r.bgLeft.Position())
+	// fmt.Printf("%+v\n", r.bgRight.Position())
+	// fmt.Printf("%+v\n\n", r.bgMiddle.Position())
 
-	r.pinRight.Position1 = orig.AddXY(border1+u, border1)
-	r.pinRight.Position2 = orig.AddXY(2*u-2*border1, u-2*border1)
+	r.pinLeft.Position1 = r.bgLeft.Position1
+	r.pinLeft.Position2 = r.bgLeft.Position2
+
+	r.pinRight.Position1 = r.bgRight.Position1
+	r.pinRight.Position2 = r.bgRight.Position2
 
 	border2 := th.Size(toggleSizeFocusBorder)
 	r.shadowLeft.Position1 = orig.AddXY(0-border2, 0-border2)
