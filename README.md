@@ -4,6 +4,9 @@ A library with extensions for the Fyne GUI toolkit.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/ErikKalkoken/fyne-kx.svg)](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx)
 
+> [!NOTE]
+> This is an early version of the library and the API is suspect to change until version 1.0 is reached.
+
 ## Description
 
 This library contains several extensions for the [Fyne GUI toolkit](https://fyne.io/):
@@ -18,7 +21,7 @@ For a live demo please see the [demo app](#demo).
 
 ### Layouts
 
-- **Columns**: Columns arranges all objects in a row, with each in their own column with a given minimum width.
+- [Columns](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/layout#NewColumns): Columns arranges all objects in a row, with each in their own column with a given minimum width.
 It can be used to arrange subsequent rows of objects in columns.
 
 ![Example](https://cdn.imgpile.com/f/maoyoP1_xl.png)
@@ -29,7 +32,7 @@ Modals are similar to Fyne dialogs, but do not require user interaction. They ar
 
 #### Progress
 
-Progress modals are modals that show a progress indicator while an action function is running. The library provides several variants.
+[Progress modals](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/modal#hdr-Progress_modals) are modals that show a progress indicator while an action function is running. The library provides several variants.
 
 ![progress modal](https://cdn.imgpile.com/f/vZkxURa_xl.png)
 
@@ -37,12 +40,12 @@ Progress modals are modals that show a progress indicator while an action functi
 
 This library contains several Fyne widgets:
 
-- Badge is a variant of the Fyne label widget that renders a rounded box around the text
-- SliderWithValue is a variation of the Slider widget that also displays the current value
-- TappableIcon is an icon widget which runs a function when tapped
-- TappableImage is widget which shows an image and runs a function when tapped
-- TappableLabel is a variant of the Fyne Label which runs a function when tapped
-- Toggle is a widget implementing a digital switch with two mutually exclusive states: on/off
+- [Badge](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Badge) is a variant of the Fyne label widget that renders a rounded box around the text
+- [Slider](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Slider) is a variation of the Slider widget that also displays the current value
+- [TappableIcon](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableIcon) is an icon widget which runs a function when tapped
+- [TappableImage](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableImage) is widget which shows an image and runs a function when tapped
+- [TappableLabel](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableLabel) is a variant of the Fyne Label which runs a function when tapped
+- [Toggle](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Toggle) is a widget implementing a digital switch with two mutually exclusive states: on/off
 
 ![example](https://cdn.imgpile.com/f/swLOMWS_xl.png)
 

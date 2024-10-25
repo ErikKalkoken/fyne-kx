@@ -11,8 +11,8 @@ import (
 	"github.com/ErikKalkoken/fyne-kx/layout"
 )
 
-// SliderWithValue is a variation of the Slider widget that also displays the current value.
-type SliderWithValue struct {
+// Slider is a variant of the Fyne Slider widget that also displays the current value.
+type Slider struct {
 	widget.BaseWidget
 
 	OnChangeEnded func(float64)
@@ -23,10 +23,10 @@ type SliderWithValue struct {
 	slider *widget.Slider
 }
 
-// NewSliderWithValue returns a new instance of a [SliderWithValue] widget.
-func NewSliderWithValue(min, max float64) *SliderWithValue {
+// NewSlider returns a new instance of a [Slider] widget.
+func NewSlider(min, max float64) *Slider {
 	d := binding.NewFloat()
-	w := &SliderWithValue{
+	w := &Slider{
 		label:  widget.NewLabelWithData(binding.FloatToStringWithFormat(d, "%v")),
 		slider: widget.NewSliderWithData(min, max, d),
 		data:   d,
@@ -44,28 +44,28 @@ func NewSliderWithValue(min, max float64) *SliderWithValue {
 }
 
 // SetStep sets a custom step for a slider.
-func (w *SliderWithValue) SetStep(step float64) {
+func (w *Slider) SetStep(step float64) {
 	w.slider.Step = step
 	w.updateLayout()
 }
 
-func (w *SliderWithValue) updateLayout() {
+func (w *Slider) updateLayout() {
 	x := widget.NewLabel(fmt.Sprintf("%v", w.slider.Max+w.slider.Step))
 	minW := x.MinSize().Width
 	w.layout = layout.NewColumns(minW, minW)
 }
 
 // Value returns the current value of a slider.
-func (w *SliderWithValue) Value() float64 {
+func (w *Slider) Value() float64 {
 	return w.slider.Value
 }
 
 // SetValue set the value of a slider.
-func (w *SliderWithValue) SetValue(v float64) {
+func (w *Slider) SetValue(v float64) {
 	w.slider.SetValue(float64(v))
 }
 
-func (w *SliderWithValue) CreateRenderer() fyne.WidgetRenderer {
+func (w *Slider) CreateRenderer() fyne.WidgetRenderer {
 	c := container.New(w.layout, w.label, w.slider)
 	return widget.NewSimpleRenderer(c)
 }

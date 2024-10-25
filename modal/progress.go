@@ -1,16 +1,21 @@
 /*
 Package modal defines modals for the Fyne GUI toolkit.
 
+# Modals
+
 Modals are similar to Fyne dialogs, but do not require user interaction.
 They are useful when you have a longer running process that the user needs to wait for before he can continue. e.g. opening a large file.
 
+# Progress modals
+
 Progress modals are modals that show a progress indicator while an action function is running.
 The are several variant, which all share a similar API:
+  - Title and message
+  - Action function callback that return an error
+  - Callback hooks for success and error, e.g. to inform the user about an error
+  - Start() method is called to start the action
 
-- Title and message
-- Action function callback that return an error
-- Callback hooks for success and error, e.g. to inform the user about an error
-- Start() method is called to start the action
+Note that the action function will always be run as a goroutine.
 
 A progress modal can be used similar to Fyne dialogs:
 

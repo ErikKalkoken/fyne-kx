@@ -83,7 +83,7 @@ func makeWidgets() fyne.CanvasObject {
 	label := kxwidget.NewTappableLabel("Tap me", func() {
 		log.Println("TappableLabel")
 	})
-	slider := kxwidget.NewSliderWithValue(0, 100)
+	slider := kxwidget.NewSlider(0, 100)
 	slider.SetValue(25)
 	toggle1 := kxwidget.NewToggle(func(on bool) {
 		log.Println("Toggle 1: ", on)
@@ -101,7 +101,7 @@ func makeWidgets() fyne.CanvasObject {
 		Items: []*widget.FormItem{
 			{Text: "Badge", Widget: badge},
 			{Text: "", Widget: container.NewPadded()},
-			{Text: "SliderWithValue", Widget: slider},
+			{Text: "Slider", Widget: slider},
 			{Text: "", Widget: container.NewPadded()},
 			{Text: "TappableIcon", Widget: container.NewHBox(icon)},
 			{Text: "", Widget: container.NewPadded()},
