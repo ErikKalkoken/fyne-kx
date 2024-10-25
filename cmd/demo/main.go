@@ -28,8 +28,35 @@ func main() {
 		container.NewTabItem("Widgets", makeWidgets()),
 	)
 	tabs.SetTabLocation(container.TabLocationLeading)
-	w.SetContent(tabs)
-	w.Resize(fyne.NewSize(600, 400))
+	tabs.SelectIndex(2)
+	initialTheme := app.Settings().ThemeVariant()
+	theme := widget.NewRadioGroup([]string{"Auto", "Dark", "Light"}, func(s string) {
+		var th fyne.Theme
+		switch s {
+		case "Auto":
+			if initialTheme == theme.VariantLight {
+				th = theme.LightTheme()
+			} else {
+				th = theme.DarkTheme()
+			}
+		case "Dark":
+			th = theme.DarkTheme()
+		case "Light":
+			th = theme.LightTheme()
+		}
+		app.Settings().SetTheme(th)
+	})
+	theme.SetSelected("Auto")
+	theme.Horizontal = true
+	f := widget.NewForm(widget.NewFormItem("Theme", theme))
+	w.SetContent(container.NewBorder(
+		nil,
+		container.NewVBox(widget.NewSeparator(), f),
+		nil,
+		nil,
+		tabs,
+	))
+	w.Resize(fyne.NewSize(600, 500))
 	w.ShowAndRun()
 }
 
