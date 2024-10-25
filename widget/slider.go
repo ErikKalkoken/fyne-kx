@@ -52,7 +52,6 @@ func (w *SliderWithValue) SetStep(step float64) {
 func (w *SliderWithValue) updateLayout() {
 	x := widget.NewLabel(fmt.Sprintf("%v", w.slider.Max+w.slider.Step))
 	minW := x.MinSize().Width
-	// w.slider.Step = step
 	w.layout = layout.NewColumns(minW, minW)
 }
 

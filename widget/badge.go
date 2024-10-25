@@ -1,10 +1,17 @@
 package widget
 
 import (
+	"fmt"
+	"image/color"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+)
+
+const (
+	badgeBackgroundColorDefault = theme.ColorNameInputBackground
 )
 
 // Badge is a variant of Fyne label widget that renders as badge.
@@ -17,21 +24,23 @@ type Badge struct {
 func NewBadge(text string) *Badge {
 	w := &Badge{Label: widget.NewLabel(text)}
 	w.ExtendBaseWidget(w)
-	w.SetText(text)
 	return w
 }
 
 func (w *Badge) CreateRenderer() fyne.WidgetRenderer {
 	r := w.Label.CreateRenderer()
-	b := canvas.NewRectangle(theme.Color(theme.ColorNameInputBackground))
+	b := canvas.NewRectangle(color.Transparent)
 	b.CornerRadius = 10
-	return &badgeRenderer{WidgetRenderer: r, background: b}
+	r2 := &badgeRenderer{WidgetRenderer: r, background: b, badge: w}
+	r2.updateBadge()
+	return r2
 }
 
 type badgeRenderer struct {
 	fyne.WidgetRenderer
 
 	background *canvas.Rectangle
+	badge      *Badge
 }
 
 func (r *badgeRenderer) Layout(size fyne.Size) {
@@ -55,7 +64,22 @@ func (r *badgeRenderer) MinSize() fyne.Size {
 	return minSize
 }
 
+func (r *badgeRenderer) Refresh() {
+	r.updateBadge()
+}
+
 func (r *badgeRenderer) Objects() []fyne.CanvasObject {
 	objs := []fyne.CanvasObject{r.background, r.WidgetRenderer.Objects()[0]}
 	return objs
+}
+
+func (r *badgeRenderer) updateBadge() {
+	th := r.badge.Theme()
+	v := fyne.CurrentApp().Settings().ThemeVariant()
+	switch r.badge.Importance {
+	default:
+		r.background.FillColor = th.Color(theme.ColorNameInputBackground, v)
+	}
+	r.background.Refresh()
+	fmt.Printf("updated badge")
 }

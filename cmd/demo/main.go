@@ -31,10 +31,17 @@ func main() {
 }
 
 func makeWidgets() fyne.CanvasObject {
-	img := kxwidget.NewTappableImage(theme.FyneLogo(), canvas.ImageFillContain, func() {
+	img := kxwidget.NewTappableImage(theme.FyneLogo(), func() {
 		log.Println("TappableImage")
 	})
+	img.SetFillMode(canvas.ImageFillContain)
 	img.SetMinSize(fyne.NewSize(100, 100))
+	icon := kxwidget.NewTappableIcon(theme.AccountIcon(), func() {
+		log.Println("TappableIcon")
+	})
+	label := kxwidget.NewTappableLabel("Tap me", func() {
+		log.Println("TappableLabel")
+	})
 	f := &widget.Form{
 		Items: []*widget.FormItem{
 			{
@@ -46,20 +53,17 @@ func makeWidgets() fyne.CanvasObject {
 				Widget: kxwidget.NewSliderWithValue(0, 50),
 			},
 			{
-				Text: "TappableIcon",
-				Widget: kxwidget.NewTappableIcon(theme.AccountIcon(), func() {
-					log.Println("TappableIcon")
-				}),
+				Text:   "TappableIcon",
+				Widget: icon,
 			},
 			{
 				Text:   "TappableImage",
 				Widget: img,
 			},
 			{
-				Text: "TappableLabel",
-				Widget: kxwidget.NewTappableLabel("Tap me", func() {
-					log.Println("TappableLabel")
-				})},
+				Text:   "TappableLabel",
+				Widget: label,
+			},
 		},
 	}
 	return f

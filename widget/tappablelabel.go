@@ -8,7 +8,7 @@ import (
 
 // TappableLabel is a Label that can be tapped.
 type TappableLabel struct {
-	widget.Label
+	*widget.Label
 
 	// The function that is called when the label is tapped.
 	OnTapped func()
@@ -21,36 +21,35 @@ var _ desktop.Hoverable = (*TappableLabel)(nil)
 
 // NewTappableLabel returns a new TappableLabel instance.
 func NewTappableLabel(text string, tapped func()) *TappableLabel {
-	l := &TappableLabel{OnTapped: tapped}
-	l.ExtendBaseWidget(l)
-	l.SetText(text)
-	return l
+	w := &TappableLabel{OnTapped: tapped, Label: widget.NewLabel(text)}
+	w.ExtendBaseWidget(w)
+	return w
 }
 
-func (l *TappableLabel) Tapped(_ *fyne.PointEvent) {
-	if l.OnTapped != nil {
-		l.OnTapped()
+func (w *TappableLabel) Tapped(_ *fyne.PointEvent) {
+	if w.OnTapped != nil {
+		w.OnTapped()
 	}
 }
 
 // Cursor returns the cursor type of this widget
-func (l *TappableLabel) Cursor() desktop.Cursor {
-	if l.hovered {
+func (w *TappableLabel) Cursor() desktop.Cursor {
+	if w.hovered {
 		return desktop.PointerCursor
 	}
 	return desktop.DefaultCursor
 }
 
 // MouseIn is a hook that is called if the mouse pointer enters the element.
-func (l *TappableLabel) MouseIn(e *desktop.MouseEvent) {
-	l.hovered = true
+func (w *TappableLabel) MouseIn(e *desktop.MouseEvent) {
+	w.hovered = true
 }
 
-func (l *TappableLabel) MouseMoved(*desktop.MouseEvent) {
+func (w *TappableLabel) MouseMoved(*desktop.MouseEvent) {
 	// needed to satisfy the interface only
 }
 
 // MouseOut is a hook that is called if the mouse pointer leaves the element.
-func (l *TappableLabel) MouseOut() {
-	l.hovered = false
+func (w *TappableLabel) MouseOut() {
+	w.hovered = false
 }

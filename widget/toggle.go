@@ -17,11 +17,12 @@ const (
 	toggleSizeFocusBorder = theme.SizeNamePadding
 	toggleSizePinBorder   = theme.SizeNameInputBorder
 
-	toggleColorBackgroundOff = theme.ColorNameButton
-	toggleColorBackgroundOn  = theme.ColorNamePrimary
-	toggleColorPinDisabled   = theme.ColorNameDisabled
-	toggleColorPinEnabled    = theme.ColorNameForeground
-	toggleColorPinFocused    = theme.ColorNameFocus
+	toggleColorBackgroundOff   = theme.ColorNameButton
+	toggleColorBackgroundOn    = theme.ColorNamePrimary
+	toggleColorPinDisabled     = theme.ColorNameDisabled
+	toggleColorPinEnabledDark  = theme.ColorNameForeground
+	toggleColorPinEnabledLight = theme.ColorNameBackground
+	toggleColorPinFocused      = theme.ColorNameFocus
 
 	toggleScale = 1.75
 )
@@ -151,7 +152,7 @@ func (w *Toggle) CreateRenderer() fyne.WidgetRenderer {
 		bgLeft:      canvas.NewCircle(bg),
 		bgMiddle:    canvas.NewRectangle(bg),
 		bgRight:     canvas.NewCircle(bg),
-		pinLeft:     canvas.NewCircle(th.Color(toggleColorPinEnabled, v)),
+		pinLeft:     canvas.NewCircle(color.Transparent),
 		pinRight:    canvas.NewCircle(color.Transparent),
 		shadowLeft:  canvas.NewCircle(color.Transparent),
 		shadowRight: canvas.NewCircle(color.Transparent),
@@ -230,7 +231,11 @@ func (r *toogleRenderer) updateToggle() {
 	if r.toggle.Disabled() {
 		pinColor = th.Color(toggleColorPinDisabled, v)
 	} else {
-		pinColor = th.Color(toggleColorPinEnabled, v)
+		if v == theme.VariantLight {
+			pinColor = th.Color(toggleColorPinEnabledLight, v)
+		} else {
+			pinColor = th.Color(toggleColorPinEnabledDark, v)
+		}
 	}
 	var focusColor color.Color
 	if r.toggle.focused {
