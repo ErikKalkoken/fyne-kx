@@ -31,16 +31,20 @@ func (w *Badge) CreateRenderer() fyne.WidgetRenderer {
 	r := w.Label.CreateRenderer()
 	b := canvas.NewRectangle(color.Transparent)
 	b.CornerRadius = 10
-	r2 := &badgeRenderer{WidgetRenderer: r, background: b, badge: w}
+	r2 := &badgeRenderer{labelRenderer: r, background: b, badge: w}
 	r2.updateBadge()
 	return r2
 }
 
-type badgeRenderer struct {
-	fyne.WidgetRenderer
+var _ fyne.WidgetRenderer = (*badgeRenderer)(nil)
 
-	background *canvas.Rectangle
-	badge      *Badge
+type badgeRenderer struct {
+	labelRenderer fyne.WidgetRenderer
+	background    *canvas.Rectangle
+	badge         *Badge
+}
+
+func (r *badgeRenderer) Destroy() {
 }
 
 func (r *badgeRenderer) Layout(size fyne.Size) {
@@ -66,10 +70,11 @@ func (r *badgeRenderer) MinSize() fyne.Size {
 
 func (r *badgeRenderer) Refresh() {
 	r.updateBadge()
+	fmt.Printf("updated badge")
 }
 
 func (r *badgeRenderer) Objects() []fyne.CanvasObject {
-	objs := []fyne.CanvasObject{r.background, r.WidgetRenderer.Objects()[0]}
+	objs := []fyne.CanvasObject{r.background, r.labelRenderer.Objects()[0]}
 	return objs
 }
 
@@ -81,5 +86,4 @@ func (r *badgeRenderer) updateBadge() {
 		r.background.FillColor = th.Color(theme.ColorNameInputBackground, v)
 	}
 	r.background.Refresh()
-	fmt.Printf("updated badge")
 }

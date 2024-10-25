@@ -17,12 +17,13 @@ const (
 	toggleSizeFocusBorder = theme.SizeNamePadding
 	toggleSizePinBorder   = theme.SizeNameInputBorder
 
-	toggleColorBackgroundOff   = theme.ColorNameButton
-	toggleColorBackgroundOn    = theme.ColorNamePrimary
-	toggleColorPinDisabled     = theme.ColorNameDisabled
-	toggleColorPinEnabledDark  = theme.ColorNameForeground
-	toggleColorPinEnabledLight = theme.ColorNameBackground
-	toggleColorPinFocused      = theme.ColorNameFocus
+	toggleColorBackgroundOff    = theme.ColorNameInputBorder
+	toggleColorBackgroundOn     = theme.ColorNamePrimary
+	toggleColorPinDisabledDark  = theme.ColorNameBackground
+	toggleColorPinDisabledLight = theme.ColorNameForeground
+	toggleColorPinEnabledDark   = theme.ColorNameForeground
+	toggleColorPinEnabledLight  = theme.ColorNameBackground
+	toggleColorPinFocused       = theme.ColorNameFocus
 
 	toggleScale = 1.75
 )
@@ -125,6 +126,9 @@ func (w *Toggle) MinSize() fyne.Size {
 
 // MouseIn is a hook that is called if the mouse pointer enters the element.
 func (w *Toggle) MouseIn(e *desktop.MouseEvent) {
+	if w.Disabled() {
+		return
+	}
 	w.hovered = true
 	w.Refresh()
 }
@@ -161,6 +165,8 @@ func (w *Toggle) CreateRenderer() fyne.WidgetRenderer {
 	r.updateToggle()
 	return r
 }
+
+var _ fyne.WidgetRenderer = (*toogleRenderer)(nil)
 
 // toogleRenderer represents the renderer for the Toggle widget.
 type toogleRenderer struct {
@@ -226,10 +232,13 @@ func (r *toogleRenderer) Layout(size fyne.Size) {
 func (r *toogleRenderer) updateToggle() {
 	_, th := r.themeBase()
 	v := fyne.CurrentApp().Settings().ThemeVariant()
-
 	var pinColor color.Color
 	if r.toggle.Disabled() {
-		pinColor = th.Color(toggleColorPinDisabled, v)
+		if v == theme.VariantLight {
+			pinColor = th.Color(toggleColorPinDisabledLight, v)
+		} else {
+			pinColor = th.Color(toggleColorPinDisabledDark, v)
+		}
 	} else {
 		if v == theme.VariantLight {
 			pinColor = th.Color(toggleColorPinEnabledLight, v)

@@ -21,7 +21,7 @@ For a live demo please see the [demo app](#demo).
 - **Columns**: Columns arranges all objects in a row, with each in their own column with a given minimum width.
 It can be used to arrange subsequent rows of objects in columns.
 
-![Example](https://cdn.imgpile.com/f/2yqmSXT_xl.png)
+![Example](https://cdn.imgpile.com/f/maoyoP1_xl.png)
 
 ### Modals
 
@@ -31,7 +31,7 @@ Modals are similar to Fyne dialogs, but do not require user interaction. They ar
 
 Progress modals are modals that show a progress indicator while an action function is running. The library provides several variants.
 
-![progress modal](https://cdn.imgpile.com/f/PUzZzt2_xl.png)
+![progress modal](https://cdn.imgpile.com/f/p8NDn3O_xl.png)
 
 ### Widgets
 
@@ -44,7 +44,7 @@ This library contains several Fyne widgets:
 - TappableLabel is a variant of the Fyne Label which runs a function when tapped
 - Toggle is a widget implementing a digital switch with two mutually exclusive states: on/off
 
-![example](https://cdn.imgpile.com/f/ahjPSMU_xl.png)
+![example](https://cdn.imgpile.com/f/swLOMWS_xl.png)
 
 ## Demo
 
