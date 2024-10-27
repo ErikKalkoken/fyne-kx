@@ -80,31 +80,31 @@ func makeWidgets() fyne.CanvasObject {
 	})
 	slider := kxwidget.NewSlider(0, 100)
 	slider.SetValue(25)
-	toggle1 := kxwidget.NewToggle(func(on bool) {
-		log.Println("Toggle 1: ", on)
+	switch1 := kxwidget.NewSwitch(func(on bool) {
+		log.Println("Switch 1: ", on)
 	})
-	toggle1.On = true
-	toggle2 := kxwidget.NewToggle(func(on bool) {
-		log.Println("Toggle 2: ", on)
+	switch1.On = true
+	switch2 := kxwidget.NewSwitch(func(on bool) {
+		log.Println("Switch 2: ", on)
 	})
-	toggle3 := kxwidget.NewToggle(nil)
-	toggle3.Disable()
-	toggle4 := kxwidget.NewToggle(nil)
-	toggle4.SetState(true)
-	toggle4.Disable()
+	switch3 := kxwidget.NewSwitch(nil)
+	switch3.Disable()
+	switch4 := kxwidget.NewSwitch(nil)
+	switch4.SetState(true)
+	switch4.Disable()
 	f := &widget.Form{
 		Items: []*widget.FormItem{
 			{Text: "Badge", Widget: badge},
 			{Text: "", Widget: container.NewPadded()},
 			{Text: "Slider", Widget: slider},
 			{Text: "", Widget: container.NewPadded()},
+			{Text: "Switch", Widget: container.NewVBox(switch1, switch2, switch3, switch4)},
+			{Text: "", Widget: container.NewPadded()},
 			{Text: "TappableIcon", Widget: container.NewHBox(icon)},
 			{Text: "", Widget: container.NewPadded()},
 			{Text: "TappableImage", Widget: container.NewHBox(img)},
 			{Text: "", Widget: container.NewPadded()},
 			{Text: "TappableLabel", Widget: label},
-			{Text: "", Widget: container.NewPadded()},
-			{Text: "Toggle", Widget: container.NewVBox(toggle1, toggle2, toggle3, toggle4)},
 		},
 	}
 	return f

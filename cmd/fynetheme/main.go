@@ -1,4 +1,4 @@
-// Themeinsight is a Fyne app for showing details about the default Fyne theme.
+// Fynetheme is a Fyne app for showing details about the default Fyne theme.
 package main
 
 import (
@@ -14,8 +14,6 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"golang.org/x/exp/slices"
-
-	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
 
 const (
@@ -372,9 +370,9 @@ func makeIcons() fyne.CanvasObject {
 		}
 		grid.Refresh()
 	}
-	slider := kxwidget.NewSlider(8, 128)
-	slider.SetStep(4)
-	slider.OnChangeEnded = func(v float64) {
+	slider := widget.NewSlider(2, 128)
+	slider.Step = 4
+	slider.OnChanged = func(v float64) {
 		iconSize = float32(v)
 		grid.Refresh()
 	}
