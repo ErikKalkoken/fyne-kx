@@ -15,6 +15,11 @@ This library contains several extensions for the [Fyne GUI toolkit](https://fyne
 - [Modals](#modals)
 - [Widgets](#widgets)
 
+In addition it contains two Fyne apps:
+
+- demo: Live demo of the features provided by this library
+- themeinsight: Shows insights about the default Fyne theme like colors and icons
+
 For more details please see the [Go documentation](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx) for this package.
 
 For a live demo please see the [demo app](#demo).
@@ -49,7 +54,12 @@ This library contains several Fyne widgets:
 
 ![example](https://cdn.imgpile.com/f/swLOMWS_xl.png)
 
-## Demo
+## Apps
+
+> [!TIP]
+> For more information on how to configure your system for Fyne please see: [Getting Started](https://docs.fyne.io/started/).
+
+### Demo
 
 For a live demo you can run the demo app with the following command:
 
@@ -57,5 +67,10 @@ For a live demo you can run the demo app with the following command:
 go run github.com/ErikKalkoken/fyne-kx/cmd/demo@latest
 ```
 
-> [!TIP]
-> For more information on how to configure your system for Fyne please see: [Getting Started](https://docs.fyne.io/started/).
+### Theme insight
+
+For showing insights about the Fyne default theme you can run the following command:
+
+```sh
+go run github.com/ErikKalkoken/fyne-kx/cmd/themeinsight@latest
+```

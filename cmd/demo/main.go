@@ -1,11 +1,9 @@
-// App for demonstrating the features provided by the Fyne KX extension.
+// Demo is a Fyne app for demonstrating the features provided by the fyne-kx library.
 package main
 
 import (
-	"image/color"
 	"log"
 	"math/rand"
-	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -13,10 +11,8 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
-	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"golang.org/x/exp/slices"
 
 	kxlayout "github.com/ErikKalkoken/fyne-kx/layout"
 	kxmodal "github.com/ErikKalkoken/fyne-kx/modal"
@@ -30,7 +26,6 @@ func main() {
 		container.NewTabItem("Layouts", makeLayouts()),
 		container.NewTabItem("Modals", makeModals(w)),
 		container.NewTabItem("Widgets", makeWidgets()),
-		container.NewTabItem("Colors", makeThemeColors()),
 	)
 	tabs.SetTabLocation(container.TabLocationLeading)
 	tabs.SelectIndex(2)
@@ -167,87 +162,4 @@ func makeModals(w fyne.Window) *fyne.Container {
 	})
 
 	return container.NewVBox(b1, b2, b3, b4)
-}
-
-type colorRow struct {
-	label string
-	name  fyne.ThemeColorName
-}
-
-func makeThemeColors() fyne.CanvasObject {
-	colors := []colorRow{
-		{"ColorNameBackground", theme.ColorNameBackground},
-		{"ColorNameButton", theme.ColorNameButton},
-		{"ColorNameDisabled", theme.ColorNameDisabled},
-		{"ColorNameDisabledButton", theme.ColorNameDisabledButton},
-		{"ColorNameError", theme.ColorNameError},
-		{"ColorNameFocus", theme.ColorNameFocus},
-		{"ColorNameForeground", theme.ColorNameForeground},
-		{"ColorNameForegroundOnError", theme.ColorNameForegroundOnError},
-		{"ColorNameForegroundOnPrimary", theme.ColorNameForegroundOnPrimary},
-		{"ColorNameForegroundOnSuccess", theme.ColorNameForegroundOnSuccess},
-		{"ColorNameForegroundOnWarning", theme.ColorNameForegroundOnWarning},
-		{"ColorNameHeaderBackground", theme.ColorNameHeaderBackground},
-		{"ColorNameHover", theme.ColorNameHover},
-		{"ColorNameHyperlink", theme.ColorNameHyperlink},
-		{"ColorNameInputBackground", theme.ColorNameInputBackground},
-		{"ColorNameInputBorder", theme.ColorNameInputBorder},
-		{"ColorNameMenuBackground", theme.ColorNameMenuBackground},
-		{"ColorNameOverlayBackground", theme.ColorNameOverlayBackground},
-		{"ColorNamePlaceHolder", theme.ColorNamePlaceHolder},
-		{"ColorNamePressed", theme.ColorNamePressed},
-		{"ColorNamePrimary", theme.ColorNamePrimary},
-		{"ColorNameScrollBar", theme.ColorNameScrollBar},
-		{"ColorNameSelection", theme.ColorNameSelection},
-		{"ColorNameSeparator", theme.ColorNameSeparator},
-		{"ColorNameShadow", theme.ColorNameShadow},
-		{"ColorNameSuccess", theme.ColorNameSuccess},
-		{"ColorNameWarning", theme.ColorNameWarning},
-	}
-	colorsFiltered := slices.Clone(colors)
-	list := widget.NewList(
-		func() int {
-			return len(colorsFiltered)
-		},
-		func() fyne.CanvasObject {
-			return container.NewHBox(
-				widget.NewLabel("Template"),
-				layout.NewSpacer(),
-				canvas.NewRectangle(color.Transparent),
-			)
-		},
-		func(id widget.ListItemID, co fyne.CanvasObject) {
-			if id >= len(colorsFiltered) {
-				return
-			}
-			c := colorsFiltered[id]
-			row := co.(*fyne.Container).Objects
-			label := row[0].(*widget.Label)
-			r := row[2].(*canvas.Rectangle)
-			label.SetText(c.label)
-			r.FillColor = theme.Color(fyne.ThemeColorName(c.name))
-			r.SetMinSize(fyne.NewSize(100, 30))
-			r.StrokeColor = theme.Color(theme.ColorNameForeground)
-			r.StrokeWidth = 1.6
-		},
-	)
-	entry := widget.NewEntry()
-	entry.SetPlaceHolder("Search...")
-	entry.OnChanged = func(s string) {
-		colorsFiltered = make([]colorRow, 0)
-		s2 := strings.ToLower(s)
-		for _, c := range colors {
-			if strings.Contains(strings.ToLower(c.label), s2) {
-				colorsFiltered = append(colorsFiltered, c)
-			}
-		}
-		list.Refresh()
-	}
-	return container.NewBorder(
-		entry,
-		nil,
-		nil,
-		nil,
-		list,
-	)
 }
