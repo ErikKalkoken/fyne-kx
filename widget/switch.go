@@ -23,9 +23,10 @@ type Switch struct {
 
 	focused bool
 	hovered bool
+	minSize fyne.Size // cached for hover/top pos calcs
 
 	mu sync.RWMutex // own property lock
-	On bool
+	on bool
 }
 
 var _ fyne.Widget = (*Switch)(nil)
@@ -48,10 +49,10 @@ func (w *Switch) SetState(on bool) {
 	func() {
 		w.mu.Lock()
 		defer w.mu.Unlock()
-		if on == w.On {
+		if on == w.on {
 			return
 		}
-		w.On = on
+		w.on = on
 	}()
 	if w.OnChanged != nil {
 		w.OnChanged(on)
@@ -80,7 +81,7 @@ func (w *Switch) TypedRune(r rune) {
 		return
 	}
 	if r == ' ' {
-		w.SetState(!w.On)
+		w.SetState(!w.on)
 	}
 }
 
@@ -88,11 +89,23 @@ func (w *Switch) TypedRune(r rune) {
 func (w *Switch) TypedKey(key *fyne.KeyEvent) {}
 
 // Tapped is called when a pointer tapped event is captured and triggers any change handler
-func (w *Switch) Tapped(_ *fyne.PointEvent) {
+func (w *Switch) Tapped(pe *fyne.PointEvent) {
 	if w.Disabled() {
 		return
 	}
-	w.SetState(!w.On)
+	if !w.minSize.IsZero() &&
+		(pe.Position.X > w.minSize.Width || pe.Position.Y > w.minSize.Height) {
+		// tapped outside
+		return
+	}
+	if !w.focused {
+		if !fyne.CurrentDevice().IsMobile() {
+			if c := fyne.CurrentApp().Driver().CanvasForObject(w); c != nil {
+				c.Focus(w)
+			}
+		}
+	}
+	w.SetState(!w.on)
 }
 
 func (w *Switch) TappedSecondary(_ *fyne.PointEvent) {
@@ -109,27 +122,35 @@ func (w *Switch) Cursor() desktop.Cursor {
 // MinSize returns the size that this widget should not shrink below
 func (w *Switch) MinSize() fyne.Size {
 	w.ExtendBaseWidget(w)
-	return w.BaseWidget.MinSize()
+	w.minSize = w.BaseWidget.MinSize()
+	return w.minSize
 }
 
 // MouseIn is a hook that is called if the mouse pointer enters the element.
-func (w *Switch) MouseIn(e *desktop.MouseEvent) {
-	if w.Disabled() {
-		return
-	}
-	w.hovered = true
-	w.Refresh()
+func (w *Switch) MouseIn(me *desktop.MouseEvent) {
+	w.MouseMoved(me)
 }
 
 // MouseMoved is called when a desktop pointer hovers over the widget
-func (w *Switch) MouseMoved(*desktop.MouseEvent) {
-	// needed to satisfy the interface only
+func (w *Switch) MouseMoved(me *desktop.MouseEvent) {
+	if w.Disabled() {
+		return
+	}
+	oldHovered := w.hovered
+
+	w.hovered = w.minSize.IsZero() ||
+		(me.Position.X <= w.minSize.Width && me.Position.Y <= w.minSize.Height)
+
+	if oldHovered != w.hovered {
+		w.Refresh()
+	}
 }
 
-// MouseOut is a hook that is called if the mouse pointer leaves the element.
 func (w *Switch) MouseOut() {
-	w.hovered = false
-	w.Refresh()
+	if w.hovered {
+		w.hovered = false
+		w.Refresh()
+	}
 }
 
 // CreateRenderer is a private method to Fyne which links this widget to its renderer.
@@ -138,7 +159,7 @@ func (w *Switch) CreateRenderer() fyne.WidgetRenderer {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	track := canvas.NewRectangle(color.Transparent)
-	track.CornerRadius = 15
+	track.CornerRadius = 7
 	r := &switchRenderer{
 		track:       track,
 		handleLeft:  canvas.NewCircle(color.Transparent),
@@ -147,7 +168,7 @@ func (w *Switch) CreateRenderer() fyne.WidgetRenderer {
 		focusRight:  canvas.NewCircle(color.Transparent),
 		widget:      w,
 	}
-	r.updateSwitch()
+	r.refreshSwitch()
 	return r
 }
 
@@ -155,28 +176,10 @@ var _ fyne.WidgetRenderer = (*switchRenderer)(nil)
 
 // switch measurements
 const (
-	switchTotalWidth             = 52
-	switchTotalHeight            = 32
-	switchHandleHeightSelected   = 24
-	switchHandleHeightUnselected = 16
-	switchOutlineWidth           = 2
-)
-
-// switch theme params
-const (
-	switchBaseUnitSize    = theme.SizeNameText
-	switchSizeFocusBorder = theme.SizeNamePadding
-	switchSizePinBorder   = theme.SizeNameInputBorder
-
-	switchOffTrackFill    = theme.ColorNameInputBackground
-	switchOffTrackOutline = theme.ColorNameScrollBar
-
-	switchOnTrackFill           = theme.ColorNamePrimary
-	switchColorPinEnabledDark   = theme.ColorNameForeground
-	switchColorPinEnabledLight  = theme.ColorNameBackground
-	switchColorPinFocused       = theme.ColorNameFocus
-	switchColorPinDisabledDark  = theme.ColorNameDisabledButton
-	switchColorPinDisabledLight = theme.ColorNamePlaceHolder
+	switchWidth       = 36
+	switchInnerHeight = 14
+	switchHeight      = 20
+	switchFocusHeight = 30
 )
 
 // switchRenderer represents the renderer for the Switch widget.
@@ -196,7 +199,7 @@ func (r *switchRenderer) Destroy() {
 func (r *switchRenderer) MinSize() (size fyne.Size) {
 	th := r.widget.Theme()
 	innerPadding := th.Size(theme.SizeNameInnerPadding)
-	size = fyne.NewSize(size.Width+2*innerPadding, switchTotalHeight+2*innerPadding)
+	size = fyne.NewSize(switchWidth+2*innerPadding, switchHeight+2*innerPadding)
 	return
 }
 
@@ -204,75 +207,51 @@ func (r *switchRenderer) MinSize() (size fyne.Size) {
 func (r *switchRenderer) Layout(size fyne.Size) {
 	th := r.widget.Theme()
 	innerPadding := th.Size(theme.SizeNameInnerPadding)
-	orig := fyne.NewPos(innerPadding, size.Height/2-switchTotalHeight/2) // center vertically
-	r.track.Move(orig)
-	r.track.Resize(fyne.NewSize(switchTotalWidth, switchTotalHeight))
+	orig := fyne.NewPos(innerPadding, size.Height/2-switchHeight/2) // center vertically
+	r.track.Move(orig.AddXY(0, (switchHeight-switchInnerHeight)/2))
+	r.track.Resize(fyne.NewSize(switchWidth, switchInnerHeight))
 
-	// fmt.Printf("%+v\n", r.bgLeft.Position())
-	// fmt.Printf("%+v\n", r.bgRight.Position())
-	// fmt.Printf("%+v\n\n", r.bgMiddle.Position())
+	r.handleLeft.Position1 = orig
+	r.handleLeft.Position2 = r.handleLeft.Position1.AddXY(switchHeight, switchHeight)
+	r.handleRight.Position1 = orig.AddXY(switchWidth-switchHeight, 0)
+	r.handleRight.Position2 = r.handleRight.Position1.AddXY(switchHeight, switchHeight)
 
-	var d1 float32 = (switchTotalHeight - switchHandleHeightUnselected) / 2
-	r.handleLeft.Position1 = orig.AddXY(d1, d1)
-	r.handleLeft.Position2 = orig.AddXY(switchTotalHeight-d1, switchTotalHeight-d1)
-
-	var d2 float32 = (switchTotalHeight - switchHandleHeightSelected) / 2
-	r.handleRight.Position1 = orig.AddXY(switchTotalWidth-switchTotalHeight+d2, d2)
-	r.handleRight.Position2 = orig.AddXY(switchTotalWidth-d2, switchTotalHeight-d2)
-
-	// border2 := th.Size(switchSizeFocusBorder)
-	// r.shadowLeft.Position1 = orig.AddXY(0-border2, 0-border2)
-	// r.shadowLeft.Position2 = orig.AddXY(u+border2, u+border2)
-
-	// r.shadowRight.Position1 = orig.AddXY(u-border2, 0-border2)
-	// r.shadowRight.Position2 = orig.AddXY(2*u+border2, u+border2)
-
-	// fmt.Printf("bgLeft: %+v - %+v\n", r.bgLeft.Position1, r.bgLeft.Position2)
-	// fmt.Printf("bgRight: %+v - %+v\n", r.bgRight.Position1, r.bgRight.Position2)
-	// fmt.Printf("pin: %+v - %+v\n", r.pin.Position1, r.pin.Position2)
-	// fmt.Println()
+	d := (switchFocusHeight - switchHeight) / float32(2)
+	r.focusLeft.Position1 = orig.AddXY(0-d, 0-d)
+	r.focusLeft.Position2 = r.focusLeft.Position1.AddXY(switchFocusHeight, switchFocusHeight)
+	r.focusRight.Position1 = orig.AddXY(switchWidth-switchHeight-d, 0-d)
+	r.focusRight.Position2 = r.focusRight.Position1.AddXY(switchFocusHeight, switchFocusHeight)
 }
 
-// updateSwitch updates the rendered switch based on it's current state.
-func (r *switchRenderer) updateSwitch() {
+// refreshSwitch refreshes the rendered switch for it's current state.
+func (r *switchRenderer) refreshSwitch() {
 	th := r.widget.Theme()
 	v := fyne.CurrentApp().Settings().ThemeVariant()
-	var pinColor color.Color
-	if r.widget.Disabled() {
-		if v == theme.VariantLight {
-			pinColor = th.Color(switchColorPinDisabledLight, v)
-		} else {
-			pinColor = th.Color(switchColorPinDisabledDark, v)
-		}
-	} else {
-		if v == theme.VariantLight {
-			pinColor = th.Color(switchColorPinEnabledLight, v)
-		} else {
-			pinColor = th.Color(switchColorPinEnabledDark, v)
-		}
-	}
+	// isDisabled := r.widget.Disabled()
+	// isDark := fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark
+
 	var focusColor color.Color
 	if r.widget.focused {
-		focusColor = th.Color(switchColorPinFocused, v)
+		focusColor = th.Color(theme.ColorNameFocus, v)
+	} else if r.widget.hovered {
+		focusColor = th.Color(theme.ColorNameHover, v)
 	} else {
 		focusColor = color.Transparent
 	}
 
-	if r.widget.On {
-		r.track.FillColor = th.Color(switchOnTrackFill, v)
-		r.track.StrokeWidth = 0
+	if r.widget.on {
+		primaryColor := th.Color(theme.ColorNamePrimary, v)
+		r.track.FillColor = newColorWithReducedIntensity(primaryColor, 0.5)
 		r.handleLeft.FillColor = color.Transparent
+		r.handleRight.FillColor = primaryColor
 		r.focusLeft.FillColor = color.Transparent
-		r.handleRight.FillColor = pinColor
 		r.focusRight.FillColor = focusColor
 	} else {
-		r.handleLeft.FillColor = th.Color(switchOffTrackOutline, v)
-		r.focusLeft.FillColor = focusColor
+		r.track.FillColor = th.Color(theme.ColorNameInputBorder, v)
+		r.handleLeft.FillColor = th.Color(theme.ColorNameForeground, v)
 		r.handleRight.FillColor = color.Transparent
+		r.focusLeft.FillColor = focusColor
 		r.focusRight.FillColor = color.Transparent
-		r.track.FillColor = th.Color(switchOffTrackFill, v)
-		r.track.StrokeColor = th.Color(switchOffTrackOutline, v)
-		r.track.StrokeWidth = switchOutlineWidth
 	}
 	r.handleLeft.Refresh()
 	r.focusLeft.Refresh()
@@ -286,11 +265,40 @@ func (r *switchRenderer) Refresh() {
 	func() {
 		r.widget.mu.RLock()
 		defer r.widget.mu.RUnlock()
-		r.updateSwitch()
+		r.refreshSwitch()
 	}()
 }
 
 // Objects returns the objects that should be rendered.
 func (r *switchRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.track, r.handleLeft, r.handleRight, r.focusLeft, r.focusRight}
+	return []fyne.CanvasObject{r.track, r.focusLeft, r.focusRight, r.handleLeft, r.handleRight}
+}
+
+type MyColor struct {
+	c color.Color
+	t float32
+}
+
+// newColorWithReducedIntensity returns a new instance of color with modified intensity.
+//
+// The intensity value is expected between 0 and 1. Larger and smaller numbers will be truncated.
+func newColorWithReducedIntensity(c color.Color, intensity float32) color.Color {
+	if intensity < 0 {
+		intensity = 0
+	}
+	if intensity > 1 {
+		intensity = 1
+	}
+	return MyColor{c: c, t: intensity}
+}
+
+func (mc MyColor) RGBA() (r, g, b, a uint32) {
+	r, g, b, a = mc.c.RGBA()
+	r2 := float32(r) / 0xffff * mc.t
+	g2 := float32(g) / 0xffff * mc.t
+	b2 := float32(b) / 0xffff * mc.t
+	r = uint32(r2 * 0xffff)
+	g = uint32(g2 * 0xffff)
+	b = uint32(b2 * 0xffff)
+	return
 }

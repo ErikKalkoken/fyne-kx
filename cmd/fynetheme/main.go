@@ -85,25 +85,32 @@ func makeColors() fyne.CanvasObject {
 			return len(colorsFiltered)
 		},
 		func() fyne.CanvasObject {
+			check := widget.NewCheck("", nil)
+			check.Disable()
 			return container.NewHBox(
 				widget.NewLabel("Template"),
 				layout.NewSpacer(),
 				canvas.NewRectangle(color.Transparent),
+				check,
 			)
 		},
 		func(id widget.ListItemID, co fyne.CanvasObject) {
 			if id >= len(colorsFiltered) {
 				return
 			}
-			c := colorsFiltered[id]
+			myColor := colorsFiltered[id]
 			row := co.(*fyne.Container).Objects
 			label := row[0].(*widget.Label)
-			label.SetText(c.label)
-			r := row[2].(*canvas.Rectangle)
-			r.FillColor = theme.Color(fyne.ThemeColorName(c.name))
-			r.SetMinSize(fyne.NewSize(100, 30))
-			r.StrokeColor = theme.Color(theme.ColorNameForeground)
-			r.StrokeWidth = 1.6
+			label.SetText(myColor.label)
+			colorRect := row[2].(*canvas.Rectangle)
+			c := theme.Color(fyne.ThemeColorName(myColor.name))
+			colorRect.FillColor = c
+			colorRect.SetMinSize(fyne.NewSize(100, 30))
+			colorRect.StrokeColor = theme.Color(theme.ColorNameForeground)
+			colorRect.StrokeWidth = 1.6
+			colorLabel := row[3].(*widget.Check)
+			_, _, _, a := c.RGBA()
+			colorLabel.SetChecked(a != 0xffff)
 		},
 	)
 	entry := widget.NewEntry()

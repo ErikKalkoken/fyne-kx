@@ -83,7 +83,7 @@ func makeWidgets() fyne.CanvasObject {
 	switch1 := kxwidget.NewSwitch(func(on bool) {
 		log.Println("Switch 1: ", on)
 	})
-	switch1.On = true
+	switch1.SetState(true)
 	switch2 := kxwidget.NewSwitch(func(on bool) {
 		log.Println("Switch 2: ", on)
 	})
