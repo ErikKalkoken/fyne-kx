@@ -76,6 +76,14 @@ func makeColors() fyne.CanvasObject {
 		{"ColorNameSuccess", theme.ColorNameSuccess},
 		{"ColorNameWarning", theme.ColorNameWarning},
 	}
+	hasTransparency := make(map[fyne.ThemeColorName]bool)
+	for _, col := range colors {
+		c := theme.Color(fyne.ThemeColorName(col.name))
+		_, _, _, a := c.RGBA()
+		if a != 0xffff {
+			hasTransparency[col.name] = true
+		}
+	}
 	slices.SortFunc(colors, func(a, b colorRow) int {
 		return strings.Compare(a.label, b.label)
 	})
@@ -103,30 +111,44 @@ func makeColors() fyne.CanvasObject {
 			label := row[0].(*widget.Label)
 			label.SetText(myColor.label)
 			colorRect := row[2].(*canvas.Rectangle)
-			c := theme.Color(fyne.ThemeColorName(myColor.name))
-			colorRect.FillColor = c
+			colorRect.FillColor = theme.Color(fyne.ThemeColorName(myColor.name))
 			colorRect.SetMinSize(fyne.NewSize(100, 30))
 			colorRect.StrokeColor = theme.Color(theme.ColorNameForeground)
 			colorRect.StrokeWidth = 1.6
 			colorLabel := row[3].(*widget.Check)
-			_, _, _, a := c.RGBA()
-			colorLabel.SetChecked(a != 0xffff)
+			colorLabel.SetChecked(hasTransparency[myColor.name])
 		},
 	)
-	entry := widget.NewEntry()
-	entry.SetPlaceHolder("Search...")
-	entry.OnChanged = func(s string) {
+	var currentSearch string
+	var currentSelection string
+	updateColorsFiltered := func() {
 		colorsFiltered = make([]colorRow, 0)
-		s2 := strings.ToLower(s)
-		for _, c := range colors {
-			if strings.Contains(strings.ToLower(c.label), s2) {
-				colorsFiltered = append(colorsFiltered, c)
+		s2 := strings.ToLower(currentSearch)
+		for _, col := range colors {
+			if strings.Contains(strings.ToLower(col.label), s2) {
+				if currentSelection == "Transparent" && !hasTransparency[col.name] {
+					continue
+				}
+				if currentSelection == "Opaque" && hasTransparency[col.name] {
+					continue
+				}
+				colorsFiltered = append(colorsFiltered, col)
 			}
 		}
 		list.Refresh()
 	}
+	search := widget.NewEntry()
+	search.SetPlaceHolder("Search...")
+	search.OnChanged = func(s string) {
+		currentSearch = s
+		updateColorsFiltered()
+	}
+	transparency := widget.NewSelect([]string{"All", "Transparent", "Opaque"}, func(s string) {
+		currentSelection = s
+		updateColorsFiltered()
+	})
 	return container.NewBorder(
-		entry,
+		container.NewBorder(nil, nil, nil, transparency, search),
 		nil,
 		nil,
 		nil,
@@ -392,8 +414,8 @@ func makeIcons() fyne.CanvasObject {
 	themeSelect.SetSelected("Default")
 	themeBox := container.NewHBox(widget.NewLabel("Color"), themeSelect)
 	return container.NewBorder(
-		search,
-		container.NewBorder(nil, nil, nil, themeBox, sliderBox),
+		container.NewGridWithColumns(3, search, sliderBox, themeBox),
+		nil,
 		nil,
 		nil,
 		grid,

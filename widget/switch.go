@@ -179,7 +179,7 @@ const (
 	switchWidth       = 36
 	switchInnerHeight = 14
 	switchHeight      = 20
-	switchFocusHeight = 30
+	switchFocusHeight = 35
 )
 
 // switchRenderer represents the renderer for the Switch widget.
@@ -274,7 +274,7 @@ func (r *switchRenderer) Objects() []fyne.CanvasObject {
 	return []fyne.CanvasObject{r.track, r.focusLeft, r.focusRight, r.handleLeft, r.handleRight}
 }
 
-type MyColor struct {
+type myColor struct {
 	c color.Color
 	t float32
 }
@@ -289,10 +289,10 @@ func newColorWithReducedIntensity(c color.Color, intensity float32) color.Color 
 	if intensity > 1 {
 		intensity = 1
 	}
-	return MyColor{c: c, t: intensity}
+	return myColor{c: c, t: intensity}
 }
 
-func (mc MyColor) RGBA() (r, g, b, a uint32) {
+func (mc myColor) RGBA() (r, g, b, a uint32) {
 	r, g, b, a = mc.c.RGBA()
 	r2 := float32(r) / 0xffff * mc.t
 	g2 := float32(g) / 0xffff * mc.t
