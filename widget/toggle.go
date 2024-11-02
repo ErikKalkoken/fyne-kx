@@ -47,6 +47,8 @@ var _ desktop.Hoverable = (*Toggle)(nil)
 var _ fyne.Disableable = (*Toggle)(nil)
 
 // NewToggle returns a new [Toggle] instance.
+//
+// Deprecated: Please use the [[Switch]] widget instead. This widget will be removed.
 func NewToggle(changed func(on bool)) *Toggle {
 	w := &Toggle{
 		OnChanged: changed,

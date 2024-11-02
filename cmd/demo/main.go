@@ -1,11 +1,10 @@
-// App for demonstrating the features provided by the Fyne KX extension.
+// Demo is a Fyne app for demonstrating the features provided by the fyne-kx library.
 package main
 
 import (
-	"image/color"
+	"fmt"
 	"log"
 	"math/rand"
-	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -13,11 +12,11 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
-	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"golang.org/x/exp/slices"
 
+	kxdialog "github.com/ErikKalkoken/fyne-kx/dialog"
 	kxlayout "github.com/ErikKalkoken/fyne-kx/layout"
 	kxmodal "github.com/ErikKalkoken/fyne-kx/modal"
 	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
@@ -27,13 +26,13 @@ func main() {
 	app := app.New()
 	w := app.NewWindow("KX Demo")
 	tabs := container.NewAppTabs(
+		container.NewTabItem("Dialogs", makeDialogs(w)),
 		container.NewTabItem("Layouts", makeLayouts()),
 		container.NewTabItem("Modals", makeModals(w)),
 		container.NewTabItem("Widgets", makeWidgets()),
-		container.NewTabItem("Colors", makeThemeColors()),
 	)
 	tabs.SetTabLocation(container.TabLocationLeading)
-	tabs.SelectIndex(2)
+	tabs.SelectIndex(3)
 
 	w.SetContent(container.NewBorder(
 		nil,
@@ -46,10 +45,28 @@ func main() {
 	w.ShowAndRun()
 }
 
+func makeDialogs(w fyne.Window) fyne.CanvasObject {
+	c := container.NewVBox(
+		widget.NewButton("Information Dialog with key handler", func() {
+			d := dialog.NewInformation("Info", "You can close this dialog with the Escape key.", w)
+			kxdialog.AddDialogKeyHandler(d, w)
+			d.Show()
+		}),
+		widget.NewButton("Confirm Dialog with key handler", func() {
+			d := dialog.NewConfirm("Confirm", "You can close this dialog with the Escape key.", func(b bool) {
+				fmt.Printf("Confirm dialog: %v\n", b)
+			}, w)
+			kxdialog.AddDialogKeyHandler(d, w)
+			d.Show()
+		}),
+	)
+	return c
+}
+
 func makeLayouts() fyne.CanvasObject {
 	layout := kxlayout.NewColumns(150, 100, 50)
 	makeBox := func(h float32) fyne.CanvasObject {
-		x := canvas.NewRectangle(theme.Color(theme.ColorNameDisabled))
+		x := canvas.NewRectangle(theme.Color(theme.ColorNameInputBorder))
 		w := rand.Float32()*100 + 50
 		x.SetMinSize(fyne.NewSize(w, h))
 		return x
@@ -85,31 +102,55 @@ func makeWidgets() fyne.CanvasObject {
 	})
 	slider := kxwidget.NewSlider(0, 100)
 	slider.SetValue(25)
-	toggle1 := kxwidget.NewToggle(func(on bool) {
-		log.Println("Toggle 1: ", on)
+
+	textForBool := func(b bool) string {
+		if b {
+			return "on"
+		}
+		return "off"
+	}
+	switchLabel1 := widget.NewLabel("")
+	switch1 := kxwidget.NewSwitch(func(on bool) {
+		switchLabel1.SetText(textForBool(on))
 	})
-	toggle1.On = true
-	toggle2 := kxwidget.NewToggle(func(on bool) {
-		log.Println("Toggle 2: ", on)
+	switch1.SetState(true)
+	switchLabel1.SetText(textForBool(switch1.State()))
+	switch1Box := container.NewHBox(switch1, switchLabel1)
+
+	switchLabel2 := widget.NewLabel("")
+	switch2 := kxwidget.NewSwitch(func(on bool) {
+		switchLabel2.SetText(textForBool(on))
 	})
-	toggle3 := kxwidget.NewToggle(nil)
-	toggle3.Disable()
-	toggle4 := kxwidget.NewToggle(nil)
-	toggle4.SetState(true)
-	toggle4.Disable()
+	switchLabel1.SetText(textForBool(switch2.State()))
+	switch2Box := container.NewHBox(switch2, switchLabel2)
+
+	switch3 := kxwidget.NewSwitch(nil)
+	switch3.SetState(true)
+	switch3.Disable()
+	switch4 := kxwidget.NewSwitch(nil)
+	switch4.Disable()
+	addLabel := func(c fyne.CanvasObject, text string) fyne.CanvasObject {
+		return container.NewHBox(c, widget.NewLabel(text))
+	}
+
 	f := &widget.Form{
 		Items: []*widget.FormItem{
 			{Text: "Badge", Widget: badge},
 			{Text: "", Widget: container.NewPadded()},
 			{Text: "Slider", Widget: slider},
 			{Text: "", Widget: container.NewPadded()},
+			{Text: "Switch", Widget: container.NewVBox(
+				switch1Box,
+				switch2Box,
+				addLabel(switch3, "on disabled"),
+				addLabel(switch4, "off disabled"),
+			)},
+			{Text: "", Widget: container.NewPadded()},
 			{Text: "TappableIcon", Widget: container.NewHBox(icon)},
 			{Text: "", Widget: container.NewPadded()},
 			{Text: "TappableImage", Widget: container.NewHBox(img)},
 			{Text: "", Widget: container.NewPadded()},
 			{Text: "TappableLabel", Widget: label},
-			{Text: "", Widget: container.NewPadded()},
-			{Text: "Toggle", Widget: container.NewVBox(toggle1, toggle2, toggle3, toggle4)},
 		},
 	}
 	return f
@@ -167,87 +208,4 @@ func makeModals(w fyne.Window) *fyne.Container {
 	})
 
 	return container.NewVBox(b1, b2, b3, b4)
-}
-
-type colorRow struct {
-	label string
-	name  fyne.ThemeColorName
-}
-
-func makeThemeColors() fyne.CanvasObject {
-	colors := []colorRow{
-		{"ColorNameBackground", theme.ColorNameBackground},
-		{"ColorNameButton", theme.ColorNameButton},
-		{"ColorNameDisabled", theme.ColorNameDisabled},
-		{"ColorNameDisabledButton", theme.ColorNameDisabledButton},
-		{"ColorNameError", theme.ColorNameError},
-		{"ColorNameFocus", theme.ColorNameFocus},
-		{"ColorNameForeground", theme.ColorNameForeground},
-		{"ColorNameForegroundOnError", theme.ColorNameForegroundOnError},
-		{"ColorNameForegroundOnPrimary", theme.ColorNameForegroundOnPrimary},
-		{"ColorNameForegroundOnSuccess", theme.ColorNameForegroundOnSuccess},
-		{"ColorNameForegroundOnWarning", theme.ColorNameForegroundOnWarning},
-		{"ColorNameHeaderBackground", theme.ColorNameHeaderBackground},
-		{"ColorNameHover", theme.ColorNameHover},
-		{"ColorNameHyperlink", theme.ColorNameHyperlink},
-		{"ColorNameInputBackground", theme.ColorNameInputBackground},
-		{"ColorNameInputBorder", theme.ColorNameInputBorder},
-		{"ColorNameMenuBackground", theme.ColorNameMenuBackground},
-		{"ColorNameOverlayBackground", theme.ColorNameOverlayBackground},
-		{"ColorNamePlaceHolder", theme.ColorNamePlaceHolder},
-		{"ColorNamePressed", theme.ColorNamePressed},
-		{"ColorNamePrimary", theme.ColorNamePrimary},
-		{"ColorNameScrollBar", theme.ColorNameScrollBar},
-		{"ColorNameSelection", theme.ColorNameSelection},
-		{"ColorNameSeparator", theme.ColorNameSeparator},
-		{"ColorNameShadow", theme.ColorNameShadow},
-		{"ColorNameSuccess", theme.ColorNameSuccess},
-		{"ColorNameWarning", theme.ColorNameWarning},
-	}
-	colorsFiltered := slices.Clone(colors)
-	list := widget.NewList(
-		func() int {
-			return len(colorsFiltered)
-		},
-		func() fyne.CanvasObject {
-			return container.NewHBox(
-				widget.NewLabel("Template"),
-				layout.NewSpacer(),
-				canvas.NewRectangle(color.Transparent),
-			)
-		},
-		func(id widget.ListItemID, co fyne.CanvasObject) {
-			if id >= len(colorsFiltered) {
-				return
-			}
-			c := colorsFiltered[id]
-			row := co.(*fyne.Container).Objects
-			label := row[0].(*widget.Label)
-			r := row[2].(*canvas.Rectangle)
-			label.SetText(c.label)
-			r.FillColor = theme.Color(fyne.ThemeColorName(c.name))
-			r.SetMinSize(fyne.NewSize(100, 30))
-			r.StrokeColor = theme.Color(theme.ColorNameForeground)
-			r.StrokeWidth = 1.6
-		},
-	)
-	entry := widget.NewEntry()
-	entry.SetPlaceHolder("Search...")
-	entry.OnChanged = func(s string) {
-		colorsFiltered = make([]colorRow, 0)
-		s2 := strings.ToLower(s)
-		for _, c := range colors {
-			if strings.Contains(strings.ToLower(c.label), s2) {
-				colorsFiltered = append(colorsFiltered, c)
-			}
-		}
-		list.Refresh()
-	}
-	return container.NewBorder(
-		entry,
-		nil,
-		nil,
-		nil,
-		list,
-	)
 }
