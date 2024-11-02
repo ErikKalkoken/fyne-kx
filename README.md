@@ -7,7 +7,21 @@ A library with extensions and tools for the Fyne GUI toolkit.
 > [!NOTE]
 > This is an early version of the library and the API may still change until version 1.0 is reached.
 
-## Description
+## Contents
+
+- [Installation](#installation)
+- [Extensions](#extensions)
+- [Apps](#apps)
+
+## Installation
+
+You can add this library to your current Fyne project with the following command:
+
+```sh
+go get github.com/ErikKalkoken/fyne-kx@latest
+```
+
+## Extensions
 
 This library contains several extensions for the [Fyne GUI toolkit](https://fyne.io/):
 
@@ -16,12 +30,7 @@ This library contains several extensions for the [Fyne GUI toolkit](https://fyne
 - [Modals](#modals)
 - [Widgets](#widgets)
 
-In addition it contains two Fyne apps:
-
-- [demo](#demo): Live demo of the features provided by this library
-- [fynetheme](#fyne-theme): Shows insights about the default Fyne theme like colors and icons
-
-For more details please see the [Go documentation](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx) for this package.
+For more details please also see the [Go documentation](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx) for this package.
 
 ### Dialogs
 
@@ -36,7 +45,8 @@ It can be used to arrange subsequent rows of objects in columns.
 
 ### Modals
 
-Modals are similar to Fyne dialogs, but do not require user interaction. They are useful when you have a longer running process that the user needs to wait for before he can continue. e.g. opening a large file.
+Modals are similar to Fyne dialogs, but do not require user interaction.
+They are useful when you have a longer running process that the user needs to wait for before he can continue. e.g. opening a large file.
 
 #### Progress
 
@@ -59,6 +69,11 @@ This library contains several Fyne widgets:
 
 ## Apps
 
+This library also contains two Fyne apps:
+
+- [demo](#demo): Live demo of the features provided by this library
+- [fynetheme](#fyne-theme): Shows insights about the default Fyne theme
+
 > [!TIP]
 > For more information on how to configure your system for Fyne please see: [Getting Started](https://docs.fyne.io/started/).
 
@@ -76,7 +91,8 @@ go run github.com/ErikKalkoken/fyne-kx/cmd/demo@latest
 
 ### Fyne theme
 
-Fynetheme is a Fyne app for showing details about the default Fyne theme like colors, icons and sizes. You can run it directly with the following command:
+Fynetheme is a Fyne app for showing details about the default Fyne theme like colors, icons and sizes.
+You can run it directly with the following command:
 
 ```sh
 go run github.com/ErikKalkoken/fyne-kx/cmd/themeinsight@latest
