@@ -52,7 +52,7 @@ They are useful when you have a longer running process that the user needs to wa
 
 [Progress modals](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/modal#hdr-Progress_modals) are modals that show a progress indicator while an action function is running. The library provides several variants.
 
-![progress modal](https://cdn.imgpile.com/f/vZkxURa_xl.png)
+[Progress modal demo](https://github.com/user-attachments/assets/047c0464-0324-45c4-940e-f7d489b1ad11)
 
 ### Widgets
 
@@ -65,7 +65,7 @@ This library contains several Fyne widgets:
 - [TappableLabel](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableLabel) is a variant of the Fyne Label which runs a function when tapped
 - [Switch](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Switch) is a widget implementing a digital switch with two mutually exclusive states: on/off
 
-![example](https://cdn.imgpile.com/f/bpDBDRn_xl.png)
+[Widget demo](https://github.com/user-attachments/assets/fb37a56a-dafa-49b5-92f2-e6c61457bdc4)
 
 ## Apps
 
