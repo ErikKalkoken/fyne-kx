@@ -80,13 +80,28 @@ func makeWidgets() fyne.CanvasObject {
 	})
 	slider := kxwidget.NewSlider(0, 100)
 	slider.SetValue(25)
+
+	textForBool := func(b bool) string {
+		if b {
+			return "on"
+		}
+		return "off"
+	}
+	switchLabel1 := widget.NewLabel("")
 	switch1 := kxwidget.NewSwitch(func(on bool) {
-		log.Println("Switch 1: ", on)
+		switchLabel1.SetText(textForBool(on))
 	})
 	switch1.SetState(true)
+	switchLabel1.SetText(textForBool(switch1.State()))
+	switch1Box := container.NewHBox(switch1, switchLabel1)
+
+	switchLabel2 := widget.NewLabel("")
 	switch2 := kxwidget.NewSwitch(func(on bool) {
-		log.Println("Switch 2: ", on)
+		switchLabel2.SetText(textForBool(on))
 	})
+	switchLabel1.SetText(textForBool(switch2.State()))
+	switch2Box := container.NewHBox(switch2, switchLabel2)
+
 	switch3 := kxwidget.NewSwitch(nil)
 	switch3.SetState(true)
 	switch3.Disable()
@@ -103,8 +118,8 @@ func makeWidgets() fyne.CanvasObject {
 			{Text: "Slider", Widget: slider},
 			{Text: "", Widget: container.NewPadded()},
 			{Text: "Switch", Widget: container.NewVBox(
-				addLabel(switch1, "on"),
-				addLabel(switch2, "off"),
+				switch1Box,
+				switch2Box,
 				addLabel(switch3, "on disabled"),
 				addLabel(switch4, "off disabled"),
 			)},

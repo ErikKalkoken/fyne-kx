@@ -11,8 +11,6 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// - [ ] Review disabled state
-// - [ ] Review focused state
 // - Animation?
 
 // Switch is a widget implementing a digital switch with two mutually exclusive states: on/off.
@@ -25,7 +23,7 @@ type Switch struct {
 	hovered bool
 	minSize fyne.Size // cached for hover/top pos calcs
 
-	mu sync.RWMutex // own property lock
+	mu sync.RWMutex // property lock
 	on bool
 }
 
@@ -42,6 +40,13 @@ func NewSwitch(changed func(on bool)) *Switch {
 	}
 	w.ExtendBaseWidget(w)
 	return w
+}
+
+// State return the state of a switch.
+func (w *Switch) State() bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.on
 }
 
 // SetState sets the state for a switch.
@@ -137,7 +142,6 @@ func (w *Switch) MouseMoved(me *desktop.MouseEvent) {
 		return
 	}
 	oldHovered := w.hovered
-
 	w.hovered = w.minSize.IsZero() ||
 		(me.Position.X <= w.minSize.Width && me.Position.Y <= w.minSize.Height)
 
@@ -156,8 +160,6 @@ func (w *Switch) MouseOut() {
 // CreateRenderer is a private method to Fyne which links this widget to its renderer.
 func (w *Switch) CreateRenderer() fyne.WidgetRenderer {
 	w.ExtendBaseWidget(w)
-	w.mu.RLock()
-	defer w.mu.RUnlock()
 	th := w.Theme()
 	v := fyne.CurrentApp().Settings().ThemeVariant()
 	track := canvas.NewRectangle(color.Transparent)
@@ -170,7 +172,7 @@ func (w *Switch) CreateRenderer() fyne.WidgetRenderer {
 		shadow: canvas.NewCircle(shadowColor),
 		widget: w,
 	}
-	r.refreshSwitch()
+	r.Refresh()
 	return r
 }
 
@@ -186,13 +188,12 @@ const (
 
 // switchRenderer represents the renderer for the Switch widget.
 type switchRenderer struct {
-	track  *canvas.Rectangle
-	thumb  *canvas.Circle
 	focus  *canvas.Circle
+	orig   fyne.Position
 	shadow *canvas.Circle
+	thumb  *canvas.Circle
+	track  *canvas.Rectangle
 	widget *Switch
-
-	orig fyne.Position
 }
 
 func (r *switchRenderer) Destroy() {
@@ -213,9 +214,11 @@ func (r *switchRenderer) Layout(size fyne.Size) {
 	r.orig = fyne.NewPos(innerPadding, size.Height/2-switchHeight/2) // center vertically
 	r.track.Move(r.orig.AddXY(0, (switchHeight-switchInnerHeight)/2))
 	r.track.Resize(fyne.NewSize(switchWidth, switchInnerHeight))
+	r.Refresh()
 }
 
-// refreshSwitch refreshes the rendered switch for it's current state.
+// refreshSwitch refreshes the switch's drawing for it's current state.
+// Should be called with a read lock.
 func (r *switchRenderer) refreshSwitch() {
 	th := r.widget.Theme()
 	v := fyne.CurrentApp().Settings().ThemeVariant()
@@ -268,13 +271,13 @@ func (r *switchRenderer) refreshSwitch() {
 	}
 
 	d := (switchFocusHeight - switchHeight) / float32(2)
-	const shadowD = 1
+	const delta = 1
 	if !r.widget.on {
 		r.thumb.Position1 = r.orig
 		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
 
-		r.shadow.Position1 = r.thumb.Position1.AddXY(-shadowD, shadowD)
-		r.shadow.Position2 = r.thumb.Position2.AddXY(-shadowD, shadowD)
+		r.shadow.Position1 = r.thumb.Position1.AddXY(-delta, delta)
+		r.shadow.Position2 = r.thumb.Position2.AddXY(-delta, delta)
 
 		r.focus.Position1 = r.orig.AddXY(0-d, 0-d)
 		r.focus.Position2 = r.focus.Position1.AddXY(switchFocusHeight, switchFocusHeight)
@@ -282,17 +285,17 @@ func (r *switchRenderer) refreshSwitch() {
 		r.thumb.Position1 = r.orig.AddXY(switchWidth-switchHeight, 0)
 		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
 
-		r.shadow.Position1 = r.thumb.Position1.AddXY(shadowD, shadowD)
-		r.shadow.Position2 = r.thumb.Position2.AddXY(shadowD, shadowD)
+		r.shadow.Position1 = r.thumb.Position1.AddXY(delta, delta)
+		r.shadow.Position2 = r.thumb.Position2.AddXY(delta, delta)
 
 		r.focus.Position1 = r.orig.AddXY(switchWidth-switchHeight-d, 0-d)
 		r.focus.Position2 = r.focus.Position1.AddXY(switchFocusHeight, switchFocusHeight)
 	}
 
-	r.thumb.Refresh()
-	r.focus.Refresh()
 	r.track.Refresh()
+	r.focus.Refresh()
 	r.shadow.Refresh()
+	r.thumb.Refresh()
 }
 
 // Refresh is called if the widget has updated and needs to be redrawn.
