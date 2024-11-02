@@ -3,7 +3,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"time"
 
@@ -29,7 +28,7 @@ func main() {
 		container.NewTabItem("Dialogs", makeDialogs(w)),
 		container.NewTabItem("Layouts", makeLayouts()),
 		container.NewTabItem("Modals", makeModals(w)),
-		container.NewTabItem("Widgets", makeWidgets()),
+		container.NewTabItem("Widgets", makeWidgets(w)),
 	)
 	tabs.SetTabLocation(container.TabLocationLeading)
 	tabs.SelectIndex(3)
@@ -87,18 +86,24 @@ func makeLayouts() fyne.CanvasObject {
 	)
 }
 
-func makeWidgets() fyne.CanvasObject {
+func makeWidgets(w fyne.Window) fyne.CanvasObject {
 	badge := kxwidget.NewBadge("1234")
 	img := kxwidget.NewTappableImage(theme.FyneLogo(), func() {
-		log.Println("TappableImage")
+		d := dialog.NewInformation("TappableImage", "tapped", w)
+		kxdialog.AddDialogKeyHandler(d, w)
+		d.Show()
 	})
 	img.SetFillMode(canvas.ImageFillContain)
 	img.SetMinSize(fyne.NewSize(100, 100))
 	icon := kxwidget.NewTappableIcon(theme.AccountIcon(), func() {
-		log.Println("TappableIcon")
+		d := dialog.NewInformation("TappableIcon", "tapped", w)
+		kxdialog.AddDialogKeyHandler(d, w)
+		d.Show()
 	})
 	label := kxwidget.NewTappableLabel("Tap me", func() {
-		log.Println("TappableLabel")
+		d := dialog.NewInformation("TappableLabel", "tapped", w)
+		kxdialog.AddDialogKeyHandler(d, w)
+		d.Show()
 	})
 	slider := kxwidget.NewSlider(0, 100)
 	slider.SetValue(25)
