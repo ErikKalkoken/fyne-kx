@@ -63,7 +63,7 @@ This library contains several Fyne widgets:
 - [TappableIcon](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableIcon) is an icon widget which runs a function when tapped
 - [TappableImage](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableImage) is widget which shows an image and runs a function when tapped
 - [TappableLabel](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableLabel) is a variant of the Fyne Label which runs a function when tapped
-- [Toggle](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Toggle) is a widget implementing a digital switch with two mutually exclusive states: on/off
+- [Switch](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Switch) is a widget implementing a digital switch with two mutually exclusive states: on/off
 
 ![example](https://cdn.imgpile.com/f/bpDBDRn_xl.png)
 
