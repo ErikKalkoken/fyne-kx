@@ -32,7 +32,7 @@ func main() {
 		container.NewTabItem("Widgets", makeWidgets()),
 	)
 	tabs.SetTabLocation(container.TabLocationLeading)
-	tabs.SelectIndex(2)
+	tabs.SelectIndex(3)
 
 	w.SetContent(container.NewBorder(
 		nil,
@@ -66,7 +66,7 @@ func makeDialogs(w fyne.Window) fyne.CanvasObject {
 func makeLayouts() fyne.CanvasObject {
 	layout := kxlayout.NewColumns(150, 100, 50)
 	makeBox := func(h float32) fyne.CanvasObject {
-		x := canvas.NewRectangle(theme.Color(theme.ColorNameDisabled))
+		x := canvas.NewRectangle(theme.Color(theme.ColorNameInputBorder))
 		w := rand.Float32()*100 + 50
 		x.SetMinSize(fyne.NewSize(w, h))
 		return x

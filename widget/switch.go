@@ -11,10 +11,9 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// - Animation?
+// - Add animation?
 
-// Switch is a widget implementing a digital switch with two mutually exclusive states: on/off.
-// WIP - DO NOT USE
+// Switch is a widget representing a digital switch with two mutually exclusive states: on/off.
 type Switch struct {
 	widget.DisableableWidget
 	OnChanged func(on bool)
@@ -183,7 +182,7 @@ const (
 	switchWidth       = 36
 	switchInnerHeight = 14
 	switchHeight      = 20
-	switchFocusHeight = 35
+	switchFocusHeight = 30
 )
 
 // switchRenderer represents the renderer for the Switch widget.
@@ -223,15 +222,19 @@ func (r *switchRenderer) refreshSwitch() {
 	th := r.widget.Theme()
 	v := fyne.CurrentApp().Settings().ThemeVariant()
 
+	// focus colors and state
 	var focusColor color.Color
 	if r.widget.focused {
 		focusColor = th.Color(theme.ColorNameFocus, v)
+		r.focus.Show()
 	} else if r.widget.hovered {
 		focusColor = th.Color(theme.ColorNameHover, v)
+		r.focus.Show()
 	} else {
-		focusColor = color.Transparent
+		r.focus.Hide()
 	}
 
+	// theme dependent parameters
 	var colorModifierMode modifiedColorMode
 	var disabledModifier, trackColorModifier float32
 	isDark := fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark
@@ -245,20 +248,28 @@ func (r *switchRenderer) refreshSwitch() {
 		disabledModifier = 0.2
 	}
 
-	thumbOnColor := th.Color(theme.ColorNamePrimary, v)
-	if r.widget.Disabled() {
-		if r.widget.on {
+	// colors of all objects and position of thumb/shadow/focus
+	focusOffset := (switchFocusHeight - switchHeight) / float32(2)
+	const delta = 1
+	isDisabled := r.widget.Disabled()
+	if r.widget.on {
+		r.thumb.Position1 = r.orig.AddXY(switchWidth-switchHeight, 0)
+		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
+		thumbOnColor := th.Color(theme.ColorNamePrimary, v)
+		if isDisabled {
 			c := newModifiedColor(thumbOnColor, colorModifierMode, disabledModifier)
 			r.track.FillColor = newModifiedColor(c, colorModifierMode, trackColorModifier)
 		} else {
-			r.track.FillColor = th.Color(theme.ColorNameDisabledButton, v)
-			r.thumb.FillColor = th.Color(theme.ColorNameDisabled, v)
-		}
-	} else {
-		if r.widget.on {
 			r.thumb.FillColor = thumbOnColor
 			r.track.FillColor = newModifiedColor(thumbOnColor, colorModifierMode, trackColorModifier)
 			r.focus.FillColor = focusColor
+		}
+	} else {
+		r.thumb.Position1 = r.orig
+		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
+		if isDisabled {
+			r.track.FillColor = th.Color(theme.ColorNameDisabledButton, v)
+			r.thumb.FillColor = th.Color(theme.ColorNameDisabled, v)
 		} else {
 			if isDark {
 				r.thumb.FillColor = th.Color(theme.ColorNameForeground, v)
@@ -269,28 +280,10 @@ func (r *switchRenderer) refreshSwitch() {
 			r.focus.FillColor = focusColor
 		}
 	}
-
-	d := (switchFocusHeight - switchHeight) / float32(2)
-	const delta = 1
-	if !r.widget.on {
-		r.thumb.Position1 = r.orig
-		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
-
-		r.shadow.Position1 = r.thumb.Position1.AddXY(-delta, delta)
-		r.shadow.Position2 = r.thumb.Position2.AddXY(-delta, delta)
-
-		r.focus.Position1 = r.orig.AddXY(0-d, 0-d)
-		r.focus.Position2 = r.focus.Position1.AddXY(switchFocusHeight, switchFocusHeight)
-	} else {
-		r.thumb.Position1 = r.orig.AddXY(switchWidth-switchHeight, 0)
-		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
-
-		r.shadow.Position1 = r.thumb.Position1.AddXY(delta, delta)
-		r.shadow.Position2 = r.thumb.Position2.AddXY(delta, delta)
-
-		r.focus.Position1 = r.orig.AddXY(switchWidth-switchHeight-d, 0-d)
-		r.focus.Position2 = r.focus.Position1.AddXY(switchFocusHeight, switchFocusHeight)
-	}
+	r.shadow.Position1 = r.thumb.Position1.AddXY(-delta, delta)
+	r.shadow.Position2 = r.thumb.Position2.AddXY(-delta, delta)
+	r.focus.Position1 = r.thumb.Position1.AddXY(-focusOffset, -focusOffset)
+	r.focus.Position2 = r.focus.Position1.AddXY(switchFocusHeight, switchFocusHeight)
 
 	r.track.Refresh()
 	r.focus.Refresh()

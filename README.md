@@ -1,16 +1,17 @@
 # fyne-kx
 
-A library with extensions for the Fyne GUI toolkit.
+A library with extensions and tools for the Fyne GUI toolkit.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/ErikKalkoken/fyne-kx.svg)](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx)
 
 > [!NOTE]
-> This is an early version of the library and the API is suspect to change until version 1.0 is reached.
+> This is an early version of the library and the API may still change until version 1.0 is reached.
 
 ## Description
 
 This library contains several extensions for the [Fyne GUI toolkit](https://fyne.io/):
 
+- [Dialogs](#dialogs)
 - [Layouts](#layouts)
 - [Modals](#modals)
 - [Widgets](#widgets)
@@ -22,8 +23,6 @@ In addition it contains two Fyne apps:
 
 For more details please see the [Go documentation](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx) for this package.
 
-For a live demo please see the [demo app](#demo).
-
 ### Dialogs
 
 The library provides helpers for building dialogs, e.g. a helper that enables closing any dialog with the escape key.
@@ -33,7 +32,7 @@ The library provides helpers for building dialogs, e.g. a helper that enables cl
 - [Columns](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/layout#NewColumns): Columns arranges all objects in a row, with each in their own column with a given minimum width.
 It can be used to arrange subsequent rows of objects in columns.
 
-![Example](https://cdn.imgpile.com/f/maoyoP1_xl.png)
+![Example](https://cdn.imgpile.com/f/0if8yhY_xl.png)
 
 ### Modals
 
@@ -56,7 +55,7 @@ This library contains several Fyne widgets:
 - [TappableLabel](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableLabel) is a variant of the Fyne Label which runs a function when tapped
 - [Toggle](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Toggle) is a widget implementing a digital switch with two mutually exclusive states: on/off
 
-![example](https://cdn.imgpile.com/f/swLOMWS_xl.png)
+![example](https://cdn.imgpile.com/f/bpDBDRn_xl.png)
 
 ## Apps
 
@@ -65,16 +64,22 @@ This library contains several Fyne widgets:
 
 ### Demo
 
-Demo is a Fyne app for demonstrating the features provided by the fyne-kx library. You can run it directly with the following command:
+Demo is a Fyne app for demonstrating the features provided by the fyne-kx library.
+
+You can run it directly with the following command:
 
 ```sh
 go run github.com/ErikKalkoken/fyne-kx/cmd/demo@latest
 ```
 
+![example](https://cdn.imgpile.com/f/bpDBDRn_xl.png)
+
 ### Fyne theme
 
-Fynetheme is a Fyne app for showing details about the default Fyne theme. You can run it directly with the following command:
+Fynetheme is a Fyne app for showing details about the default Fyne theme like colors, icons and sizes. You can run it directly with the following command:
 
 ```sh
 go run github.com/ErikKalkoken/fyne-kx/cmd/themeinsight@latest
 ```
+
+![Example](https://cdn.imgpile.com/f/vCHVA6I_xl.png)
