@@ -160,11 +160,8 @@ func (w *Switch) CreateRenderer() fyne.WidgetRenderer {
 	defer w.mu.RUnlock()
 	track := canvas.NewRectangle(color.Transparent)
 	track.CornerRadius = 7
-	track.StrokeWidth = 1
 	thumbLeft := canvas.NewCircle(color.Transparent)
-	thumbLeft.StrokeWidth = 1
 	thumbRight := canvas.NewCircle(color.Transparent)
-	thumbRight.StrokeWidth = 1
 	r := &switchRenderer{
 		track:      track,
 		thumbLeft:  thumbLeft,
@@ -218,12 +215,14 @@ func (r *switchRenderer) Layout(size fyne.Size) {
 
 	r.thumbLeft.Position1 = orig
 	r.thumbLeft.Position2 = r.thumbLeft.Position1.AddXY(switchHeight, switchHeight)
+
 	r.thumbRight.Position1 = orig.AddXY(switchWidth-switchHeight, 0)
 	r.thumbRight.Position2 = r.thumbRight.Position1.AddXY(switchHeight, switchHeight)
 
 	d := (switchFocusHeight - switchHeight) / float32(2)
 	r.focusLeft.Position1 = orig.AddXY(0-d, 0-d)
 	r.focusLeft.Position2 = r.focusLeft.Position1.AddXY(switchFocusHeight, switchFocusHeight)
+
 	r.focusRight.Position1 = orig.AddXY(switchWidth-switchHeight-d, 0-d)
 	r.focusRight.Position2 = r.focusRight.Position1.AddXY(switchFocusHeight, switchFocusHeight)
 }
@@ -266,26 +265,22 @@ func (r *switchRenderer) refreshSwitch() {
 			c := newModifiedColor(thumbOnColor, colorModifierMode, disabledModifier)
 			r.track.FillColor = newModifiedColor(c, colorModifierMode, trackColorModifier)
 			r.thumbRight.FillColor = c
-			r.track.StrokeColor = r.thumbRight.FillColor
 		} else {
 			r.track.FillColor = th.Color(theme.ColorNameDisabledButton, v)
 			r.thumbLeft.FillColor = th.Color(theme.ColorNameDisabled, v)
-			r.track.StrokeColor = r.thumbLeft.FillColor
 		}
 	} else {
 		if r.widget.on {
 			r.thumbRight.FillColor = thumbOnColor
 			r.track.FillColor = newModifiedColor(thumbOnColor, colorModifierMode, trackColorModifier)
-			r.track.StrokeColor = r.thumbRight.FillColor
 			r.focusRight.FillColor = focusColor
 		} else {
 			if isDark {
-				r.thumbLeft.FillColor = th.Color(theme.ColorNameScrollBar, v)
+				r.thumbLeft.FillColor = th.Color(theme.ColorNameForeground, v)
 			} else {
 				r.thumbLeft.FillColor = th.Color(theme.ColorNameButton, v)
 			}
-			r.track.FillColor = th.Color(theme.ColorNamePlaceHolder, v)
-			r.track.StrokeColor = r.thumbLeft.FillColor
+			r.track.FillColor = th.Color(theme.ColorNameInputBorder, v)
 			r.focusLeft.FillColor = focusColor
 		}
 	}
