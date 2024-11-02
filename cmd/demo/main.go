@@ -88,17 +88,26 @@ func makeWidgets() fyne.CanvasObject {
 		log.Println("Switch 2: ", on)
 	})
 	switch3 := kxwidget.NewSwitch(nil)
+	switch3.SetState(true)
 	switch3.Disable()
 	switch4 := kxwidget.NewSwitch(nil)
-	switch4.SetState(true)
 	switch4.Disable()
+	addLabel := func(c fyne.CanvasObject, text string) fyne.CanvasObject {
+		return container.NewHBox(c, widget.NewLabel(text))
+	}
+
 	f := &widget.Form{
 		Items: []*widget.FormItem{
 			{Text: "Badge", Widget: badge},
 			{Text: "", Widget: container.NewPadded()},
 			{Text: "Slider", Widget: slider},
 			{Text: "", Widget: container.NewPadded()},
-			{Text: "Switch", Widget: container.NewVBox(switch1, switch2, switch3, switch4)},
+			{Text: "Switch", Widget: container.NewVBox(
+				addLabel(switch1, "on"),
+				addLabel(switch2, "off"),
+				addLabel(switch3, "on disabled"),
+				addLabel(switch4, "off disabled"),
+			)},
 			{Text: "", Widget: container.NewPadded()},
 			{Text: "TappableIcon", Widget: container.NewHBox(icon)},
 			{Text: "", Widget: container.NewPadded()},

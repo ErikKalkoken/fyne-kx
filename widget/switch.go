@@ -160,13 +160,18 @@ func (w *Switch) CreateRenderer() fyne.WidgetRenderer {
 	defer w.mu.RUnlock()
 	track := canvas.NewRectangle(color.Transparent)
 	track.CornerRadius = 7
+	track.StrokeWidth = 1
+	thumbLeft := canvas.NewCircle(color.Transparent)
+	thumbLeft.StrokeWidth = 1
+	thumbRight := canvas.NewCircle(color.Transparent)
+	thumbRight.StrokeWidth = 1
 	r := &switchRenderer{
-		track:       track,
-		handleLeft:  canvas.NewCircle(color.Transparent),
-		handleRight: canvas.NewCircle(color.Transparent),
-		focusLeft:   canvas.NewCircle(color.Transparent),
-		focusRight:  canvas.NewCircle(color.Transparent),
-		widget:      w,
+		track:      track,
+		thumbLeft:  thumbLeft,
+		thumbRight: thumbRight,
+		focusLeft:  canvas.NewCircle(color.Transparent),
+		focusRight: canvas.NewCircle(color.Transparent),
+		widget:     w,
 	}
 	r.refreshSwitch()
 	return r
@@ -184,12 +189,12 @@ const (
 
 // switchRenderer represents the renderer for the Switch widget.
 type switchRenderer struct {
-	track       *canvas.Rectangle
-	handleLeft  *canvas.Circle
-	handleRight *canvas.Circle
-	focusLeft   *canvas.Circle
-	focusRight  *canvas.Circle
-	widget      *Switch
+	track      *canvas.Rectangle
+	thumbLeft  *canvas.Circle
+	thumbRight *canvas.Circle
+	focusLeft  *canvas.Circle
+	focusRight *canvas.Circle
+	widget     *Switch
 }
 
 func (r *switchRenderer) Destroy() {
@@ -211,10 +216,10 @@ func (r *switchRenderer) Layout(size fyne.Size) {
 	r.track.Move(orig.AddXY(0, (switchHeight-switchInnerHeight)/2))
 	r.track.Resize(fyne.NewSize(switchWidth, switchInnerHeight))
 
-	r.handleLeft.Position1 = orig
-	r.handleLeft.Position2 = r.handleLeft.Position1.AddXY(switchHeight, switchHeight)
-	r.handleRight.Position1 = orig.AddXY(switchWidth-switchHeight, 0)
-	r.handleRight.Position2 = r.handleRight.Position1.AddXY(switchHeight, switchHeight)
+	r.thumbLeft.Position1 = orig
+	r.thumbLeft.Position2 = r.thumbLeft.Position1.AddXY(switchHeight, switchHeight)
+	r.thumbRight.Position1 = orig.AddXY(switchWidth-switchHeight, 0)
+	r.thumbRight.Position2 = r.thumbRight.Position1.AddXY(switchHeight, switchHeight)
 
 	d := (switchFocusHeight - switchHeight) / float32(2)
 	r.focusLeft.Position1 = orig.AddXY(0-d, 0-d)
@@ -227,8 +232,6 @@ func (r *switchRenderer) Layout(size fyne.Size) {
 func (r *switchRenderer) refreshSwitch() {
 	th := r.widget.Theme()
 	v := fyne.CurrentApp().Settings().ThemeVariant()
-	// isDisabled := r.widget.Disabled()
-	// isDark := fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark
 
 	var focusColor color.Color
 	if r.widget.focused {
@@ -239,23 +242,56 @@ func (r *switchRenderer) refreshSwitch() {
 		focusColor = color.Transparent
 	}
 
-	if r.widget.on {
-		primaryColor := th.Color(theme.ColorNamePrimary, v)
-		r.track.FillColor = newColorWithReducedIntensity(primaryColor, 0.5)
-		r.handleLeft.FillColor = color.Transparent
-		r.handleRight.FillColor = primaryColor
-		r.focusLeft.FillColor = color.Transparent
-		r.focusRight.FillColor = focusColor
+	var colorModifierMode modifiedColorMode
+	var disabledModifier, trackColorModifier float32
+	isDark := fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark
+	if isDark {
+		colorModifierMode = modeDarker
+		trackColorModifier = 0.5
+		disabledModifier = 0.75
 	} else {
-		r.track.FillColor = th.Color(theme.ColorNameInputBorder, v)
-		r.handleLeft.FillColor = th.Color(theme.ColorNameForeground, v)
-		r.handleRight.FillColor = color.Transparent
-		r.focusLeft.FillColor = focusColor
-		r.focusRight.FillColor = color.Transparent
+		colorModifierMode = modeBrighter
+		trackColorModifier = 0.5
+		disabledModifier = 0.2
 	}
-	r.handleLeft.Refresh()
+
+	r.track.FillColor = color.Transparent
+	r.thumbLeft.FillColor = color.Transparent
+	r.thumbRight.FillColor = color.Transparent
+	r.focusLeft.FillColor = color.Transparent
+	r.focusRight.FillColor = color.Transparent
+	thumbOnColor := th.Color(theme.ColorNamePrimary, v)
+	if r.widget.Disabled() {
+		if r.widget.on {
+			c := newModifiedColor(thumbOnColor, colorModifierMode, disabledModifier)
+			r.track.FillColor = newModifiedColor(c, colorModifierMode, trackColorModifier)
+			r.thumbRight.FillColor = c
+			r.track.StrokeColor = r.thumbRight.FillColor
+		} else {
+			r.track.FillColor = th.Color(theme.ColorNameDisabledButton, v)
+			r.thumbLeft.FillColor = th.Color(theme.ColorNameDisabled, v)
+			r.track.StrokeColor = r.thumbLeft.FillColor
+		}
+	} else {
+		if r.widget.on {
+			r.thumbRight.FillColor = thumbOnColor
+			r.track.FillColor = newModifiedColor(thumbOnColor, colorModifierMode, trackColorModifier)
+			r.track.StrokeColor = r.thumbRight.FillColor
+			r.focusRight.FillColor = focusColor
+		} else {
+			if isDark {
+				r.thumbLeft.FillColor = th.Color(theme.ColorNameScrollBar, v)
+			} else {
+				r.thumbLeft.FillColor = th.Color(theme.ColorNameButton, v)
+			}
+			r.track.FillColor = th.Color(theme.ColorNamePlaceHolder, v)
+			r.track.StrokeColor = r.thumbLeft.FillColor
+			r.focusLeft.FillColor = focusColor
+		}
+	}
+	r.thumbLeft.Refresh()
 	r.focusLeft.Refresh()
-	r.handleRight.Refresh()
+	r.thumbRight.Refresh()
 	r.focusRight.Refresh()
 	r.track.Refresh()
 }
@@ -271,34 +307,5 @@ func (r *switchRenderer) Refresh() {
 
 // Objects returns the objects that should be rendered.
 func (r *switchRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.track, r.focusLeft, r.focusRight, r.handleLeft, r.handleRight}
-}
-
-type myColor struct {
-	c color.Color
-	t float32
-}
-
-// newColorWithReducedIntensity returns a new instance of color with modified intensity.
-//
-// The intensity value is expected between 0 and 1. Larger and smaller numbers will be truncated.
-func newColorWithReducedIntensity(c color.Color, intensity float32) color.Color {
-	if intensity < 0 {
-		intensity = 0
-	}
-	if intensity > 1 {
-		intensity = 1
-	}
-	return myColor{c: c, t: intensity}
-}
-
-func (mc myColor) RGBA() (r, g, b, a uint32) {
-	r, g, b, a = mc.c.RGBA()
-	r2 := float32(r) / 0xffff * mc.t
-	g2 := float32(g) / 0xffff * mc.t
-	b2 := float32(b) / 0xffff * mc.t
-	r = uint32(r2 * 0xffff)
-	g = uint32(g2 * 0xffff)
-	b = uint32(b2 * 0xffff)
-	return
+	return []fyne.CanvasObject{r.track, r.focusLeft, r.focusRight, r.thumbLeft, r.thumbRight}
 }

@@ -76,12 +76,20 @@ func makeColors() fyne.CanvasObject {
 		{"ColorNameSuccess", theme.ColorNameSuccess},
 		{"ColorNameWarning", theme.ColorNameWarning},
 	}
-	hasTransparency := make(map[fyne.ThemeColorName]bool)
-	for _, col := range colors {
-		c := theme.Color(fyne.ThemeColorName(col.name))
+	hasTransparencyDark := make(map[fyne.ThemeColorName]bool)
+	hasTransparencyLight := make(map[fyne.ThemeColorName]bool)
+	th := theme.Current()
+	hasTransparency := func(name fyne.ThemeColorName, v fyne.ThemeVariant) bool {
+		c := th.Color(fyne.ThemeColorName(name), v)
 		_, _, _, a := c.RGBA()
-		if a != 0xffff {
-			hasTransparency[col.name] = true
+		return a != 0xffff
+	}
+	for _, col := range colors {
+		if hasTransparency(col.name, theme.VariantDark) {
+			hasTransparencyDark[col.name] = true
+		}
+		if hasTransparency(col.name, theme.VariantLight) {
+			hasTransparencyLight[col.name] = true
 		}
 	}
 	slices.SortFunc(colors, func(a, b colorRow) int {
@@ -93,13 +101,17 @@ func makeColors() fyne.CanvasObject {
 			return len(colorsFiltered)
 		},
 		func() fyne.CanvasObject {
-			check := widget.NewCheck("", nil)
-			check.Disable()
+			check1 := widget.NewCheck("", nil)
+			check1.Disable()
+			check2 := widget.NewCheck("", nil)
+			check2.Disable()
 			return container.NewHBox(
 				widget.NewLabel("Template"),
 				layout.NewSpacer(),
 				canvas.NewRectangle(color.Transparent),
-				check,
+				check1,
+				canvas.NewRectangle(color.Transparent),
+				check2,
 			)
 		},
 		func(id widget.ListItemID, co fyne.CanvasObject) {
@@ -108,15 +120,27 @@ func makeColors() fyne.CanvasObject {
 			}
 			myColor := colorsFiltered[id]
 			row := co.(*fyne.Container).Objects
+
 			label := row[0].(*widget.Label)
 			label.SetText(myColor.label)
-			colorRect := row[2].(*canvas.Rectangle)
-			colorRect.FillColor = theme.Color(fyne.ThemeColorName(myColor.name))
-			colorRect.SetMinSize(fyne.NewSize(100, 30))
-			colorRect.StrokeColor = theme.Color(theme.ColorNameForeground)
-			colorRect.StrokeWidth = 1.6
-			colorLabel := row[3].(*widget.Check)
-			colorLabel.SetChecked(hasTransparency[myColor.name])
+
+			colorRect1 := row[2].(*canvas.Rectangle)
+			colorRect1.FillColor = th.Color(fyne.ThemeColorName(myColor.name), theme.VariantLight)
+			colorRect1.SetMinSize(fyne.NewSize(100, 30))
+			colorRect1.StrokeColor = theme.Color(theme.ColorNameForeground)
+			colorRect1.StrokeWidth = 1.6
+
+			check1 := row[3].(*widget.Check)
+			check1.SetChecked(hasTransparencyLight[myColor.name])
+
+			colorRect2 := row[4].(*canvas.Rectangle)
+			colorRect2.FillColor = th.Color(fyne.ThemeColorName(myColor.name), theme.VariantDark)
+			colorRect2.SetMinSize(fyne.NewSize(100, 30))
+			colorRect2.StrokeColor = theme.Color(theme.ColorNameForeground)
+			colorRect2.StrokeWidth = 1.6
+
+			check2 := row[5].(*widget.Check)
+			check2.SetChecked(hasTransparencyDark[myColor.name])
 		},
 	)
 	var currentSearch string
@@ -126,10 +150,10 @@ func makeColors() fyne.CanvasObject {
 		s2 := strings.ToLower(currentSearch)
 		for _, col := range colors {
 			if strings.Contains(strings.ToLower(col.label), s2) {
-				if currentSelection == "Transparent" && !hasTransparency[col.name] {
+				if currentSelection == "Transparent" && !hasTransparencyLight[col.name] {
 					continue
 				}
-				if currentSelection == "Opaque" && hasTransparency[col.name] {
+				if currentSelection == "Opaque" && hasTransparencyLight[col.name] {
 					continue
 				}
 				colorsFiltered = append(colorsFiltered, col)
