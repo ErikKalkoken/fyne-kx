@@ -2,6 +2,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -11,9 +12,11 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
+	kxdialog "github.com/ErikKalkoken/fyne-kx/dialog"
 	kxlayout "github.com/ErikKalkoken/fyne-kx/layout"
 	kxmodal "github.com/ErikKalkoken/fyne-kx/modal"
 	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
@@ -23,6 +26,7 @@ func main() {
 	app := app.New()
 	w := app.NewWindow("KX Demo")
 	tabs := container.NewAppTabs(
+		container.NewTabItem("Dialogs", makeDialogs(w)),
 		container.NewTabItem("Layouts", makeLayouts()),
 		container.NewTabItem("Modals", makeModals(w)),
 		container.NewTabItem("Widgets", makeWidgets()),
@@ -39,6 +43,24 @@ func main() {
 	))
 	w.Resize(fyne.NewSize(600, 500))
 	w.ShowAndRun()
+}
+
+func makeDialogs(w fyne.Window) fyne.CanvasObject {
+	c := container.NewVBox(
+		widget.NewButton("Information Dialog with key handler", func() {
+			d := dialog.NewInformation("Info", "You can close this dialog with the Escape key.", w)
+			kxdialog.AddDialogKeyHandler(d, w)
+			d.Show()
+		}),
+		widget.NewButton("Confirm Dialog with key handler", func() {
+			d := dialog.NewConfirm("Confirm", "You can close this dialog with the Escape key.", func(b bool) {
+				fmt.Printf("Confirm dialog: %v\n", b)
+			}, w)
+			kxdialog.AddDialogKeyHandler(d, w)
+			d.Show()
+		}),
+	)
+	return c
 }
 
 func makeLayouts() fyne.CanvasObject {

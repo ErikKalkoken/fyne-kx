@@ -124,20 +124,22 @@ func makeColors() fyne.CanvasObject {
 			label := row[0].(*widget.Label)
 			label.SetText(myColor.label)
 
+			boxSize := fyne.NewSize(100, 30)
+			const borderSize = 7.5
 			colorRect1 := row[2].(*canvas.Rectangle)
 			colorRect1.FillColor = th.Color(fyne.ThemeColorName(myColor.name), theme.VariantLight)
-			colorRect1.SetMinSize(fyne.NewSize(100, 30))
-			colorRect1.StrokeColor = theme.Color(theme.ColorNameForeground)
-			colorRect1.StrokeWidth = 1.6
+			colorRect1.SetMinSize(boxSize)
+			colorRect1.StrokeColor = th.Color(fyne.ThemeColorName(theme.ColorNameBackground), theme.VariantLight)
+			colorRect1.StrokeWidth = borderSize
 
 			check1 := row[3].(*widget.Check)
 			check1.SetChecked(hasTransparencyLight[myColor.name])
 
 			colorRect2 := row[4].(*canvas.Rectangle)
 			colorRect2.FillColor = th.Color(fyne.ThemeColorName(myColor.name), theme.VariantDark)
-			colorRect2.SetMinSize(fyne.NewSize(100, 30))
-			colorRect2.StrokeColor = theme.Color(theme.ColorNameForeground)
-			colorRect2.StrokeWidth = 1.6
+			colorRect2.SetMinSize(boxSize)
+			colorRect2.StrokeColor = th.Color(fyne.ThemeColorName(theme.ColorNameBackground), theme.VariantDark)
+			colorRect2.StrokeWidth = borderSize
 
 			check2 := row[5].(*widget.Check)
 			check2.SetChecked(hasTransparencyDark[myColor.name])

@@ -24,6 +24,10 @@ For more details please see the [Go documentation](https://pkg.go.dev/github.com
 
 For a live demo please see the [demo app](#demo).
 
+### Dialogs
+
+The library provides helpers for building dialogs, e.g. a helper that enables closing any dialog with the escape key.
+
 ### Layouts
 
 - [Columns](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/layout#NewColumns): Columns arranges all objects in a row, with each in their own column with a given minimum width.
