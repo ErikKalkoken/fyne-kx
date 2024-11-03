@@ -5,13 +5,19 @@ A library with extensions and tools for the Fyne GUI toolkit.
 [![Go Reference](https://pkg.go.dev/badge/github.com/ErikKalkoken/fyne-kx.svg)](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx)
 
 > [!NOTE]
-> This is an early version of the library and the API may still change until version 1.0 is reached.
+> The library is still in active development and the API is not fully stable yet. Any feedback or suggestions are welcome.
 
 ## Contents
 
 - [Installation](#installation)
 - [Extensions](#extensions)
+  - [Dialogs](#dialogs)
+  - [Layouts](#layouts)
+  - [Modals](#modals)
+  - [Widgets](#widgets)
 - [Apps](#apps)
+  - [demo](#demo)
+  - [fynetheme](#fyne-theme)
 
 ## Installation
 
@@ -23,22 +29,20 @@ go get github.com/ErikKalkoken/fyne-kx@latest
 
 ## Extensions
 
-This library contains several extensions for the [Fyne GUI toolkit](https://fyne.io/):
+This library contains several extensions for the [Fyne GUI toolkit](https://fyne.io/).
 
-- [Dialogs](#dialogs)
-- [Layouts](#layouts)
-- [Modals](#modals)
-- [Widgets](#widgets)
-
-For more details please also see the [Go documentation](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx) for this package.
+> [!TIP]
+> For a live demo and example code please see the [demo app](#demo).
 
 ### Dialogs
 
-The library provides helpers for building dialogs, e.g. a helper that enables closing any dialog with the escape key.
+The library provides helpers for building dialogs.
+
+- [AddDialogKeyHandler](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/dialog#AddDialogKeyHandler) adds a key handler to a dialog. It enables the user to close the dialog by pressing the escape key.
 
 ### Layouts
 
-- [Columns](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/layout#NewColumns): Columns arranges all objects in a row, with each in their own column with a given minimum width.
+- [Columns](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/layout#NewColumns) arranges all objects in a row, with each in their own column with a given minimum width.
 It can be used to arrange subsequent rows of objects in columns.
 
 ![Example](https://cdn.imgpile.com/f/0if8yhY_xl.png)
@@ -67,31 +71,54 @@ This library contains several Fyne widgets:
 
 [Widget demo](https://github.com/user-attachments/assets/fb37a56a-dafa-49b5-92f2-e6c61457bdc4)
 
+The widgets can be used just like any other widget from the Fyne standard library. Here is an example for the Switch widget:
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"fyne.io/fyne/v2/app"
+
+	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
+)
+
+func main() {
+	a := app.New()
+	w := a.NewWindow("Example")
+	s := kxwidget.NewSwitch(func(on bool) {
+		fmt.Printf("Switch: %v\n", on)
+	})
+	w.SetContent(s)
+	w.ShowAndRun()
+}
+```
+
 ## Apps
 
-This library also contains two Fyne apps:
-
-- [demo](#demo): Live demo of the features provided by this library
-- [fynetheme](#fyne-theme): Shows insights about the default Fyne theme
+This library also contains two Fyne apps.
 
 > [!TIP]
+> To run any of the provided Fyne apps directly, you need to have Fyne installed and configured in your system.
 > For more information on how to configure your system for Fyne please see: [Getting Started](https://docs.fyne.io/started/).
 
 ### Demo
 
-Demo is a Fyne app for demonstrating the features provided by the fyne-kx library.
+Demo is a Fyne app for demonstrating the features provided by the fyne-kx library. It can also show you how each component of this library can be used in code.
 
-You can run it directly with the following command:
+To run the demo app directly use the following command:
 
 ```sh
 go run github.com/ErikKalkoken/fyne-kx/cmd/demo@latest
 ```
 
-![example](https://cdn.imgpile.com/f/bpDBDRn_xl.png)
+![example](https://cdn.imgpile.com/f/UFSaUqd_xl.png)
 
 ### Fyne theme
 
-Fynetheme is a Fyne app for showing details about the default Fyne theme like colors, icons and sizes.
+Fynetheme is a Fyne app for showing details about the default Fyne theme like colors, icons and sizes and has a search functions to help find them more quickly. This app can be especially useful when creating your own widgets.
+
 You can run it directly with the following command:
 
 ```sh
