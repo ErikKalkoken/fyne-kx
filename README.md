@@ -122,7 +122,7 @@ Fynetheme is a Fyne app for showing details about the default Fyne theme like co
 You can run it directly with the following command:
 
 ```sh
-go run github.com/ErikKalkoken/fyne-kx/cmd/themeinsight@latest
+go run github.com/ErikKalkoken/fyne-kx/cmd/fynetheme@latest
 ```
 
 ![Example](https://cdn.imgpile.com/f/vCHVA6I_xl.png)
