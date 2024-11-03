@@ -126,7 +126,7 @@ func makeWidgets(w fyne.Window) fyne.CanvasObject {
 	switch2 := kxwidget.NewSwitch(func(on bool) {
 		switchLabel2.SetText(textForBool(on))
 	})
-	switchLabel1.SetText(textForBool(switch2.State()))
+	switchLabel2.SetText(textForBool(switch2.State()))
 	switch2Box := container.NewHBox(switch2, switchLabel2)
 
 	switch3 := kxwidget.NewSwitch(nil)
