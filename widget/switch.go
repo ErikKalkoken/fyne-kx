@@ -16,14 +16,14 @@ import (
 // Switch is a widget representing a digital switch with two mutually exclusive states: on/off.
 type Switch struct {
 	widget.DisableableWidget
+	On bool
+
 	OnChanged func(on bool)
 
 	focused bool
 	hovered bool
-	minSize fyne.Size // cached for hover/top pos calcs
-
-	mu sync.RWMutex // property lock
-	on bool
+	minSize fyne.Size    // cached for hover/top pos calcs
+	mu      sync.RWMutex // property lock
 }
 
 var _ fyne.Widget = (*Switch)(nil)
@@ -45,7 +45,7 @@ func NewSwitch(changed func(on bool)) *Switch {
 func (w *Switch) State() bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	return w.on
+	return w.On
 }
 
 // SetState sets the state for a switch.
@@ -53,10 +53,10 @@ func (w *Switch) SetState(on bool) {
 	func() {
 		w.mu.Lock()
 		defer w.mu.Unlock()
-		if on == w.on {
+		if on == w.On {
 			return
 		}
-		w.on = on
+		w.On = on
 	}()
 	if w.OnChanged != nil {
 		w.OnChanged(on)
@@ -85,7 +85,7 @@ func (w *Switch) TypedRune(r rune) {
 		return
 	}
 	if r == ' ' {
-		w.SetState(!w.on)
+		w.SetState(!w.On)
 	}
 }
 
@@ -109,7 +109,7 @@ func (w *Switch) Tapped(pe *fyne.PointEvent) {
 			}
 		}
 	}
-	w.SetState(!w.on)
+	w.SetState(!w.On)
 }
 
 func (w *Switch) TappedSecondary(_ *fyne.PointEvent) {
@@ -252,12 +252,13 @@ func (r *switchRenderer) refreshSwitch() {
 	focusOffset := (switchFocusHeight - switchHeight) / float32(2)
 	const delta = 1
 	isDisabled := r.widget.Disabled()
-	if r.widget.on {
+	if r.widget.On {
 		r.thumb.Position1 = r.orig.AddXY(switchWidth-switchHeight, 0)
 		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
 		thumbOnColor := th.Color(theme.ColorNamePrimary, v)
 		if isDisabled {
 			c := newModifiedColor(thumbOnColor, colorModifierMode, disabledModifier)
+			r.thumb.FillColor = c
 			r.track.FillColor = newModifiedColor(c, colorModifierMode, trackColorModifier)
 		} else {
 			r.thumb.FillColor = thumbOnColor
@@ -268,8 +269,8 @@ func (r *switchRenderer) refreshSwitch() {
 		r.thumb.Position1 = r.orig
 		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
 		if isDisabled {
-			r.track.FillColor = th.Color(theme.ColorNameDisabledButton, v)
 			r.thumb.FillColor = th.Color(theme.ColorNameDisabled, v)
+			r.track.FillColor = th.Color(theme.ColorNameDisabledButton, v)
 		} else {
 			if isDark {
 				r.thumb.FillColor = th.Color(theme.ColorNameForeground, v)
