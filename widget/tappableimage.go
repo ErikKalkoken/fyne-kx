@@ -30,13 +30,26 @@ func NewTappableImage(res fyne.Resource, tapped func()) *TappableImage {
 }
 
 // SetFillMode sets the fill mode of the image.
+func (w *TappableImage) SetResource(r fyne.Resource) {
+	w.image.Resource = r
+	w.image.Refresh()
+}
+
+// SetFillMode sets the fill mode of the image.
 func (w *TappableImage) SetFillMode(fillMode canvas.ImageFill) {
 	w.image.FillMode = fillMode
+	w.image.Refresh()
 }
 
 // SetMinSize sets the minimum size of the image.
 func (w *TappableImage) SetMinSize(size fyne.Size) {
 	w.image.SetMinSize(size)
+}
+
+// MinSize returns the size that this widget should not shrink below
+func (w *TappableImage) MinSize() fyne.Size {
+	w.ExtendBaseWidget(w)
+	return w.BaseWidget.MinSize()
 }
 
 func (w *TappableImage) Tapped(_ *fyne.PointEvent) {
