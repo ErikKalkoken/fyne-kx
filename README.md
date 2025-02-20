@@ -24,7 +24,7 @@ A library with extensions and tools for the Fyne GUI toolkit.
 You can add this library to your current Fyne project with the following command:
 
 ```sh
-go get github.com/ErikKalkoken/fyne-kx@latest
+go get github.com/ErikKalkoken/fyne-kx
 ```
 
 ## Extensions
@@ -119,10 +119,16 @@ go run github.com/ErikKalkoken/fyne-kx/cmd/demo@latest
 
 Fynetheme is a Fyne app for showing details about the default Fyne theme like colors, icons and sizes and has a search functions to help find them more quickly. This app can be especially useful when creating your own widgets.
 
-You can run it directly with the following command:
+You can install this tool directly with the following command:
 
 ```sh
-go run github.com/ErikKalkoken/fyne-kx/cmd/fynetheme@latest
+go install github.com/ErikKalkoken/fyne-kx/cmd/fynetheme@latest
+```
+
+Once installed it will be available with:
+
+```sh
+fynetheme
 ```
 
 ![Example](https://cdn.imgpile.com/f/vCHVA6I_xl.png)
