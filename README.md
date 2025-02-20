@@ -2,7 +2,9 @@
 
 A library with extensions and tools for the Fyne GUI toolkit.
 
+![GitHub Release](https://img.shields.io/github/v/release/ErikKalkoken/fyne-kx)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ErikKalkoken/fyne-kx.svg)](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx)
+![GitHub License](https://img.shields.io/github/license/ErikKalkoken/fyne-kx)
 
 > [!NOTE]
 > The library is still in active development and the API is not fully stable yet. Any feedback or suggestions are welcome.
