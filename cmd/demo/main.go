@@ -110,7 +110,24 @@ func makeLayouts() fyne.CanvasObject {
 }
 
 func makeWidgets(w fyne.Window) fyne.CanvasObject {
-	badge := kxwidget.NewBadge("1234")
+	badges := container.NewVBox()
+	badgesConfig := []struct {
+		name       string
+		importance widget.Importance
+	}{
+		{"danger", widget.DangerImportance},
+		{"high", widget.HighImportance},
+		{"low", widget.LowImportance},
+		{"medium", widget.MediumImportance},
+		{"success", widget.SuccessImportance},
+		{"warning", widget.WarningImportance},
+	}
+	for _, bc := range badgesConfig {
+		b := kxwidget.NewBadge("Alpha")
+		b.Importance = bc.importance
+		badges.Add(container.NewHBox(b, widget.NewLabel(bc.name+" importance")))
+	}
+
 	img := kxwidget.NewTappableImage(resourceIconPng, func() {
 		d := dialog.NewInformation("TappableImage", "tapped", w)
 		kxdialog.AddDialogKeyHandler(d, w)
@@ -163,7 +180,7 @@ func makeWidgets(w fyne.Window) fyne.CanvasObject {
 
 	f := &widget.Form{
 		Items: []*widget.FormItem{
-			{Text: "Badge", Widget: badge},
+			{Text: "Badge", Widget: badges},
 			{Text: "", Widget: container.NewPadded()},
 			{Text: "Slider", Widget: slider},
 			{Text: "", Widget: container.NewPadded()},
@@ -181,7 +198,7 @@ func makeWidgets(w fyne.Window) fyne.CanvasObject {
 			{Text: "TappableLabel", Widget: label},
 		},
 	}
-	return f
+	return container.NewVScroll(f)
 }
 
 func makeModals(w fyne.Window) *fyne.Container {
