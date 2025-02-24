@@ -14,6 +14,7 @@ A library with extensions and tools for the Fyne GUI toolkit.
   - [Dialogs](#dialogs)
   - [Layouts](#layouts)
   - [Modals](#modals)
+  - [Themes](#modals)
   - [Widgets](#widgets)
 - [Apps](#apps)
   - [demo](#demo)
@@ -57,6 +58,12 @@ They are useful when you have a longer running process that the user needs to wa
 [Progress modals](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/modal#hdr-Progress_modals) are modals that show a progress indicator while an action function is running. The library provides several variants.
 
 [Progress modal demo](https://github.com/user-attachments/assets/047c0464-0324-45c4-940e-f7d489b1ad11)
+
+### Themes
+
+Further, additional custom themes are provided:
+
+- [DefaultWithFixedVariant](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/theme#DefaultWithFixedVariant) allows apps to set a permament light or dark mode.
 
 ### Widgets
 
