@@ -88,7 +88,7 @@ func makeLayouts() fyne.CanvasObject {
 
 func makeWidgets(w fyne.Window) fyne.CanvasObject {
 	badge := kxwidget.NewBadge("1234")
-	img := kxwidget.NewTappableImage(theme.FyneLogo(), func() {
+	img := kxwidget.NewTappableImage(resourceIconPng, func() {
 		d := dialog.NewInformation("TappableImage", "tapped", w)
 		kxdialog.AddDialogKeyHandler(d, w)
 		d.Show()
