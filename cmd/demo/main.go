@@ -12,12 +12,14 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
 	kxdialog "github.com/ErikKalkoken/fyne-kx/dialog"
 	kxlayout "github.com/ErikKalkoken/fyne-kx/layout"
 	kxmodal "github.com/ErikKalkoken/fyne-kx/modal"
+	kxtheme "github.com/ErikKalkoken/fyne-kx/theme"
 	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
 
@@ -33,9 +35,30 @@ func main() {
 	tabs.SetTabLocation(container.TabLocationLeading)
 	tabs.SelectIndex(3)
 
+	theme := widget.NewSelect([]string{"Auto", "Light", "Dark"}, func(s string) {
+		switch s {
+		case "Light":
+			app.Settings().SetTheme(kxtheme.DefaultWithFixedVariant(theme.VariantLight))
+		case "Dark":
+			app.Settings().SetTheme(kxtheme.DefaultWithFixedVariant(theme.VariantDark))
+		default:
+			app.Settings().SetTheme(theme.DefaultTheme())
+		}
+
+	})
+	theme.SetSelected("Auto")
+	bottom := container.NewVBox(
+		widget.NewSeparator(),
+		container.NewHBox(
+			layout.NewSpacer(),
+			widget.NewLabel("Theme"),
+			theme,
+		),
+	)
+
 	w.SetContent(container.NewBorder(
 		nil,
-		nil,
+		bottom,
 		nil,
 		nil,
 		tabs,
@@ -88,7 +111,7 @@ func makeLayouts() fyne.CanvasObject {
 
 func makeWidgets(w fyne.Window) fyne.CanvasObject {
 	badge := kxwidget.NewBadge("1234")
-	img := kxwidget.NewTappableImage(theme.FyneLogo(), func() {
+	img := kxwidget.NewTappableImage(resourceIconPng, func() {
 		d := dialog.NewInformation("TappableImage", "tapped", w)
 		kxdialog.AddDialogKeyHandler(d, w)
 		d.Show()

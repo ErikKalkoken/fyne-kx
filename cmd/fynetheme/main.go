@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"slices"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -13,7 +14,8 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"golang.org/x/exp/slices"
+
+	kxtheme "github.com/ErikKalkoken/fyne-kx/theme"
 )
 
 const (
@@ -30,9 +32,30 @@ func main() {
 	)
 	tabs.SetTabLocation(container.TabLocationLeading)
 
+	theme := widget.NewSelect([]string{"Auto", "Light", "Dark"}, func(s string) {
+		switch s {
+		case "Light":
+			app.Settings().SetTheme(kxtheme.DefaultWithFixedVariant(theme.VariantLight))
+		case "Dark":
+			app.Settings().SetTheme(kxtheme.DefaultWithFixedVariant(theme.VariantDark))
+		default:
+			app.Settings().SetTheme(theme.DefaultTheme())
+		}
+
+	})
+	theme.SetSelected("Auto")
+	bottom := container.NewVBox(
+		widget.NewSeparator(),
+		container.NewHBox(
+			layout.NewSpacer(),
+			widget.NewLabel("Theme"),
+			theme,
+		),
+	)
+
 	w.SetContent(container.NewBorder(
 		nil,
-		nil,
+		bottom,
 		nil,
 		nil,
 		tabs,
