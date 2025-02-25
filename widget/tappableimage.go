@@ -11,19 +11,35 @@ import (
 // TappableImage is widget which shows an image and runs a function when tapped.
 type TappableImage struct {
 	widget.BaseWidget
-	image *canvas.Image
 
 	// The function that is called when the label is tapped.
 	OnTapped func()
 
+	image   *canvas.Image
 	hovered bool
+	menu    *fyne.Menu
 }
 
 var _ fyne.Tappable = (*TappableImage)(nil)
 var _ desktop.Hoverable = (*TappableImage)(nil)
 
+// NewTappableImage returns a new instance of a [TappableImage] widget with a context menu.
+func NewTappableImageWithMenu(res fyne.Resource, menu *fyne.Menu) *TappableImage {
+	w := newTappableImage(res, nil)
+	w.menu = menu
+	w.OnTapped = func() {
+		m := widget.NewPopUpMenu(menu, fyne.CurrentApp().Driver().CanvasForObject(w))
+		m.ShowAtRelativePosition(fyne.NewPos(0, w.Size().Height), w)
+	}
+	return w
+}
+
 // NewTappableImage returns a new instance of a [TappableImage] widget.
 func NewTappableImage(res fyne.Resource, tapped func()) *TappableImage {
+	return newTappableImage(res, tapped)
+}
+
+func newTappableImage(res fyne.Resource, tapped func()) *TappableImage {
 	ti := &TappableImage{OnTapped: tapped, image: canvas.NewImageFromResource(res)}
 	ti.ExtendBaseWidget(ti)
 	return ti
@@ -37,6 +53,18 @@ func (w *TappableImage) SetFillMode(fillMode canvas.ImageFill) {
 // SetMinSize sets the minimum size of the image.
 func (w *TappableImage) SetMinSize(size fyne.Size) {
 	w.image.SetMinSize(size)
+}
+
+// SetResources sets the resources of the image.
+func (w *TappableImage) SetResource(r fyne.Resource) {
+	w.image.Resource = r
+	w.image.Refresh()
+}
+
+// SetMenuItems replaces the menu items.
+func (w *TappableImage) SetMenuItems(menuItems []*fyne.MenuItem) {
+	w.menu.Items = menuItems
+	w.menu.Refresh()
 }
 
 func (w *TappableImage) Tapped(_ *fyne.PointEvent) {
