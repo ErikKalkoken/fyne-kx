@@ -10,15 +10,9 @@ func NewToolbarActionMenu(icon fyne.Resource, menu *fyne.Menu) *widget.ToolbarAc
 	a := widget.NewToolbarAction(icon, nil)
 	o := a.ToolbarObject()
 	a.OnActivated = func() {
-		showContextMenu(o, menu)
+		c := fyne.CurrentApp().Driver().CanvasForObject(o)
+		m := widget.NewPopUpMenu(menu, c)
+		m.ShowAtRelativePosition(fyne.Position{}, o)
 	}
 	return a
-}
-
-func showContextMenu(o fyne.CanvasObject, menu *fyne.Menu) {
-	m := widget.NewPopUpMenu(menu, fyne.CurrentApp().Driver().CanvasForObject(o))
-	m.ShowAtRelativePosition(fyne.NewPos(
-		-m.Size().Width+o.Size().Width,
-		o.Size().Height,
-	), o)
 }
