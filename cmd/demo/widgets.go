@@ -122,3 +122,19 @@ func makeTappableLabel() fyne.CanvasObject {
 	})
 	return label
 }
+
+func makeToolbarActionMenu() fyne.CanvasObject {
+	menu := kxwidget.NewToolbarActionMenu(theme.MenuIcon(), fyne.NewMenu(
+		"",
+		fyne.NewMenuItem("First", func() {
+			log.Println("first selected")
+		}),
+		fyne.NewMenuItem("Second", func() {
+			log.Println("second selected")
+		}),
+	))
+	ntb := widget.NewToolbar(menu, widget.NewToolbarAction(theme.AccountIcon(), func() {
+		log.Println("Account tapped")
+	}))
+	return container.NewVBox(ntb)
+}

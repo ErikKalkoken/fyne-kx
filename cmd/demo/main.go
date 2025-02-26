@@ -40,6 +40,7 @@ func main() {
 		{"TappableImage", makeTappableImage()},
 		{"TappableIcon", makeTappableIcon()},
 		{"TappableLabel", makeTappableLabel()},
+		{"ToolbarActionMenu", makeToolbarActionMenu()},
 	}
 	body := container.NewStack()
 	pageIndexes := make(map[string]int)
@@ -77,6 +78,7 @@ func main() {
 					"TappableImage",
 					"TappableIcon",
 					"TappableLabel",
+					"ToolbarActionMenu",
 					"Slider",
 					"Switch",
 				}
@@ -111,7 +113,6 @@ func main() {
 		body.Objects[idx].Show()
 		currentPageIdx = idx
 	}
-	nav.OpenAllBranches()
 
 	theme := widget.NewSelect([]string{"Auto", "Light", "Dark"}, func(s string) {
 		switch s {
