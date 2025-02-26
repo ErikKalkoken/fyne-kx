@@ -18,6 +18,7 @@ type TappableImage struct {
 	image   *canvas.Image
 	hovered bool
 	menu    *fyne.Menu
+	pos     fyne.Position // current mouse position
 }
 
 var _ fyne.Tappable = (*TappableImage)(nil)
@@ -31,7 +32,9 @@ func NewTappableImageWithMenu(res fyne.Resource, menu *fyne.Menu) *TappableImage
 		if len(w.menu.Items) == 0 {
 			return
 		}
-		showContextMenu(w, menu)
+		c := fyne.CurrentApp().Driver().CanvasForObject(w)
+		m := widget.NewPopUpMenu(w.menu, c)
+		m.ShowAtPosition(w.pos)
 	}
 	return w
 }
@@ -72,7 +75,8 @@ func (w *TappableImage) SetMenuItems(menuItems []*fyne.MenuItem) {
 	w.menu.Refresh()
 }
 
-func (w *TappableImage) Tapped(_ *fyne.PointEvent) {
+func (w *TappableImage) Tapped(pe *fyne.PointEvent) {
+	w.pos = pe.AbsolutePosition
 	if w.OnTapped != nil {
 		w.OnTapped()
 	}
@@ -94,8 +98,8 @@ func (w *TappableImage) MouseIn(e *desktop.MouseEvent) {
 	w.hovered = true
 }
 
-func (w *TappableImage) MouseMoved(*desktop.MouseEvent) {
-	// needed to satisfy the interface only
+func (w *TappableImage) MouseMoved(me *desktop.MouseEvent) {
+	w.pos = me.AbsolutePosition
 }
 
 // MouseOut is a hook that is called if the mouse pointer leaves the element.

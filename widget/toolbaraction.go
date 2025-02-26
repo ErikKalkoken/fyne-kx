@@ -18,12 +18,18 @@ func NewToolbarActionMenu(icon fyne.Resource, menu *fyne.Menu) *widget.ToolbarAc
 func showContextMenu(o fyne.CanvasObject, menu *fyne.Menu) {
 	c := fyne.CurrentApp().Driver().CanvasForObject(o)
 	m := widget.NewPopUpMenu(menu, c)
-	onRightHalf := o.Position().X > c.Size().Width/2
-	var x float32
-	if onRightHalf {
+	right := o.Position().X > c.Size().Width/2
+	bottom := o.Position().Y > c.Size().Height/2
+	var x, y float32
+	if right {
 		x = -m.Size().Width + o.Size().Width
 	} else {
 		x = 0
 	}
-	m.ShowAtRelativePosition(fyne.NewPos(x, o.Size().Height), o)
+	if bottom {
+		y = -m.Size().Height - o.Size().Height
+	} else {
+		y = o.Size().Height
+	}
+	m.ShowAtRelativePosition(fyne.NewPos(x, y), o)
 }

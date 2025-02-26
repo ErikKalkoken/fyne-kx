@@ -78,11 +78,12 @@ func makeSwitch() fyne.CanvasObject {
 }
 
 func makeTappableImage() fyne.CanvasObject {
+	size := fyne.NewSize(100, 100)
 	imgStandard := kxwidget.NewTappableImage(resourceIconPng, func() {
 		log.Println("TappableImage tapped")
 	})
 	imgStandard.SetFillMode(canvas.ImageFillContain)
-	imgStandard.SetMinSize(fyne.NewSize(100, 100))
+	imgStandard.SetMinSize(size)
 
 	menu := fyne.NewMenu(
 		"",
@@ -95,16 +96,16 @@ func makeTappableImage() fyne.CanvasObject {
 	)
 	im1 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
 	im1.SetFillMode(canvas.ImageFillContain)
-	im1.SetMinSize(fyne.NewSize(100, 100))
+	im1.SetMinSize(size)
 	im2 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
 	im2.SetFillMode(canvas.ImageFillContain)
-	im2.SetMinSize(fyne.NewSize(100, 100))
+	im2.SetMinSize(size)
 	im3 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
 	im3.SetFillMode(canvas.ImageFillContain)
-	im3.SetMinSize(fyne.NewSize(100, 100))
+	im3.SetMinSize(size)
 	im4 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
 	im4.SetFillMode(canvas.ImageFillContain)
-	im4.SetMinSize(fyne.NewSize(100, 100))
+	im4.SetMinSize(size)
 	return container.NewBorder(im1, im2, im3, im4, imgStandard)
 }
 
