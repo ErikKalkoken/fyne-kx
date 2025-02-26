@@ -3,12 +3,12 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
+	"log"
+	"slices"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
@@ -17,23 +17,101 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	kxdialog "github.com/ErikKalkoken/fyne-kx/dialog"
-	kxlayout "github.com/ErikKalkoken/fyne-kx/layout"
 	kxmodal "github.com/ErikKalkoken/fyne-kx/modal"
 	kxtheme "github.com/ErikKalkoken/fyne-kx/theme"
-	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
+
+type treeItem struct {
+	name    string
+	content fyne.CanvasObject
+}
 
 func main() {
 	app := app.New()
 	w := app.NewWindow("KX Demo")
-	tabs := container.NewAppTabs(
-		container.NewTabItem("Dialogs", makeDialogs(w)),
-		container.NewTabItem("Layouts", makeLayouts()),
-		container.NewTabItem("Modals", makeModals(w)),
-		container.NewTabItem("Widgets", makeWidgets(w)),
+
+	pages := []treeItem{
+		{"Dialogs", makeDialogs(w)},
+		{"Columns", makeColumns()},
+		{"Modals", makeModals(w)},
+		{"Badges", makeBadge()},
+		{"Slider", makeSlider()},
+		{"Switch", makeSwitch()},
+		{"TappableImage", makeTappableImage()},
+		{"TappableIcon", makeTappableIcon()},
+		{"TappableLabel", makeTappableLabel()},
+	}
+	body := container.NewStack()
+	pageIndexes := make(map[string]int)
+	for i, it := range pages {
+		title := widget.NewLabel(it.name)
+		title.TextStyle.Bold = true
+		p := container.NewBorder(
+			container.NewVBox(title, widget.NewSeparator()),
+			nil,
+			nil,
+			nil,
+			it.content,
+		)
+		p.Hide()
+		body.Add(p)
+		pageIndexes[it.name] = i
+	}
+	currentPageIdx := -1
+	nav := widget.NewTree(
+		func(id widget.TreeNodeID) []widget.TreeNodeID {
+			switch id {
+			case "":
+				s := []widget.TreeNodeID{"Dialogs", "Layouts", "Modals", "Widgets"}
+				slices.Sort(s)
+				return s
+			case "Layouts":
+				s := []widget.TreeNodeID{
+					"Columns",
+				}
+				slices.Sort(s)
+				return s
+			case "Widgets":
+				s := []widget.TreeNodeID{
+					"Badges",
+					"TappableImage",
+					"TappableIcon",
+					"TappableLabel",
+					"Slider",
+					"Switch",
+				}
+				slices.Sort(s)
+				return s
+			}
+			return []string{}
+		},
+		func(id widget.TreeNodeID) bool {
+			return id == "" || id == "Layouts" || id == "Widgets"
+		},
+		func(b bool) fyne.CanvasObject {
+			return widget.NewLabel("Template")
+		},
+		func(id widget.TreeNodeID, b bool, co fyne.CanvasObject) {
+			text := id
+			co.(*widget.Label).SetText(text)
+		},
 	)
-	tabs.SetTabLocation(container.TabLocationLeading)
-	tabs.SelectIndex(3)
+	nav.OnSelected = func(id widget.TreeNodeID) {
+		if nav.IsBranch(id) {
+			nav.UnselectAll()
+			return
+		}
+		if currentPageIdx >= 0 {
+			body.Objects[currentPageIdx].Hide()
+		}
+		idx, found := pageIndexes[id]
+		if !found {
+			log.Fatalf("content not defined for ID %s", id)
+		}
+		body.Objects[idx].Show()
+		currentPageIdx = idx
+	}
+	nav.OpenAllBranches()
 
 	theme := widget.NewSelect([]string{"Auto", "Light", "Dark"}, func(s string) {
 		switch s {
@@ -56,12 +134,14 @@ func main() {
 		),
 	)
 
+	main := container.NewHSplit(nav, body)
+	main.SetOffset(0.33)
 	w.SetContent(container.NewBorder(
 		nil,
 		bottom,
 		nil,
 		nil,
-		tabs,
+		main,
 	))
 	w.Resize(fyne.NewSize(600, 500))
 	w.ShowAndRun()
@@ -83,122 +163,6 @@ func makeDialogs(w fyne.Window) fyne.CanvasObject {
 		}),
 	)
 	return c
-}
-
-func makeLayouts() fyne.CanvasObject {
-	layout := kxlayout.NewColumns(150, 100, 50)
-	makeBox := func(h float32) fyne.CanvasObject {
-		x := canvas.NewRectangle(theme.Color(theme.ColorNameInputBorder))
-		w := rand.Float32()*100 + 50
-		x.SetMinSize(fyne.NewSize(w, h))
-		return x
-	}
-	c := container.NewVBox(
-		container.New(layout, makeBox(50), makeBox(50), makeBox(50)),
-		container.New(layout, makeBox(150), makeBox(150), makeBox(150)),
-		container.New(layout, makeBox(30), makeBox(30), makeBox(30)),
-	)
-	x := widget.NewLabel("Columns")
-	x.TextStyle.Bold = true
-	return container.NewBorder(
-		container.NewVBox(x, widget.NewSeparator()),
-		nil,
-		nil,
-		nil,
-		c,
-	)
-}
-
-func makeWidgets(w fyne.Window) fyne.CanvasObject {
-	badges := container.NewVBox()
-	badgesConfig := []struct {
-		name       string
-		importance widget.Importance
-	}{
-		{"danger", widget.DangerImportance},
-		{"high", widget.HighImportance},
-		{"low", widget.LowImportance},
-		{"medium", widget.MediumImportance},
-		{"success", widget.SuccessImportance},
-		{"warning", widget.WarningImportance},
-	}
-	for _, bc := range badgesConfig {
-		b := kxwidget.NewBadge("Alpha")
-		b.Importance = bc.importance
-		badges.Add(container.NewHBox(b, widget.NewLabel(bc.name+" importance")))
-	}
-
-	img := kxwidget.NewTappableImage(resourceIconPng, func() {
-		d := dialog.NewInformation("TappableImage", "tapped", w)
-		kxdialog.AddDialogKeyHandler(d, w)
-		d.Show()
-	})
-	img.SetFillMode(canvas.ImageFillContain)
-	img.SetMinSize(fyne.NewSize(100, 100))
-	icon := kxwidget.NewTappableIcon(theme.AccountIcon(), func() {
-		d := dialog.NewInformation("TappableIcon", "tapped", w)
-		kxdialog.AddDialogKeyHandler(d, w)
-		d.Show()
-	})
-	label := kxwidget.NewTappableLabel("Tap me", func() {
-		d := dialog.NewInformation("TappableLabel", "tapped", w)
-		kxdialog.AddDialogKeyHandler(d, w)
-		d.Show()
-	})
-	slider := kxwidget.NewSlider(0, 100)
-	slider.SetValue(25)
-
-	textForBool := func(b bool) string {
-		if b {
-			return "on"
-		}
-		return "off"
-	}
-	switchLabel1 := widget.NewLabel("")
-	switch1 := kxwidget.NewSwitch(func(on bool) {
-		switchLabel1.SetText(textForBool(on))
-	})
-	switch1.On = true
-	switchLabel1.Text = textForBool(switch1.State())
-	switch1Box := container.NewHBox(switch1, switchLabel1)
-
-	switchLabel2 := widget.NewLabel("")
-	switch2 := kxwidget.NewSwitch(func(on bool) {
-		switchLabel2.SetText(textForBool(on))
-	})
-	switchLabel2.Text = textForBool(switch2.State())
-	switch2Box := container.NewHBox(switch2, switchLabel2)
-
-	switch3 := kxwidget.NewSwitch(nil)
-	switch3.On = true
-	switch3.Disable()
-	switch4 := kxwidget.NewSwitch(nil)
-	switch4.Disable()
-	addLabel := func(c fyne.CanvasObject, text string) fyne.CanvasObject {
-		return container.NewHBox(c, widget.NewLabel(text))
-	}
-
-	f := &widget.Form{
-		Items: []*widget.FormItem{
-			{Text: "Badge", Widget: badges},
-			{Text: "", Widget: container.NewPadded()},
-			{Text: "Slider", Widget: slider},
-			{Text: "", Widget: container.NewPadded()},
-			{Text: "Switch", Widget: container.NewVBox(
-				switch1Box,
-				switch2Box,
-				addLabel(switch3, "on disabled"),
-				addLabel(switch4, "off disabled"),
-			)},
-			{Text: "", Widget: container.NewPadded()},
-			{Text: "TappableIcon", Widget: container.NewHBox(icon)},
-			{Text: "", Widget: container.NewPadded()},
-			{Text: "TappableImage", Widget: container.NewHBox(img)},
-			{Text: "", Widget: container.NewPadded()},
-			{Text: "TappableLabel", Widget: label},
-		},
-	}
-	return container.NewVScroll(f)
 }
 
 func makeModals(w fyne.Window) *fyne.Container {

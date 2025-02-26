@@ -28,8 +28,10 @@ func NewTappableImageWithMenu(res fyne.Resource, menu *fyne.Menu) *TappableImage
 	w := newTappableImage(res, nil)
 	w.menu = menu
 	w.OnTapped = func() {
-		m := widget.NewPopUpMenu(menu, fyne.CurrentApp().Driver().CanvasForObject(w))
-		m.ShowAtRelativePosition(fyne.NewPos(0, w.Size().Height), w)
+		if len(w.menu.Items) == 0 {
+			return
+		}
+		showContextMenu(w, menu)
 	}
 	return w
 }
@@ -63,6 +65,9 @@ func (w *TappableImage) SetResource(r fyne.Resource) {
 
 // SetMenuItems replaces the menu items.
 func (w *TappableImage) SetMenuItems(menuItems []*fyne.MenuItem) {
+	if w.menu == nil {
+		return
+	}
 	w.menu.Items = menuItems
 	w.menu.Refresh()
 }
