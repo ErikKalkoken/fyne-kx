@@ -7,11 +7,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQueue(t *testing.T) {
+func TestStack(t *testing.T) {
 	t.Run("can push and pop", func(t *testing.T) {
-		s := stack.New[int]()
-		s.Push(99)
-		v, err := s.Pop()
+		st := stack.New[int]()
+		st.Push(99)
+		st.Push(42)
+		v, err := st.Pop()
+		if assert.NoError(t, err) {
+			assert.Equal(t, 42, v)
+		}
+		v, err = st.Pop()
 		if assert.NoError(t, err) {
 			assert.Equal(t, 99, v)
 		}
