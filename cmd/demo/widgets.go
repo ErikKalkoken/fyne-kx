@@ -120,7 +120,7 @@ func makeTappableLabel() fyne.CanvasObject {
 	label := kxwidget.NewTappableLabel("Tap me", func() {
 		log.Println("TappableLabel tapped")
 	})
-	return label
+	return container.NewHBox(label, widget.NewLabel("<- tap"))
 }
 
 func makeToolbarActionMenu() fyne.CanvasObject {

@@ -8,7 +8,7 @@ import (
 
 // TappableIcon is an icon widget, which runs a function when tapped.
 type TappableIcon struct {
-	*widget.Icon
+	widget.Icon
 
 	// The function that is called when the icon is tapped.
 	OnTapped func()
@@ -21,8 +21,9 @@ var _ desktop.Hoverable = (*TappableIcon)(nil)
 
 // NewTappableIcon returns a new instance of a [TappableIcon] widget.
 func NewTappableIcon(res fyne.Resource, tapped func()) *TappableIcon {
-	w := &TappableIcon{OnTapped: tapped, Icon: widget.NewIcon(res)}
+	w := &TappableIcon{OnTapped: tapped}
 	w.ExtendBaseWidget(w)
+	w.SetResource(res)
 	return w
 }
 

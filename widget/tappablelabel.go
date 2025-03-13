@@ -8,7 +8,7 @@ import (
 
 // TappableLabel is a variant of the Fyne Label which runs a function when tapped.
 type TappableLabel struct {
-	*widget.Label
+	widget.Label
 
 	// The function that is called when the label is tapped.
 	OnTapped func()
@@ -21,8 +21,9 @@ var _ desktop.Hoverable = (*TappableLabel)(nil)
 
 // NewTappableLabel returns a new TappableLabel instance.
 func NewTappableLabel(text string, tapped func()) *TappableLabel {
-	w := &TappableLabel{OnTapped: tapped, Label: widget.NewLabel(text)}
+	w := &TappableLabel{OnTapped: tapped}
 	w.ExtendBaseWidget(w)
+	w.SetText(text)
 	return w
 }
 
