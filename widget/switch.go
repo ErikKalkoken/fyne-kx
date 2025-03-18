@@ -11,14 +11,16 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// - Add animation?
+// TODO: Add animation
 
 // Switch is a widget representing a digital switch with two mutually exclusive states: on/off.
+// It has an optional text label.
 type Switch struct {
 	widget.DisableableWidget
-	On bool
 
+	On        bool
 	OnChanged func(on bool)
+	Text      string
 
 	focused bool
 	hovered bool
@@ -26,11 +28,11 @@ type Switch struct {
 	mu      sync.RWMutex // property lock
 }
 
-var _ fyne.Widget = (*Switch)(nil)
-var _ fyne.Tappable = (*Switch)(nil)
-var _ fyne.Focusable = (*Switch)(nil)
 var _ desktop.Hoverable = (*Switch)(nil)
 var _ fyne.Disableable = (*Switch)(nil)
+var _ fyne.Focusable = (*Switch)(nil)
+var _ fyne.Tappable = (*Switch)(nil)
+var _ fyne.Widget = (*Switch)(nil)
 
 // NewSwitch returns a new [Switch] instance.
 func NewSwitch(changed func(on bool)) *Switch {
@@ -42,6 +44,8 @@ func NewSwitch(changed func(on bool)) *Switch {
 }
 
 // State return the state of a switch.
+//
+// Deprecated: Please use [Switch.On] instead.
 func (w *Switch) State() bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -49,15 +53,21 @@ func (w *Switch) State() bool {
 }
 
 // SetState sets the state for a switch.
+//
+// Deprecated: Please use [Switch.SetOn] instead.
 func (w *Switch) SetState(on bool) {
-	func() {
-		w.mu.Lock()
-		defer w.mu.Unlock()
-		if on == w.On {
-			return
-		}
-		w.On = on
-	}()
+	w.SetOn(on)
+}
+
+// SetOn sets the state for a switch.
+func (w *Switch) SetOn(on bool) {
+	w.mu.Lock()
+	if on == w.On {
+		w.mu.Unlock()
+		return
+	}
+	w.On = on
+	w.mu.Unlock()
 	if w.OnChanged != nil {
 		w.OnChanged(on)
 	}
@@ -85,7 +95,7 @@ func (w *Switch) TypedRune(r rune) {
 		return
 	}
 	if r == ' ' {
-		w.SetState(!w.On)
+		w.SetOn(!w.On)
 	}
 }
 
@@ -102,18 +112,10 @@ func (w *Switch) Tapped(pe *fyne.PointEvent) {
 		// tapped outside
 		return
 	}
-	if !w.focused {
-		if !fyne.CurrentDevice().IsMobile() {
-			if c := fyne.CurrentApp().Driver().CanvasForObject(w); c != nil {
-				c.Focus(w)
-			}
-		}
-	}
-	w.SetState(!w.On)
+	w.SetOn(!w.On)
 }
 
-func (w *Switch) TappedSecondary(_ *fyne.PointEvent) {
-}
+func (w *Switch) TappedSecondary(_ *fyne.PointEvent) {}
 
 // Cursor returns the cursor type of this widget
 func (w *Switch) Cursor() desktop.Cursor {
@@ -165,10 +167,10 @@ func (w *Switch) CreateRenderer() fyne.WidgetRenderer {
 	track.CornerRadius = 7
 	shadowColor := th.Color(theme.ColorNameShadow, v)
 	r := &switchRenderer{
-		track:  track,
-		thumb:  canvas.NewCircle(color.Transparent),
 		focus:  canvas.NewCircle(color.Transparent),
 		shadow: canvas.NewCircle(shadowColor),
+		thumb:  canvas.NewCircle(color.Transparent),
+		track:  track,
 		widget: w,
 	}
 	r.Refresh()
@@ -199,11 +201,10 @@ func (r *switchRenderer) Destroy() {
 }
 
 // MinSize returns the minimum size of the widget that is rendered by this renderer.
-func (r *switchRenderer) MinSize() (size fyne.Size) {
+func (r *switchRenderer) MinSize() fyne.Size {
 	th := r.widget.Theme()
 	innerPadding := th.Size(theme.SizeNameInnerPadding)
-	size = fyne.NewSize(switchWidth+2*innerPadding, switchHeight+2*innerPadding)
-	return
+	return fyne.NewSize(switchWidth+2*innerPadding, switchHeight+2*innerPadding)
 }
 
 // Layout lays out the objects of this widget.
@@ -213,12 +214,11 @@ func (r *switchRenderer) Layout(size fyne.Size) {
 	r.orig = fyne.NewPos(innerPadding, size.Height/2-switchHeight/2) // center vertically
 	r.track.Move(r.orig.AddXY(0, (switchHeight-switchInnerHeight)/2))
 	r.track.Resize(fyne.NewSize(switchWidth, switchInnerHeight))
-	r.Refresh()
 }
 
-// refreshSwitch refreshes the switch's drawing for it's current state.
-// Should be called with a read lock.
-func (r *switchRenderer) refreshSwitch() {
+// Refresh is called if the widget has updated and needs to be redrawn.
+func (r *switchRenderer) Refresh() {
+	r.widget.mu.RLock()
 	th := r.widget.Theme()
 	v := fyne.CurrentApp().Settings().ThemeVariant()
 
@@ -237,7 +237,7 @@ func (r *switchRenderer) refreshSwitch() {
 	// theme dependent parameters
 	var colorModifierMode modifiedColorMode
 	var disabledModifier, trackColorModifier float32
-	isDark := fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark
+	isDark := v == theme.VariantDark
 	if isDark {
 		colorModifierMode = modeDarker
 		trackColorModifier = 0.5
@@ -286,17 +286,12 @@ func (r *switchRenderer) refreshSwitch() {
 	r.focus.Position1 = r.thumb.Position1.AddXY(-focusOffset, -focusOffset)
 	r.focus.Position2 = r.focus.Position1.AddXY(switchFocusHeight, switchFocusHeight)
 
+	r.widget.mu.RUnlock()
+
 	r.track.Refresh()
 	r.focus.Refresh()
 	r.shadow.Refresh()
 	r.thumb.Refresh()
-}
-
-// Refresh is called if the widget has updated and needs to be redrawn.
-func (r *switchRenderer) Refresh() {
-	r.widget.mu.RLock()
-	defer r.widget.mu.RUnlock()
-	r.refreshSwitch()
 }
 
 // Objects returns the objects that should be rendered.
