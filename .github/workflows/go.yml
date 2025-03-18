@@ -18,6 +18,14 @@ jobs:
       with:
         go-version: '1.19'
 
+    - name: Install OS dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install gcc libgl1-mesa-dev xorg-dev
+
+    - name: Install go dependencies
+      run: go mod download
+
     - name: Build
       run: go build -v ./...
 
