@@ -214,11 +214,39 @@ func (r *switchRenderer) Layout(size fyne.Size) {
 	r.orig = fyne.NewPos(innerPadding, size.Height/2-switchHeight/2) // center vertically
 	r.track.Move(r.orig.AddXY(0, (switchHeight-switchInnerHeight)/2))
 	r.track.Resize(fyne.NewSize(switchWidth, switchInnerHeight))
+	r.updateThumbPosition()
+}
+
+func (r *switchRenderer) updateThumbPosition() {
+	focusOffset := (switchFocusHeight - switchHeight) / float32(2)
+	const delta = 1
+	if r.widget.On {
+		r.thumb.Position1 = r.orig.AddXY(switchWidth-switchHeight, 0)
+		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
+	} else {
+		r.thumb.Position1 = r.orig
+		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
+	}
+	r.shadow.Position1 = r.thumb.Position1.AddXY(-delta, delta)
+	r.shadow.Position2 = r.thumb.Position2.AddXY(-delta, delta)
+	r.focus.Position1 = r.thumb.Position1.AddXY(-focusOffset, -focusOffset)
+	r.focus.Position2 = r.focus.Position1.AddXY(switchFocusHeight, switchFocusHeight)
 }
 
 // Refresh is called if the widget has updated and needs to be redrawn.
 func (r *switchRenderer) Refresh() {
 	r.widget.mu.RLock()
+	r.updateColors()
+	r.updateThumbPosition()
+	r.widget.mu.RUnlock()
+
+	r.track.Refresh()
+	r.focus.Refresh()
+	r.shadow.Refresh()
+	r.thumb.Refresh()
+}
+
+func (r *switchRenderer) updateColors() {
 	th := r.widget.Theme()
 	v := fyne.CurrentApp().Settings().ThemeVariant()
 
@@ -248,15 +276,10 @@ func (r *switchRenderer) Refresh() {
 		disabledModifier = 0.2
 	}
 
-	// colors of all objects and position of thumb/shadow/focus
-	focusOffset := (switchFocusHeight - switchHeight) / float32(2)
-	const delta = 1
-	isDisabled := r.widget.Disabled()
+	// colors of thumb/shadow/focus
 	if r.widget.On {
-		r.thumb.Position1 = r.orig.AddXY(switchWidth-switchHeight, 0)
-		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
 		thumbOnColor := th.Color(theme.ColorNamePrimary, v)
-		if isDisabled {
+		if r.widget.Disabled() {
 			c := newModifiedColor(thumbOnColor, colorModifierMode, disabledModifier)
 			r.thumb.FillColor = c
 			r.track.FillColor = newModifiedColor(c, colorModifierMode, trackColorModifier)
@@ -266,9 +289,7 @@ func (r *switchRenderer) Refresh() {
 			r.focus.FillColor = focusColor
 		}
 	} else {
-		r.thumb.Position1 = r.orig
-		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
-		if isDisabled {
+		if r.widget.Disabled() {
 			r.thumb.FillColor = th.Color(theme.ColorNameDisabled, v)
 			r.track.FillColor = th.Color(theme.ColorNameDisabledButton, v)
 		} else {
@@ -281,17 +302,6 @@ func (r *switchRenderer) Refresh() {
 			r.focus.FillColor = focusColor
 		}
 	}
-	r.shadow.Position1 = r.thumb.Position1.AddXY(-delta, delta)
-	r.shadow.Position2 = r.thumb.Position2.AddXY(-delta, delta)
-	r.focus.Position1 = r.thumb.Position1.AddXY(-focusOffset, -focusOffset)
-	r.focus.Position2 = r.focus.Position1.AddXY(switchFocusHeight, switchFocusHeight)
-
-	r.widget.mu.RUnlock()
-
-	r.track.Refresh()
-	r.focus.Refresh()
-	r.shadow.Refresh()
-	r.thumb.Refresh()
 }
 
 // Objects returns the objects that should be rendered.
