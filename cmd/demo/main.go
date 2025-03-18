@@ -4,7 +4,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"slices"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -63,26 +62,28 @@ func main() {
 		func(id widget.TreeNodeID) []widget.TreeNodeID {
 			switch id {
 			case "":
-				s := []widget.TreeNodeID{"Dialogs", "Layouts", "Modals", "Widgets"}
-				slices.Sort(s)
+				s := []widget.TreeNodeID{
+					"Dialogs",
+					"Layouts",
+					"Modals",
+					"Widgets",
+				}
 				return s
 			case "Layouts":
 				s := []widget.TreeNodeID{
 					"Columns",
 				}
-				slices.Sort(s)
 				return s
 			case "Widgets":
 				s := []widget.TreeNodeID{
 					"Badges",
-					"TappableImage",
-					"TappableIcon",
-					"TappableLabel",
-					"ToolbarActionMenu",
 					"Slider",
 					"Switch",
+					"TappableIcon",
+					"TappableImage",
+					"TappableLabel",
+					"ToolbarActionMenu",
 				}
-				slices.Sort(s)
 				return s
 			}
 			return []string{}

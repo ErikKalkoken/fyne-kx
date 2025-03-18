@@ -4,7 +4,6 @@ package main
 import (
 	"fmt"
 	"image/color"
-	"slices"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -115,10 +114,7 @@ func makeColors() fyne.CanvasObject {
 			hasTransparencyLight[col.name] = true
 		}
 	}
-	slices.SortFunc(colors, func(a, b colorRow) int {
-		return strings.Compare(a.label, b.label)
-	})
-	colorsFiltered := slices.Clone(colors)
+	colorsFiltered := cloneSlice(colors)
 	list := widget.NewList(
 		func() int {
 			return len(colorsFiltered)
@@ -228,10 +224,7 @@ func makeSizes() fyne.CanvasObject {
 		{"SizeNameSubHeadingText", theme.SizeNameSubHeadingText},
 		{"SizeNameText", theme.SizeNameText},
 	}
-	slices.SortFunc(sizes, func(a, b sizeRow) int {
-		return strings.Compare(a.label, b.label)
-	})
-	sizesFiltered := slices.Clone(sizes)
+	sizesFiltered := cloneSlice(sizes)
 	list := widget.NewList(
 		func() int {
 			return len(sizesFiltered)
@@ -384,10 +377,7 @@ func makeIcons() fyne.CanvasObject {
 		{"IconNameWindowMaximize", theme.IconNameWindowMaximize},
 		{"IconNameWindowMinimize", theme.IconNameWindowMinimize},
 	}
-	slices.SortFunc(sizes, func(a, b iconRow) int {
-		return strings.Compare(a.label, b.label)
-	})
-	iconsFiltered := slices.Clone(sizes)
+	iconsFiltered := cloneSlice(sizes)
 	var iconSize float32 = iconSizeStart
 	iconColors := []string{"Default", "Disabled", "Error", "Primary", "Success", "Warning"}
 	var iconColor = "Default"
@@ -469,4 +459,10 @@ func makeIcons() fyne.CanvasObject {
 		nil,
 		grid,
 	)
+}
+
+func cloneSlice[S any](s []S) []S {
+	c := make([]S, len(s))
+	copy(c, s)
+	return c
 }

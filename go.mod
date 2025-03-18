@@ -2,8 +2,6 @@ module github.com/ErikKalkoken/fyne-kx
 
 go 1.19
 
-toolchain go1.24.1
-
 require (
 	fyne.io/fyne/v2 v2.5.5
 	github.com/stretchr/testify v1.10.0
