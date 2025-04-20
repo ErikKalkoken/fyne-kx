@@ -2,7 +2,6 @@ package widget
 
 import (
 	"image/color"
-	"sync"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -24,8 +23,7 @@ type Switch struct {
 
 	focused bool
 	hovered bool
-	minSize fyne.Size    // cached for hover/top pos calcs
-	mu      sync.RWMutex // property lock
+	minSize fyne.Size // cached for hover/top pos calcs
 }
 
 var _ desktop.Hoverable = (*Switch)(nil)
@@ -47,8 +45,6 @@ func NewSwitch(changed func(on bool)) *Switch {
 //
 // Deprecated: Please use [Switch.On] instead.
 func (w *Switch) State() bool {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	return w.On
 }
 
@@ -61,13 +57,10 @@ func (w *Switch) SetState(on bool) {
 
 // SetOn sets the state for a switch.
 func (w *Switch) SetOn(on bool) {
-	w.mu.Lock()
 	if on == w.On {
-		w.mu.Unlock()
 		return
 	}
 	w.On = on
-	w.mu.Unlock()
 	if w.OnChanged != nil {
 		w.OnChanged(on)
 	}
@@ -235,10 +228,8 @@ func (r *switchRenderer) updateThumbPosition() {
 
 // Refresh is called if the widget has updated and needs to be redrawn.
 func (r *switchRenderer) Refresh() {
-	r.widget.mu.RLock()
 	r.updateColors()
 	r.updateThumbPosition()
-	r.widget.mu.RUnlock()
 
 	r.track.Refresh()
 	r.focus.Refresh()
