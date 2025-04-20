@@ -169,13 +169,18 @@ func makeDialogs(w fyne.Window) fyne.CanvasObject {
 
 func makeModals(w fyne.Window) *fyne.Container {
 	b1 := widget.NewButton("ProgressModal", func() {
-		m := kxmodal.NewProgress("ProgressModal", "Please wait...", func(progress binding.Float) error {
-			for i := 1; i < 50; i++ {
-				progress.Set(float64(i))
-				time.Sleep(100 * time.Millisecond)
-			}
-			return nil
-		}, 50, w)
+		m := kxmodal.NewProgress(
+			"ProgressModa",
+			"Please wait...",
+			func(progress binding.Float) error {
+				for i := float64(1); i < 50; i++ {
+					fyne.Do(func() {
+						progress.Set(float64(i))
+					})
+					time.Sleep(100 * time.Millisecond)
+				}
+				return nil
+			}, 50, w)
 		m.Start()
 	})
 
@@ -183,7 +188,9 @@ func makeModals(w fyne.Window) *fyne.Container {
 		m := kxmodal.NewProgressWithCancel("ProgressCancelModal", "Please wait...", func(progress binding.Float, canceled chan struct{}) error {
 			ticker := time.NewTicker(100 * time.Millisecond)
 			for i := 1; i < 50; i++ {
-				progress.Set(float64(i))
+				fyne.Do(func() {
+					progress.Set(float64(i))
+				})
 				select {
 				case <-canceled:
 					return nil

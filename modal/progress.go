@@ -60,13 +60,7 @@ type ProgressModal struct {
 }
 
 // NewProgress returns a new [ProgressModal] instance.
-func NewProgress(
-	title,
-	message string,
-	action func(progress binding.Float) error,
-	max float64,
-	parent fyne.Window,
-) *ProgressModal {
+func NewProgress(title, message string, action func(progress binding.Float) error, max float64, parent fyne.Window) *ProgressModal {
 	m := &ProgressModal{
 		action: action,
 		pg:     binding.NewFloat(),
@@ -81,12 +75,14 @@ func NewProgress(
 // Start starts the action function and shows the modal while it is running.
 func (m *ProgressModal) Start() {
 	openDialogs.Push(m.d)
-	openDialogs.Push(m.d)
+	m.d.Show()
 	go func() {
 		err := m.action(m.pg)
 		d, err2 := openDialogs.Pop()
 		if err2 == nil {
-			d.Hide()
+			fyne.Do(func() {
+				d.Hide()
+			})
 		}
 		if err != nil {
 			if m.OnError != nil {
@@ -117,12 +113,7 @@ type ProgressCancelModal struct {
 }
 
 // NewProgress returns a new [ProgressModal] instance.
-func NewProgressWithCancel(
-	title, message string,
-	action func(progress binding.Float, canceled chan struct{}) error,
-	max float64,
-	parent fyne.Window,
-) *ProgressCancelModal {
+func NewProgressWithCancel(title, message string, action func(progress binding.Float, canceled chan struct{}) error, max float64, parent fyne.Window) *ProgressCancelModal {
 	m := &ProgressCancelModal{
 		action: action,
 		pg:     binding.NewFloat(),
@@ -144,11 +135,14 @@ func NewProgressWithCancel(
 func (m *ProgressCancelModal) Start() {
 	m.canceled = make(chan struct{})
 	openDialogs.Push(m.d)
+	m.d.Show()
 	go func() {
 		err := m.action(m.pg, m.canceled)
 		d, err2 := openDialogs.Pop()
 		if err2 == nil {
-			d.Hide()
+			fyne.Do(func() {
+				d.Hide()
+			})
 		}
 		if err != nil {
 			if m.OnError != nil {
@@ -185,12 +179,7 @@ type ProgressInfiniteModal struct {
 }
 
 // NewProgressInfinite returns a new [ProgressInfiniteModal] instance.
-func NewProgressInfinite(
-	title,
-	message string,
-	action func() error,
-	parent fyne.Window,
-) *ProgressInfiniteModal {
+func NewProgressInfinite(title, message string, action func() error, parent fyne.Window) *ProgressInfiniteModal {
 	m := &ProgressInfiniteModal{
 		action: action,
 		pb:     widget.NewProgressBarInfinite(),
@@ -202,13 +191,15 @@ func NewProgressInfinite(
 
 // Start starts the action function and shows the modal while it is running.
 func (m *ProgressInfiniteModal) Start() {
-	m.pb.Start()
 	openDialogs.Push(m.d)
+	m.d.Show()
 	go func() {
 		err := m.action()
 		d, err2 := openDialogs.Pop()
 		if err2 == nil {
-			d.Hide()
+			fyne.Do(func() {
+				d.Hide()
+			})
 		}
 		if err != nil {
 			if m.OnError != nil {
@@ -260,13 +251,15 @@ func NewProgressInfiniteWithCancel(
 // Start starts the action function and shows the modal while it is running.
 func (m *ProgressInfiniteCancelModal) Start() {
 	m.canceled = make(chan struct{})
-	m.pb.Show()
 	openDialogs.Push(m.d)
+	m.d.Show()
 	go func() {
 		err := m.action(m.canceled)
 		d, err2 := openDialogs.Pop()
 		if err2 == nil {
-			d.Hide()
+			fyne.Do(func() {
+				d.Hide()
+			})
 		}
 		if err != nil {
 			if m.OnError != nil {
