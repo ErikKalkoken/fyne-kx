@@ -65,8 +65,9 @@ func NewProgress(title, message string, action func(progress binding.Float) erro
 		action: action,
 		pg:     binding.NewFloat(),
 	}
-	m.pb = widget.NewProgressBarWithData(m.pg)
-	m.pb.Max = max
+	pb := widget.NewProgressBarWithData(m.pg)
+	pb.Max = max
+	m.pb = pb
 	content := container.NewVBox(widget.NewLabel(message), m.pb)
 	m.d = dialog.NewCustomWithoutButtons(title, content, parent)
 	return m
@@ -118,8 +119,9 @@ func NewProgressWithCancel(title, message string, action func(progress binding.F
 		action: action,
 		pg:     binding.NewFloat(),
 	}
-	m.pb = widget.NewProgressBarWithData(m.pg)
-	m.pb.Max = max
+	pb := widget.NewProgressBarWithData(m.pg)
+	pb.Max = max
+	m.pb = pb
 	content := container.NewVBox(
 		widget.NewLabel(message),
 		m.pb,
