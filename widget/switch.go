@@ -10,8 +10,6 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// TODO: Add animation
-
 // Switch is a widget representing a digital switch with two mutually exclusive states: on/off.
 // It has an optional text label.
 type Switch struct {
@@ -67,7 +65,7 @@ func (w *Switch) SetOn(on bool) {
 	w.Refresh()
 }
 
-// FocusGained is called when the Check has been given focus.
+// FocusGained is called when the switch has been given focus.
 func (w *Switch) FocusGained() {
 	if w.Disabled() {
 		return
@@ -76,13 +74,13 @@ func (w *Switch) FocusGained() {
 	w.Refresh()
 }
 
-// FocusLost is called when the Check has had focus removed.
+// FocusLost is called when the switch has had focus removed.
 func (w *Switch) FocusLost() {
 	w.focused = false
 	w.Refresh()
 }
 
-// TypedRune receives text input events when the Check is focused.
+// TypedRune receives text input events when the switch is focused.
 func (w *Switch) TypedRune(r rune) {
 	if w.Disabled() {
 		return
@@ -92,7 +90,7 @@ func (w *Switch) TypedRune(r rune) {
 	}
 }
 
-// TypedKey receives key input events when the Check is focused.
+// TypedKey receives key input events when the switch is focused.
 func (w *Switch) TypedKey(key *fyne.KeyEvent) {}
 
 // Tapped is called when a pointer tapped event is captured and triggers any change handler
@@ -174,10 +172,10 @@ var _ fyne.WidgetRenderer = (*switchRenderer)(nil)
 
 // switch measurements
 const (
-	switchWidth       = 36
-	switchInnerHeight = 14
-	switchHeight      = 20
 	switchFocusHeight = 30
+	switchHeight      = 20
+	switchInnerHeight = 14
+	switchWidth       = 36
 )
 
 // switchRenderer represents the renderer for the Switch widget.
