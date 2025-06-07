@@ -27,14 +27,19 @@ type Badge struct {
 func NewBadge(text string) *Badge {
 	bg := canvas.NewRectangle(color.Transparent)
 	bg.CornerRadius = 10
-	w := &Badge{background: bg, label: widget.NewLabel(text), Text: text}
+	w := &Badge{
+		background: bg,
+		label:      widget.NewLabel(text),
+		Text:       text,
+	}
 	w.ExtendBaseWidget(w)
 	return w
 }
 
 // SetText sets the text of the badge.
 func (w *Badge) SetText(text string) {
-	w.label.SetText(text)
+	w.Text = text
+	w.Refresh()
 }
 
 func (w *Badge) Refresh() {

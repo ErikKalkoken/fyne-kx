@@ -194,15 +194,15 @@ func (r *switchRenderer) Destroy() {
 // MinSize returns the minimum size of the widget that is rendered by this renderer.
 func (r *switchRenderer) MinSize() fyne.Size {
 	th := r.widget.Theme()
-	innerPadding := th.Size(theme.SizeNameInnerPadding)
-	return fyne.NewSize(switchWidth+2*innerPadding, switchHeight+2*innerPadding)
+	p := th.Size(theme.SizeNameInnerPadding)
+	return fyne.NewSize(switchWidth+2*p, switchHeight+2*p)
 }
 
 // Layout lays out the objects of this widget.
 func (r *switchRenderer) Layout(size fyne.Size) {
 	th := r.widget.Theme()
-	innerPadding := th.Size(theme.SizeNameInnerPadding)
-	r.orig = fyne.NewPos(innerPadding, size.Height/2-switchHeight/2) // center vertically
+	p := th.Size(theme.SizeNameInnerPadding)
+	r.orig = fyne.NewPos(p, size.Height/2-switchHeight/2) // center vertically
 	r.track.Move(r.orig.AddXY(0, (switchHeight-switchInnerHeight)/2))
 	r.track.Resize(fyne.NewSize(switchWidth, switchInnerHeight))
 	r.updateThumbPosition()
