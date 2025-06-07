@@ -30,7 +30,7 @@ func NewColumns(widths ...float32) fyne.Layout {
 func (l columnsLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 	wTotal, hTotal := float32(0), float32(0)
 	for _, o := range objects {
-		hTotal = max(hTotal, o.MinSize().Height)
+		hTotal = fyne.Max(hTotal, o.MinSize().Height)
 	}
 	var w float32
 	for i := range objects {
@@ -59,7 +59,7 @@ func (l columnsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 		if i < len(objects)-1 || containerSize.Width < 0 {
 			w2 = w1
 		} else {
-			w2 = max(containerSize.Width-pos.X-padding, w1)
+			w2 = fyne.Max(containerSize.Width-pos.X-padding, w1)
 		}
 		o.Resize(fyne.Size{Width: w2, Height: size.Height})
 		o.Move(pos)
