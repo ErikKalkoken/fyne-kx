@@ -26,20 +26,21 @@ type Slider struct {
 // NewSlider returns a new instance of a [Slider] widget.
 func NewSlider(min, max float64) *Slider {
 	d := binding.NewFloat()
+	label := widget.NewLabelWithData(binding.FloatToStringWithFormat(d, "%v"))
+	label.Alignment = fyne.TextAlignTrailing
 	w := &Slider{
-		label:  widget.NewLabelWithData(binding.FloatToStringWithFormat(d, "%v")),
+		label:  label,
 		slider: widget.NewSliderWithData(min, max, d),
 		data:   d,
 	}
+	w.ExtendBaseWidget(w)
 	w.updateLayout()
-	w.label.Alignment = fyne.TextAlignTrailing
 	w.slider.OnChangeEnded = func(v float64) {
 		if w.OnChangeEnded == nil {
 			return
 		}
 		w.OnChangeEnded(v)
 	}
-	w.ExtendBaseWidget(w)
 	return w
 }
 
@@ -50,9 +51,9 @@ func (w *Slider) SetStep(step float64) {
 }
 
 func (w *Slider) updateLayout() {
-	x := widget.NewLabel(fmt.Sprintf("%v", w.slider.Max+w.slider.Step))
+	x := widget.NewLabel(fmt.Sprint(w.slider.Max + w.slider.Step))
 	minW := x.MinSize().Width
-	w.layout = layout.NewColumns(minW, minW)
+	w.layout = layout.NewColumns(minW, fyne.Max(minW, w.slider.MinSize().Width))
 }
 
 // Value returns the current value of a slider.
