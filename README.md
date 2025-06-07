@@ -3,11 +3,14 @@
 A library with extensions and tools for the Fyne GUI toolkit.
 
 ![GitHub Release](https://img.shields.io/github/v/release/ErikKalkoken/fyne-kx)
+[![Fyne](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fgithub.com%2FErikKalkoken%2Ffyne-kx%2Fblob%2Fmain%2Fgo.mod&search=fyne%5C.io%5C%2Ffyne%5C%2Fv2%20(v%5Cd*%5C.%5Cd*%5C.%5Cd*)&replace=%241&label=Fyne&cacheSeconds=https%3A%2F%2Fgithub.com%2Ffyne-io%2Ffyne)](https://github.com/fyne-io/fyne)
+[![build status](https://github.com/ErikKalkoken/fyne-kx/actions/workflows/go.yml/badge.svg)](https://github.com/ErikKalkoken/fyne-kx/actions/workflows/go.yml)
+[![codecov](https://codecov.io/gh/ErikKalkoken/fyne-kx/graph/badge.svg?token=fDk5XvdhOQ)](https://codecov.io/gh/ErikKalkoken/fyne-kx)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ErikKalkoken/fyne-kx.svg)](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx)
 ![GitHub License](https://img.shields.io/github/license/ErikKalkoken/fyne-kx)
 
 > [!NOTE]
-> The library is still in active development and the API is not fully stable yet. Any feedback or suggestions are welcome.
+> The library is in active development. Any feedback or suggestions are welcome.
 
 ## Contents
 
@@ -65,7 +68,7 @@ They are useful when you have a longer running process that the user needs to wa
 
 Further, additional custom themes are provided:
 
-- [DefaultWithFixedVariant](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/theme#DefaultWithFixedVariant) allows apps to set a permament light or dark mode.
+- [DefaultWithFixedVariant](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/theme#DefaultWithFixedVariant) allows apps to set a permanent light or dark mode.
 
 ### Widgets
 
