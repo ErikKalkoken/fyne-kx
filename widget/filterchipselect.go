@@ -2,7 +2,6 @@ package widget
 
 import (
 	"image/color"
-	"slices"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -13,6 +12,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"golang.org/x/exp/slices"
 )
 
 // FilterChipSelect represents a filter chip widget that allows the user to select
