@@ -6,7 +6,6 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"golang.org/x/exp/slices"
 
 	kxlayout "github.com/ErikKalkoken/fyne-kx/layout"
 )
@@ -37,7 +36,7 @@ func NewFilterChipGroup(options []string, changed func([]string)) *FilterChipGro
 		chips:     make([]*FilterChip, 0),
 		OnChanged: changed,
 		options:   optionsCleaned,
-		Options:   slices.Clone(optionsCleaned),
+		Options:   sliceClone(optionsCleaned),
 		Selected:  make([]string, 0),
 	}
 	w.ExtendBaseWidget(w)
@@ -69,7 +68,7 @@ func (w *FilterChipGroup) updateSelected(isSelected map[string]bool) {
 			w.selected = append(w.selected, x)
 		}
 	}
-	w.Selected = slices.Clone(w.selected)
+	w.Selected = sliceClone(w.selected)
 }
 
 // SetSelected updates the selected options.

@@ -5,7 +5,6 @@ go 1.19
 require (
 	fyne.io/fyne/v2 v2.6.1
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/exp v0.0.0-20220909182711-5c715a9e8561
 )
 
 require (

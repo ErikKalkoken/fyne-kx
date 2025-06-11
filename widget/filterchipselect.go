@@ -13,7 +13,6 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"golang.org/x/exp/slices"
 )
 
 // FilterChipSelect represents a filter chip widget that allows the user to select
@@ -93,7 +92,7 @@ func newFilterChipSelect(placeholder string, options []string, changed func(sele
 	p := theme.Padding()
 	w.iconOnPadded = container.New(layout.NewCustomPaddedLayout(0, 0, p, 0), w.iconOn)
 	w.bg = canvas.NewRectangle(color.Transparent)
-	w.bg.StrokeWidth = theme.Size(theme.SizeNameInputBorder)
+	w.bg.StrokeWidth = theme.Size(theme.SizeNameInputBorder) * filterChipOutlineWidthFactor
 	w.bg.CornerRadius = theme.Size(theme.SizeNameInputRadius)
 	w.setOptions(options)
 	return w
@@ -111,7 +110,7 @@ func (w *FilterChipSelect) SetSelected(v string) {
 	if w.Selected == v {
 		return
 	}
-	if v != "" && !slices.Contains(w.Options, v) {
+	if v != "" && !sliceContains(w.Options, v) {
 		return
 	}
 	if v == "" && w.Text == "" {
@@ -129,7 +128,7 @@ func (w *FilterChipSelect) SetSelected(v string) {
 // Options are always sorted alphabetically and deduplicated.
 // Empty option strings will be ignored.
 func (w *FilterChipSelect) SetOptions(options []string) {
-	if w.Selected != "" && !slices.Contains(options, w.Selected) {
+	if w.Selected != "" && !sliceContains(options, w.Selected) {
 		w.SetSelected("")
 	}
 	w.setOptions(options)
@@ -166,7 +165,7 @@ func (w *FilterChipSelect) showDropDownMenu() {
 		it.Disabled = true
 		items = append(items, it)
 	} else {
-		options := slices.Clone(w.Options)
+		options := sliceClone(w.Options)
 		if !w.SortDisabled {
 			sort.Slice(options, func(i, j int) bool {
 				return strings.ToLower(options[i]) < strings.ToLower(options[j])
@@ -193,7 +192,7 @@ func (w *FilterChipSelect) showDropDownMenu() {
 }
 
 func (w *FilterChipSelect) showSearchDialog() {
-	itemsFiltered := slices.Clone(w.Options)
+	itemsFiltered := sliceClone(w.Options)
 	if !w.SortDisabled {
 		sort.Slice(itemsFiltered, func(i, j int) bool {
 			return strings.ToLower(itemsFiltered[i]) < strings.ToLower(itemsFiltered[j])
@@ -252,7 +251,7 @@ func (w *FilterChipSelect) showSearchDialog() {
 	})
 	entry.OnChanged = func(search string) {
 		if len(search) < 2 {
-			itemsFiltered = slices.Clone(w.Options)
+			itemsFiltered = sliceClone(w.Options)
 			list.Refresh()
 			return
 		}
