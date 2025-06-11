@@ -30,7 +30,7 @@ type FilterChipGroup struct {
 
 // NewFilterChipGroup returns a new [FilterChipGroup].
 func NewFilterChipGroup(options []string, changed func([]string)) *FilterChipGroup {
-	optionsCleaned := slices.DeleteFunc(deduplicateSlice(options), func(v string) bool {
+	optionsCleaned := sliceDeleteFunc(sliceDeduplicate(options), func(v string) bool {
 		return v == ""
 	})
 	w := &FilterChipGroup{
@@ -109,17 +109,4 @@ func (w *FilterChipGroup) CreateRenderer() fyne.WidgetRenderer {
 		box.Add(c)
 	}
 	return widget.NewSimpleRenderer(container.New(layout.NewCustomPaddedLayout(p, p, p, p), box))
-}
-
-func deduplicateSlice[S ~[]E, E comparable](s S) []E {
-	seen := make(map[E]bool)
-	s2 := make([]E, 0)
-	for _, v := range s {
-		if seen[v] {
-			continue
-		}
-		s2 = append(s2, v)
-		seen[v] = true
-	}
-	return s2
 }

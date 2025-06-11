@@ -44,24 +44,3 @@ func TestFilterChipGroup(t *testing.T) {
 		test.AssertImageMatches(t, "filterchipgroup/tap_deselect.png", w.Canvas().Capture())
 	})
 }
-
-func TestDeduplicateSlice(t *testing.T) {
-	t.Run("can remove duplicate elements", func(t *testing.T) {
-		s := []string{"b", "a", "b"}
-		got := deduplicateSlice(s)
-		want := []string{"b", "a"}
-		assert.Equal(t, want, got)
-	})
-	t.Run("can process slices with no duplicates", func(t *testing.T) {
-		s := []string{"b", "a"}
-		got := deduplicateSlice(s)
-		want := []string{"b", "a"}
-		assert.Equal(t, want, got)
-	})
-	t.Run("can process empty slice", func(t *testing.T) {
-		s := []string{}
-		got := deduplicateSlice(s)
-		want := []string{}
-		assert.Equal(t, want, got)
-	})
-}

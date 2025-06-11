@@ -2,6 +2,7 @@ package widget
 
 import (
 	"image/color"
+	"sort"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -136,10 +137,10 @@ func (w *FilterChipSelect) SetOptions(options []string) {
 }
 
 func (w *FilterChipSelect) setOptions(options []string) {
-	options = slices.DeleteFunc(options, func(s string) bool {
+	options = sliceDeleteFunc(options, func(s string) bool {
 		return s == ""
 	})
-	w.Options = deduplicateSlice(options)
+	w.Options = sliceDeduplicate(options)
 }
 
 func (w *FilterChipSelect) showInteraction() {
@@ -167,8 +168,8 @@ func (w *FilterChipSelect) showDropDownMenu() {
 	} else {
 		options := slices.Clone(w.Options)
 		if !w.SortDisabled {
-			slices.SortFunc(options, func(a, b string) int {
-				return strings.Compare(strings.ToLower(a), strings.ToLower(b))
+			sort.Slice(options, func(i, j int) bool {
+				return strings.ToLower(options[i]) < strings.ToLower(options[j])
 			})
 		}
 		for _, o := range options {
@@ -194,8 +195,8 @@ func (w *FilterChipSelect) showDropDownMenu() {
 func (w *FilterChipSelect) showSearchDialog() {
 	itemsFiltered := slices.Clone(w.Options)
 	if !w.SortDisabled {
-		slices.SortFunc(itemsFiltered, func(a, b string) int {
-			return strings.Compare(strings.ToLower(a), strings.ToLower(b))
+		sort.Slice(itemsFiltered, func(i, j int) bool {
+			return strings.ToLower(itemsFiltered[i]) < strings.ToLower(itemsFiltered[j])
 		})
 	}
 	var d dialog.Dialog
