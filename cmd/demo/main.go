@@ -32,6 +32,7 @@ func main() {
 	pages := []treeItem{
 		{"Dialogs", makeDialogs(w)},
 		{"Columns", makeColumns()},
+		{"RowWrap", makeRowWrap()},
 		{"Modals", makeModals(w)},
 		{"Badges", makeBadge()},
 		{"Slider", makeSlider()},
@@ -72,6 +73,7 @@ func main() {
 			case "Layouts":
 				s := []widget.TreeNodeID{
 					"Columns",
+					"RowWrap",
 				}
 				return s
 			case "Widgets":
@@ -170,7 +172,7 @@ func makeDialogs(w fyne.Window) fyne.CanvasObject {
 func makeModals(w fyne.Window) *fyne.Container {
 	b1 := widget.NewButton("ProgressModal", func() {
 		m := kxmodal.NewProgress(
-			"ProgressModa",
+			"ProgressModal",
 			"Please wait...",
 			func(progress binding.Float) error {
 				for i := float64(1); i < 50; i++ {

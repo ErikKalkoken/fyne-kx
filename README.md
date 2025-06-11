@@ -51,7 +51,7 @@ The library provides helpers for building dialogs.
 - [Columns](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/layout#NewColumns) arranges all objects in a row, with each in their own column with a given minimum width.
 It can be used to arrange subsequent rows of objects in columns.
 
-![Example](https://cdn.imgpile.com/f/0if8yhY_xl.png)
+- [RowWrap](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/layout#NewColumns) a layout that dynamically arranges objects of similar height in rows and wraps them dynamically.
 
 ### Modals
 
