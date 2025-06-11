@@ -30,15 +30,19 @@ func main() {
 	w := app.NewWindow("KX Demo")
 
 	pages := []treeItem{
-		{"Dialogs", makeDialogs(w)},
+		{"Badge", makeBadge()},
 		{"Columns", makeColumns()},
-		{"RowWrap", makeRowWrap()},
+		{"Dialogs", makeDialogs(w)},
+		{"FilterChip", makeFilterChip()},
+		{"FilterChipGroup", makeFilterChipGroup()},
+		{"FilterChipSelect", makeFilterChipSelect(w)},
+		{"IconButton", makeIconButton()},
 		{"Modals", makeModals(w)},
-		{"Badges", makeBadge()},
+		{"RowWrap", makeRowWrap()},
 		{"Slider", makeSlider()},
 		{"Switch", makeSwitch()},
-		{"TappableImage", makeTappableImage()},
 		{"TappableIcon", makeTappableIcon()},
+		{"TappableImage", makeTappableImage()},
 		{"TappableLabel", makeTappableLabel()},
 		{"ToolbarActionMenu", makeToolbarActionMenu()},
 	}
@@ -78,7 +82,11 @@ func main() {
 				return s
 			case "Widgets":
 				s := []widget.TreeNodeID{
-					"Badges",
+					"Badge",
+					"FilterChip",
+					"FilterChipGroup",
+					"FilterChipSelect",
+					"IconButton",
 					"Slider",
 					"Switch",
 					"TappableIcon",

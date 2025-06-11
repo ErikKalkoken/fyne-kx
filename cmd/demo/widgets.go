@@ -6,8 +6,10 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+
 	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
 
@@ -137,4 +139,59 @@ func makeToolbarActionMenu() fyne.CanvasObject {
 		log.Println("Account tapped")
 	}))
 	return container.NewVBox(ntb)
+}
+
+func makeFilterChip() fyne.CanvasObject {
+	c1 := kxwidget.NewFilterChip("Disabled Off", nil)
+	c1.Disable()
+	c2 := kxwidget.NewFilterChip("Disabled On", nil)
+	c2.On = true
+	c2.Disable()
+	c := container.NewVBox(
+		kxwidget.NewFilterChip("Alpha", func(on bool) {
+			log.Printf("Alpha: %v\n", on)
+		}),
+		c1,
+		c2,
+	)
+	return c
+}
+
+func makeFilterChipGroup() fyne.CanvasObject {
+	options := []string{"Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel"}
+	g := kxwidget.NewFilterChipGroup(options, func(s []string) {
+		log.Println(s)
+	})
+	g.Selected = []string{"Bravo", "Golf"}
+	c := container.NewVBox(g)
+	return c
+}
+
+func makeFilterChipSelect(w fyne.Window) fyne.CanvasObject {
+	options := []string{"Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel"}
+	s1 := kxwidget.NewFilterChipSelect("DropDown", options, func(s string) {
+		log.Printf("DropDown: %s\n", s)
+	})
+	s2 := kxwidget.NewFilterChipSelectWithSearch("Search", options, func(s string) {
+		log.Printf("Search: %s\n", s)
+	},
+		w,
+	)
+	s3 := kxwidget.NewFilterChipSelect("Disabled", options, nil)
+	s3.Disable()
+	c := container.NewVBox(s1, s2, s3)
+	return c
+}
+
+func makeIconButton() fyne.CanvasObject {
+	i1 := kxwidget.NewIconButton(theme.AccountIcon(), func() {
+		log.Println("IconButton tapped")
+	})
+	i2 := kxwidget.NewIconButton(theme.AccountIcon(), nil)
+	i2.Disable()
+	c := container.NewVBox(
+		container.NewHBox(i1, widget.NewLabel("Enabled"), layout.NewSpacer()),
+		container.NewHBox(i2, widget.NewLabel("Disabled"), layout.NewSpacer()),
+	)
+	return c
 }

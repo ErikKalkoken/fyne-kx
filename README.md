@@ -74,16 +74,18 @@ Further, additional custom themes are provided:
 
 This library contains several Fyne widgets:
 
-- [Badge](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Badge) is a variant of the Fyne label widget that renders a rounded box around the text
-- [Slider](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Slider) is a variation of the Slider widget that also displays the current value
-- [TappableIcon](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableIcon) is an icon widget which runs a function when tapped
-- [TappableImage](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableImage) is widget which shows an image and runs a function when tapped
-- [TappableLabel](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableLabel) is a variant of the Fyne Label which runs a function when tapped
-- [Switch](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Switch) is a widget implementing a digital switch with two mutually exclusive states: on/off
+- [Badge](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Badge) is a variant of the Fyne label widget that renders a rounded box around the text.
+- [FilterChipGroup](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChipGroup) allows the user to toggle multiple filters with filter chips.
+- [FilterChipSelect](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChipSelect) is a filter chip that allows the user to select and de-select one option from a list of options.
+- [Slider](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Slider) is a variation of the Slider widget that also displays the current value.
+- [TappableIcon](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableIcon) is an icon widget which runs a function when tapped.
+- [TappableImage](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableImage) is widget which shows an image and runs a function when tapped.
+- [TappableLabel](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableLabel) is a variant of the Fyne Label which runs a function when tapped.
+- [Switch](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Switch) is a widget implementing a digital switch with two mutually exclusive states: on/off.
 
-[Widget demo](https://github.com/user-attachments/assets/fb37a56a-dafa-49b5-92f2-e6c61457bdc4)
+The widgets can be used just like any other widget from the Fyne standard library. All widgets are themeable and unit tested.
 
-The widgets can be used just like any other widget from the Fyne standard library. Here is an example for the Switch widget:
+Here is an example for the Switch widget:
 
 ```go
 package main

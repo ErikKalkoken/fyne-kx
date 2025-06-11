@@ -5,8 +5,9 @@ import (
 
 	"fyne.io/fyne/v2/test"
 	"fyne.io/fyne/v2/widget"
-	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 	"github.com/stretchr/testify/assert"
+
+	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
 
 func TestBadge_CanCreateWithDefaults(t *testing.T) {
