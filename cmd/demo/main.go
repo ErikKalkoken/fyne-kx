@@ -30,14 +30,19 @@ func main() {
 	w := app.NewWindow("KX Demo")
 
 	pages := []treeItem{
-		{"Dialogs", makeDialogs(w)},
+		{"Badge", makeBadge()},
 		{"Columns", makeColumns()},
+		{"Dialogs", makeDialogs(w)},
+		{"FilterChip", makeFilterChip()},
+		{"FilterChipGroup", makeFilterChipGroup()},
+		{"FilterChipSelect", makeFilterChipSelect(w)},
+		{"IconButton", makeIconButton()},
 		{"Modals", makeModals(w)},
-		{"Badges", makeBadge()},
+		{"RowWrap", makeRowWrap()},
 		{"Slider", makeSlider()},
 		{"Switch", makeSwitch()},
-		{"TappableImage", makeTappableImage()},
 		{"TappableIcon", makeTappableIcon()},
+		{"TappableImage", makeTappableImage()},
 		{"TappableLabel", makeTappableLabel()},
 		{"ToolbarActionMenu", makeToolbarActionMenu()},
 	}
@@ -72,11 +77,16 @@ func main() {
 			case "Layouts":
 				s := []widget.TreeNodeID{
 					"Columns",
+					"RowWrap",
 				}
 				return s
 			case "Widgets":
 				s := []widget.TreeNodeID{
-					"Badges",
+					"Badge",
+					"FilterChip",
+					"FilterChipGroup",
+					"FilterChipSelect",
+					"IconButton",
 					"Slider",
 					"Switch",
 					"TappableIcon",
@@ -170,7 +180,7 @@ func makeDialogs(w fyne.Window) fyne.CanvasObject {
 func makeModals(w fyne.Window) *fyne.Container {
 	b1 := widget.NewButton("ProgressModal", func() {
 		m := kxmodal.NewProgress(
-			"ProgressModa",
+			"ProgressModal",
 			"Please wait...",
 			func(progress binding.Float) error {
 				for i := float64(1); i < 50; i++ {

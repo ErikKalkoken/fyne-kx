@@ -24,3 +24,18 @@ func makeColumns() fyne.CanvasObject {
 		container.New(layout, makeBox(30), makeBox(30), makeBox(30)),
 	)
 }
+
+func makeRowWrap() fyne.CanvasObject {
+	layout := kxlayout.NewRowWrapLayout()
+	makeBox := func() fyne.CanvasObject {
+		x := canvas.NewRectangle(theme.Color(theme.ColorNameInputBorder))
+		w := rand.Float32()*150 + 20
+		x.SetMinSize(fyne.NewSize(w, 50))
+		return x
+	}
+	c := container.New(layout)
+	for i := 0; i < 20; i++ {
+		c.Add(makeBox())
+	}
+	return c
+}
