@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
+	kxlayout "github.com/ErikKalkoken/fyne-kx/layout"
 	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
 
@@ -142,15 +143,21 @@ func makeToolbarActionMenu() fyne.CanvasObject {
 }
 
 func makeFilterChip() fyne.CanvasObject {
-	c1 := kxwidget.NewFilterChip("Disabled Off", nil)
+	c1 := kxwidget.NewFilterChip("Charlie", nil)
 	c1.Disable()
-	c2 := kxwidget.NewFilterChip("Disabled On", nil)
+	c2 := kxwidget.NewFilterChip("Delta", nil)
 	c2.On = true
 	c2.Disable()
-	c := container.NewVBox(
+	c3 := kxwidget.NewFilterChip("Bravo", func(on bool) {
+		log.Printf("Bravo: %v\n", on)
+	})
+	c3.On = true
+	c := container.New(
+		kxlayout.NewRowWrapLayout(),
 		kxwidget.NewFilterChip("Alpha", func(on bool) {
 			log.Printf("Alpha: %v\n", on)
 		}),
+		c3,
 		c1,
 		c2,
 	)
