@@ -1,11 +1,11 @@
 package widget
 
 import (
-	"fmt"
+	"strconv"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/ErikKalkoken/fyne-kx/layout"
@@ -17,7 +17,6 @@ type Slider struct {
 
 	OnChangeEnded func(float64)
 
-	data   binding.Float
 	label  *widget.Label
 	layout fyne.Layout
 	slider *widget.Slider
@@ -25,13 +24,11 @@ type Slider struct {
 
 // NewSlider returns a new instance of a [Slider] widget.
 func NewSlider(min, max float64) *Slider {
-	d := binding.NewFloat()
-	label := widget.NewLabelWithData(binding.FloatToStringWithFormat(d, "%v"))
+	label := widget.NewLabel("")
 	label.Alignment = fyne.TextAlignTrailing
 	w := &Slider{
 		label:  label,
-		slider: widget.NewSliderWithData(min, max, d),
-		data:   d,
+		slider: widget.NewSlider(min, max),
 	}
 	w.ExtendBaseWidget(w)
 	w.updateLayout()
@@ -41,6 +38,13 @@ func NewSlider(min, max float64) *Slider {
 		}
 		w.OnChangeEnded(v)
 	}
+	updateLabel := func(f float64) {
+		w.label.SetText(ftoa(f))
+	}
+	w.slider.OnChanged = func(f float64) {
+		updateLabel(f)
+	}
+	updateLabel(w.slider.Value)
 	return w
 }
 
@@ -51,9 +55,11 @@ func (w *Slider) SetStep(step float64) {
 }
 
 func (w *Slider) updateLayout() {
-	x := widget.NewLabel(fmt.Sprint(w.slider.Max + w.slider.Step))
-	minW := x.MinSize().Width
-	w.layout = layout.NewColumns(minW, fyne.Max(minW, w.slider.MinSize().Width))
+	x1 := widget.NewLabel(ftoa(w.slider.Max + w.slider.Step))
+	minW1 := x1.MinSize().Width
+	x2 := widget.NewLabel(ftoa(w.slider.Min - w.slider.Step))
+	minW2 := x2.MinSize().Width
+	w.layout = layout.NewColumns(minW1, fyne.Max(fyne.Max(minW1, minW2), w.slider.MinSize().Width))
 }
 
 // Value returns the current value of a slider.
@@ -69,4 +75,27 @@ func (w *Slider) SetValue(v float64) {
 func (w *Slider) CreateRenderer() fyne.WidgetRenderer {
 	c := container.New(w.layout, w.label, w.slider)
 	return widget.NewSimpleRenderer(c)
+}
+
+// ftoa returns a string representation of a float without any unnecessary zeros.
+func ftoa(f float64) string {
+	return stripTrailingZeros(strconv.FormatFloat(f, 'f', 6, 64))
+}
+
+func stripTrailingZeros(s string) string {
+	if !strings.ContainsRune(s, '.') {
+		return s
+	}
+	offset := len(s) - 1
+	for offset > 0 {
+		if s[offset] == '.' {
+			offset--
+			break
+		}
+		if s[offset] != '0' {
+			break
+		}
+		offset--
+	}
+	return s[:offset+1]
 }
