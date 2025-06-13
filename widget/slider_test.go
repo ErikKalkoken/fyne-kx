@@ -32,3 +32,16 @@ func TestSlider_CanSetValue(t *testing.T) {
 	assert.EqualValues(t, 7, slider.Value())
 	test.AssertImageMatches(t, "slider/set_value.png", w.Canvas().Capture())
 }
+
+func TestSlider_CanShowFractions(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+
+	slider := kxwidget.NewSlider(-10, 10)
+	slider.SetStep(0.1)
+	slider.SetValue(3.8)
+	w := test.NewWindow(slider)
+	defer w.Close()
+
+	test.AssertImageMatches(t, "slider/fraction.png", w.Canvas().Capture())
+}
