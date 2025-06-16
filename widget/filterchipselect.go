@@ -124,13 +124,9 @@ func (w *FilterChipSelect) SetSelected(v string) {
 }
 
 // SetOptions sets the options.
-// If a current selection no longer matches an option it will be cleared.
 // Options are always sorted alphabetically and deduplicated.
 // Empty option strings will be ignored.
 func (w *FilterChipSelect) SetOptions(options []string) {
-	if w.Selected != "" && !sliceContains(options, w.Selected) {
-		w.SetSelected("")
-	}
 	w.setOptions(options)
 	w.Refresh()
 }
@@ -160,12 +156,15 @@ func (w *FilterChipSelect) showDropDownMenu() {
 		items = append(items, it)
 		items = append(items, fyne.NewMenuItemSeparator())
 	}
-	if len(w.Options) == 0 {
+	options := sliceClone(w.Options)
+	if w.Selected != "" && !sliceContains(options, w.Selected) {
+		options = append(options, w.Selected)
+	}
+	if len(options) == 0 {
 		it := fyne.NewMenuItem("No entries", nil)
 		it.Disabled = true
 		items = append(items, it)
 	} else {
-		options := sliceClone(w.Options)
 		if !w.SortDisabled {
 			sort.Slice(options, func(i, j int) bool {
 				return strings.ToLower(options[i]) < strings.ToLower(options[j])
@@ -193,6 +192,9 @@ func (w *FilterChipSelect) showDropDownMenu() {
 
 func (w *FilterChipSelect) showSearchDialog() {
 	itemsFiltered := sliceClone(w.Options)
+	if w.Selected != "" && !sliceContains(itemsFiltered, w.Selected) {
+		itemsFiltered = append(itemsFiltered, w.Selected)
+	}
 	if !w.SortDisabled {
 		sort.Slice(itemsFiltered, func(i, j int) bool {
 			return strings.ToLower(itemsFiltered[i]) < strings.ToLower(itemsFiltered[j])
@@ -279,7 +281,6 @@ func (w *FilterChipSelect) showSearchDialog() {
 	if len(w.Options) == 0 {
 		empty.Show()
 		entry.Disable()
-		clear.Hide()
 	} else {
 		empty.Hide()
 	}
