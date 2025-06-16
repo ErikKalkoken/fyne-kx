@@ -165,14 +165,14 @@ func TestFilterChipSelectedSetOptions(t *testing.T) {
 		x.SetOptions([]string{"b", "a", "b", "a"})
 		assert.Equal(t, []string{"b", "a"}, x.Options)
 	})
-	t.Run("selection is cleared when no longer valid", func(t *testing.T) {
+	t.Run("selection is not cleared when no longer valid", func(t *testing.T) {
 		// given
 		x := kxwidget.NewFilterChipSelect("placeholder", []string{"c"}, nil)
 		x.SetSelected("c")
 		// when
 		x.SetOptions([]string{"a"})
 		// then
-		assert.Equal(t, "", x.Selected)
+		assert.Equal(t, "c", x.Selected)
 	})
 }
 
@@ -185,7 +185,7 @@ func TestFilterChipSelectedWithSearch(t *testing.T) {
 	})
 }
 
-func TestFilterChipSelect_CanShowDropDown(t *testing.T) {
+func TestFilterChipSelect_CanShowDropDownSorted(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
@@ -199,7 +199,7 @@ func TestFilterChipSelect_CanShowDropDown(t *testing.T) {
 	test.AssertImageMatches(t, "filterchipselect/dropdown_sorted.png", w.Canvas().Capture())
 }
 
-func TestFilterChipSelect_CanDisableOptionSort(t *testing.T) {
+func TestFilterChipSelect_CanShowDropDownUnSorted(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
@@ -214,13 +214,43 @@ func TestFilterChipSelect_CanDisableOptionSort(t *testing.T) {
 	test.AssertImageMatches(t, "filterchipselect/dropdown_unsorted.png", w.Canvas().Capture())
 }
 
-func TestFilterChipSelect_CanShowSearchBox(t *testing.T) {
+func TestFilterChipSelect_DrowDownContainsSelectedWhenOtherOptions(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+
+	chip := kxwidget.NewFilterChipSelect("Test", []string{"Bravo", "Alpha"}, nil)
+	chip.Selected = "Charlie"
+	w := test.NewWindow(container.NewCenter(chip))
+	defer w.Close()
+	w.Resize(fyne.NewSize(200, 500))
+
+	test.Tap(chip)
+
+	test.AssertImageMatches(t, "filterchipselect/dropdown_roque_option.png", w.Canvas().Capture())
+}
+
+func TestFilterChipSelect_DrowDownContainsSelectedWhenNoOptions(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+
+	chip := kxwidget.NewFilterChipSelect("Test", []string{}, nil)
+	chip.Selected = "Charlie"
+	w := test.NewWindow(container.NewCenter(chip))
+	defer w.Close()
+	w.Resize(fyne.NewSize(200, 300))
+
+	test.Tap(chip)
+
+	test.AssertImageMatches(t, "filterchipselect/dropdown_roque_option_2.png", w.Canvas().Capture())
+}
+
+func TestFilterChipSelect_CanShowSearchBoxSorted(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
 	w := test.NewWindow(nil)
 	defer w.Close()
-	w.Resize(fyne.NewSize(500, 200))
+	w.Resize(fyne.NewSize(500, 500))
 	chip := kxwidget.NewFilterChipSelectWithSearch("Test", []string{"Bravo", "Alpha"}, nil, w)
 	w.SetContent(container.NewCenter(chip))
 
@@ -235,7 +265,7 @@ func TestFilterChipSelect_CanShowSearchBoxUnsorted(t *testing.T) {
 
 	w := test.NewWindow(nil)
 	defer w.Close()
-	w.Resize(fyne.NewSize(500, 200))
+	w.Resize(fyne.NewSize(500, 500))
 	chip := kxwidget.NewFilterChipSelectWithSearch("Test", []string{"Bravo", "Alpha"}, nil, w)
 	chip.SortDisabled = true
 	w.SetContent(container.NewCenter(chip))
@@ -243,4 +273,36 @@ func TestFilterChipSelect_CanShowSearchBoxUnsorted(t *testing.T) {
 	test.Tap(chip)
 
 	test.AssertImageMatches(t, "filterchipselect/search_unsorted.png", w.Canvas().Capture())
+}
+
+func TestFilterChipSelect_SearchBoxContainsSelectedWhenOtherOptions(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+
+	w := test.NewWindow(nil)
+	defer w.Close()
+	w.Resize(fyne.NewSize(500, 500))
+	chip := kxwidget.NewFilterChipSelectWithSearch("Test", []string{"Bravo", "Alpha"}, nil, w)
+	chip.Selected = "Charlie"
+	w.SetContent(container.NewCenter(chip))
+
+	test.Tap(chip)
+
+	test.AssertImageMatches(t, "filterchipselect/search_roque_option.png", w.Canvas().Capture())
+}
+
+func TestFilterChipSelect_SearchBoxContainsSelectedWhenNoOptions(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+
+	w := test.NewWindow(nil)
+	defer w.Close()
+	w.Resize(fyne.NewSize(500, 500))
+	chip := kxwidget.NewFilterChipSelectWithSearch("Test", []string{}, nil, w)
+	chip.Selected = "Charlie"
+	w.SetContent(container.NewCenter(chip))
+
+	test.Tap(chip)
+
+	test.AssertImageMatches(t, "filterchipselect/search_roque_option_2.png", w.Canvas().Capture())
 }
