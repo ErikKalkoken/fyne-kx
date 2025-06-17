@@ -18,9 +18,11 @@ type IconButton struct {
 	// This callback runs when the icon is tapped.
 	OnTapped func()
 
-	icon    *canvas.Image
-	menu    *fyne.Menu
-	hovered bool
+	hovered          bool
+	icon             *canvas.Image
+	menu             *fyne.Menu
+	resource         fyne.Resource
+	resourceDisabled fyne.Resource
 }
 
 var _ fyne.Tappable = (*IconButton)(nil)
@@ -37,6 +39,7 @@ func NewIconButton(icon fyne.Resource, tapped func()) *IconButton {
 		icon:     i,
 	}
 	w.ExtendBaseWidget(w)
+	w.setIconResource(icon)
 	return w
 }
 
@@ -62,8 +65,17 @@ func NewIconButtonWithMenu(icon fyne.Resource, menu *fyne.Menu) *IconButton {
 
 // SetIcon replaces the current icon.
 func (w *IconButton) SetIcon(icon fyne.Resource) {
-	w.icon.Resource = icon
+	w.setIconResource(icon)
 	w.Refresh()
+}
+
+func (w *IconButton) setIconResource(icon fyne.Resource) {
+	w.resource = icon
+	if isResourceSVG(icon) {
+		w.resourceDisabled = theme.NewDisabledResource(icon)
+	} else {
+		w.resourceDisabled = icon
+	}
 }
 
 // SetMenuItems replaces the menu items.
@@ -124,8 +136,8 @@ func (w *IconButton) CreateRenderer() fyne.WidgetRenderer {
 
 func (w *IconButton) updateState() {
 	if w.Disabled() {
-		w.icon.Resource = theme.NewDisabledResource(w.icon.Resource)
+		w.icon.Resource = w.resourceDisabled
 	} else {
-		w.icon.Resource = theme.NewThemedResource(w.icon.Resource)
+		w.icon.Resource = w.resource
 	}
 }
