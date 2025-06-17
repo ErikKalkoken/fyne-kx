@@ -12,7 +12,7 @@ import (
 	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
 
-func TestIconButton_Create(t *testing.T) {
+func TestIconButton_CreateNormal(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
@@ -21,6 +21,18 @@ func TestIconButton_Create(t *testing.T) {
 	defer w.Close()
 
 	test.AssertImageMatches(t, "iconbutton/normal.png", w.Canvas().Capture())
+}
+
+func TestIconButton_CanCreateDisabledWithNonSVG(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+
+	icon := kxwidget.NewIconButton(kxwidget.IconQuestionmark32Png, nil)
+	icon.Disable()
+	w := test.NewWindow(icon)
+	defer w.Close()
+
+	test.AssertImageMatches(t, "iconbutton/disabled2.png", w.Canvas().Capture())
 }
 
 func TestIconButton_SetIcon(t *testing.T) {
