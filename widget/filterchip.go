@@ -12,11 +12,6 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// Layout for all FilterChip variants
-const (
-	filterChipOutlineWidthFactor = 2
-)
-
 // FilterChip represents a basic filter chip widget and has two states: on or off.
 // It is meant to be used in a group only, e.g. for toggling multiple filters. See also [FilterChipGroup].
 type FilterChip struct {
@@ -56,7 +51,7 @@ func NewFilterChip(text string, changed func(on bool)) *FilterChip {
 	w.iconPadded = container.New(layout.NewCustomPaddedLayout(0, 0, p, 0), w.icon)
 	w.iconPadded.Hide()
 	w.bg = canvas.NewRectangle(color.Transparent)
-	w.bg.StrokeWidth = theme.Size(theme.SizeNameInputBorder) * filterChipOutlineWidthFactor
+	w.bg.StrokeWidth = theme.Size(theme.SizeNameInputBorder)
 	w.bg.CornerRadius = theme.Size(theme.SizeNameInputRadius)
 	return w
 }

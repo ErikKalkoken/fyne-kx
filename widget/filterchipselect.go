@@ -92,7 +92,7 @@ func newFilterChipSelect(placeholder string, options []string, changed func(sele
 	p := theme.Padding()
 	w.iconOnPadded = container.New(layout.NewCustomPaddedLayout(0, 0, p, 0), w.iconOn)
 	w.bg = canvas.NewRectangle(color.Transparent)
-	w.bg.StrokeWidth = theme.Size(theme.SizeNameInputBorder) * filterChipOutlineWidthFactor
+	w.bg.StrokeWidth = theme.Size(theme.SizeNameInputBorder)
 	w.bg.CornerRadius = theme.Size(theme.SizeNameInputRadius)
 	w.setOptions(options)
 	return w
