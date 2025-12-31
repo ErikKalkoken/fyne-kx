@@ -11,7 +11,7 @@ import (
 
 // TODO: Add hover shadow
 
-// Icon buttons are widget which help people take minor actions with one tap.
+// IconButton is a widget which help people take minor actions with one tap.
 type IconButton struct {
 	widget.DisableableWidget
 

@@ -24,7 +24,7 @@ type TappableImage struct {
 var _ fyne.Tappable = (*TappableImage)(nil)
 var _ desktop.Hoverable = (*TappableImage)(nil)
 
-// NewTappableImage returns a new instance of a [TappableImage] widget with a context menu.
+// NewTappableImageWithMenu returns a new instance of a [TappableImage] widget with a context menu.
 func NewTappableImageWithMenu(res fyne.Resource, menu *fyne.Menu) *TappableImage {
 	w := newTappableImage(res, nil)
 	w.menu = menu
@@ -60,7 +60,7 @@ func (w *TappableImage) SetMinSize(size fyne.Size) {
 	w.image.SetMinSize(size)
 }
 
-// SetResources sets the resources of the image.
+// SetResource sets the resource of the image.
 func (w *TappableImage) SetResource(r fyne.Resource) {
 	w.image.Resource = r
 	w.image.Refresh()

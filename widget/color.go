@@ -37,7 +37,7 @@ func (mc modifiedColor) RGBA() (r, g, b, a uint32) {
 		r2 = float32(r) / 0xffff * f
 		g2 = float32(g) / 0xffff * f
 		b2 = float32(b) / 0xffff * f
-		r2, g2, b2 = redistribute_rgb(r2, g2, b2)
+		r2, g2, b2 = redistributeRGB(r2, g2, b2)
 	case modeDarker:
 		r2 = float32(r) / 0xffff / f
 		g2 = float32(g) / 0xffff / f
@@ -49,7 +49,7 @@ func (mc modifiedColor) RGBA() (r, g, b, a uint32) {
 	return
 }
 
-func redistribute_rgb(r, g, b float32) (float32, float32, float32) {
+func redistributeRGB(r, g, b float32) (float32, float32, float32) {
 	var threshold float32 = 1.0
 	m := max(r, g, b)
 	if m <= threshold {
