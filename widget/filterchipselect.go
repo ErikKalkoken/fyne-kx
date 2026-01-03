@@ -316,14 +316,14 @@ func (w *FilterChipSelect) updateState() {
 
 	if w.Disabled() {
 		w.label.Importance = widget.LowImportance
-		w.iconOn.Resource = theme.NewDisabledResource(w.resourceIconOn)
+		w.iconOn.SetResource(theme.NewDisabledResource(w.resourceIconOn))
 		w.bg.StrokeColor = th.Color(theme.ColorNameDisabled, v)
-		w.iconTrailing.Resource = theme.NewDisabledResource(w.resourceIconTrailing)
+		w.iconTrailing.SetResource(theme.NewDisabledResource(w.resourceIconTrailing))
 	} else {
 		w.label.Importance = widget.MediumImportance
-		w.iconOn.Resource = w.resourceIconOn
+		w.iconOn.SetResource(w.resourceIconOn)
 		w.bg.StrokeColor = th.Color(theme.ColorNameInputBorder, v)
-		w.iconTrailing.Resource = theme.NewThemedResource(w.resourceIconTrailing)
+		w.iconTrailing.SetResource(theme.NewThemedResource(w.resourceIconTrailing))
 	}
 	if w.Selected != "" {
 		w.label.Text = w.Selected

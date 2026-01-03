@@ -84,11 +84,11 @@ func (w *FilterChip) updateState() {
 
 	if w.Disabled() {
 		w.label.Importance = widget.LowImportance
-		w.icon.Resource = theme.NewDisabledResource(theme.ConfirmIcon())
+		w.icon.SetResource(theme.NewDisabledResource(theme.ConfirmIcon()))
 		w.bg.StrokeColor = th.Color(theme.ColorNameDisabled, v)
 	} else {
 		w.label.Importance = widget.MediumImportance
-		w.icon.Resource = theme.ConfirmIcon()
+		w.icon.SetResource(theme.ConfirmIcon())
 		w.bg.StrokeColor = th.Color(theme.ColorNameInputBorder, v)
 	}
 	if w.On {
