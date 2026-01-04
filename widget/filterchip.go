@@ -23,13 +23,15 @@ type FilterChip struct {
 	// OnChanged is called when the state changed
 	OnChanged func(on bool)
 
-	bg         *canvas.Rectangle
-	focused    bool
-	hovered    bool
-	icon       *widget.Icon
-	iconPadded *fyne.Container
-	label      *widget.Label
-	minSize    fyne.Size // cached for hover/top pos calcs
+	bg                   *canvas.Rectangle
+	focused              bool
+	hovered              bool
+	icon                 *widget.Icon
+	iconPadded           *fyne.Container
+	label                *widget.Label
+	minSize              fyne.Size // cached for hover/top pos calcs
+	resourceIcon         fyne.Resource
+	resourceIconDisabled fyne.Resource
 }
 
 var _ desktop.Hoverable = (*FilterChip)(nil)
@@ -40,19 +42,22 @@ var _ fyne.Widget = (*FilterChip)(nil)
 
 // NewFilterChip returns a new [FilterChip] object.
 func NewFilterChip(text string, changed func(on bool)) *FilterChip {
+	bg := canvas.NewRectangle(color.Transparent)
+	bg.StrokeWidth = theme.Size(theme.SizeNameInputBorder)
+	bg.CornerRadius = theme.Size(theme.SizeNameInputRadius)
 	w := &FilterChip{
-		label:     widget.NewLabel(text),
-		OnChanged: changed,
-		Text:      text,
+		bg:                   bg,
+		icon:                 widget.NewIcon(theme.ConfirmIcon()),
+		label:                widget.NewLabel(text),
+		OnChanged:            changed,
+		resourceIcon:         theme.ConfirmIcon(),
+		resourceIconDisabled: theme.NewDisabledResource(theme.ConfirmIcon()),
+		Text:                 text,
 	}
 	w.ExtendBaseWidget(w)
 	p := theme.Padding()
-	w.icon = widget.NewIcon(theme.ConfirmIcon())
 	w.iconPadded = container.New(layout.NewCustomPaddedLayout(0, 0, p, 0), w.icon)
 	w.iconPadded.Hide()
-	w.bg = canvas.NewRectangle(color.Transparent)
-	w.bg.StrokeWidth = theme.Size(theme.SizeNameInputBorder)
-	w.bg.CornerRadius = theme.Size(theme.SizeNameInputRadius)
 	return w
 }
 

@@ -39,18 +39,20 @@ type FilterChipSelect struct {
 	// Whether to disable sorting of options.
 	SortDisabled bool
 
-	bg                   *canvas.Rectangle
-	focused              bool
-	hovered              bool
-	iconOn               *widget.Icon
-	iconOnPadded         *fyne.Container
-	iconTrailing         *widget.Icon
-	isMobile             bool
-	label                *widget.Label
-	minSize              fyne.Size // cached for hover/top pos calcs
-	resourceIconOn       fyne.Resource
-	resourceIconTrailing fyne.Resource
-	window               fyne.Window
+	bg                           *canvas.Rectangle
+	focused                      bool
+	hovered                      bool
+	iconOn                       *widget.Icon
+	iconOnPadded                 *fyne.Container
+	iconTrailing                 *widget.Icon
+	isMobile                     bool
+	label                        *widget.Label
+	minSize                      fyne.Size // cached for hover/top pos calcs
+	resourceIconOn               fyne.Resource
+	resourceIconOnDisabled       fyne.Resource
+	resourceIconTrailing         fyne.Resource
+	resourceIconTrailingDisabled fyne.Resource
+	window                       fyne.Window
 }
 
 var _ desktop.Hoverable = (*FilterChipSelect)(nil)
@@ -77,18 +79,20 @@ func NewFilterChipSelectWithSearch(placeholder string, options []string, changed
 
 func newFilterChipSelect(placeholder string, options []string, changed func(selected string), window fyne.Window) *FilterChipSelect {
 	w := &FilterChipSelect{
-		ClearLabel:           "Clear",
-		iconTrailing:         widget.NewIcon(theme.MenuDropDownIcon()),
-		isMobile:             fyne.CurrentDevice().IsMobile(),
-		OnChanged:            changed,
-		Text:                 placeholder,
-		resourceIconOn:       theme.ConfirmIcon(),
-		resourceIconTrailing: theme.MenuDropDownIcon(),
-		window:               window,
+		ClearLabel:                   "Clear",
+		iconOn:                       widget.NewIcon(theme.ConfirmIcon()),
+		iconTrailing:                 widget.NewIcon(theme.MenuDropDownIcon()),
+		isMobile:                     fyne.CurrentDevice().IsMobile(),
+		label:                        widget.NewLabel(placeholder),
+		OnChanged:                    changed,
+		resourceIconOn:               theme.ConfirmIcon(),
+		resourceIconOnDisabled:       theme.NewDisabledResource(theme.ConfirmIcon()),
+		resourceIconTrailing:         theme.MenuDropDownIcon(),
+		resourceIconTrailingDisabled: theme.NewDisabledResource(theme.MenuDropDownIcon()),
+		Text:                         placeholder,
+		window:                       window,
 	}
 	w.ExtendBaseWidget(w)
-	w.label = widget.NewLabel(w.Text)
-	w.iconOn = widget.NewIcon(theme.ConfirmIcon())
 	p := theme.Padding()
 	w.iconOnPadded = container.New(layout.NewCustomPaddedLayout(0, 0, p, 0), w.iconOn)
 	w.bg = canvas.NewRectangle(color.Transparent)
@@ -316,14 +320,14 @@ func (w *FilterChipSelect) updateState() {
 
 	if w.Disabled() {
 		w.label.Importance = widget.LowImportance
-		w.iconOn.SetResource(theme.NewDisabledResource(w.resourceIconOn))
+		w.iconOn.SetResource(w.resourceIconOnDisabled)
 		w.bg.StrokeColor = th.Color(theme.ColorNameDisabled, v)
-		w.iconTrailing.SetResource(theme.NewDisabledResource(w.resourceIconTrailing))
+		w.iconTrailing.SetResource(w.resourceIconTrailingDisabled)
 	} else {
 		w.label.Importance = widget.MediumImportance
 		w.iconOn.SetResource(w.resourceIconOn)
 		w.bg.StrokeColor = th.Color(theme.ColorNameInputBorder, v)
-		w.iconTrailing.SetResource(theme.NewThemedResource(w.resourceIconTrailing))
+		w.iconTrailing.SetResource(w.resourceIconTrailing)
 	}
 	if w.Selected != "" {
 		w.label.Text = w.Selected
