@@ -46,6 +46,7 @@ func (w *Badge) Refresh() {
 	w.label.Text = w.Text
 	w.updateBadge()
 	w.label.Refresh()
+	w.BaseWidget.Refresh()
 }
 
 func (w *Badge) updateBadge() {

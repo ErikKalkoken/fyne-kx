@@ -93,6 +93,7 @@ func (w *IconButton) Refresh() {
 	if w.menu != nil {
 		w.menu.Refresh()
 	}
+	w.BaseWidget.Refresh()
 }
 
 func (w *IconButton) Tapped(_ *fyne.PointEvent) {
