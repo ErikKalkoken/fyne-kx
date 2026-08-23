@@ -6,8 +6,6 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-
-	kxlayout "github.com/ErikKalkoken/fyne-kx/layout"
 )
 
 // FilterChipGroup allows the user to toggle multiple filters with filter chips.
@@ -103,7 +101,7 @@ func (w *FilterChipGroup) setSelected(s []string) {
 func (w *FilterChipGroup) CreateRenderer() fyne.WidgetRenderer {
 	w.setSelected(w.Selected)
 	p := w.Theme().Size(theme.SizeNamePadding)
-	box := container.New(kxlayout.NewRowWrapLayoutWithCustomPadding(2*p, 2*p))
+	box := container.New(layout.NewRowWrapLayoutWithCustomPadding(2*p, 2*p))
 	for _, c := range w.chips {
 		box.Add(c)
 	}

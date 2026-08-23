@@ -10,7 +10,6 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	kxlayout "github.com/ErikKalkoken/fyne-kx/layout"
 	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
 
@@ -153,7 +152,7 @@ func makeFilterChip() fyne.CanvasObject {
 	})
 	c3.On = true
 	c := container.New(
-		kxlayout.NewRowWrapLayout(),
+		layout.NewRowWrapLayout(),
 		kxwidget.NewFilterChip("Alpha", func(on bool) {
 			log.Printf("Alpha: %v\n", on)
 		}),

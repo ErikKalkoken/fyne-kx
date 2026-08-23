@@ -38,7 +38,6 @@ func main() {
 		{"FilterChipSelect", makeFilterChipSelect(w)},
 		{"IconButton", makeIconButton()},
 		{"Modals", makeModals(w)},
-		{"RowWrap", makeRowWrap()},
 		{"Slider", makeSlider()},
 		{"Switch", makeSwitch()},
 		{"TappableIcon", makeTappableIcon()},
@@ -77,7 +76,6 @@ func main() {
 			case "Layouts":
 				s := []widget.TreeNodeID{
 					"Columns",
-					"RowWrap",
 				}
 				return s
 			case "Widgets":

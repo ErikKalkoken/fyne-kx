@@ -15,7 +15,7 @@ type rowWrapLayout struct {
 // in rows and wraps them dynamically.
 // Objects are separated with horizontal and vertical inner padding.
 //
-// Since: 2.7
+// Deprecated: Moved upstream into Fyne as of v2.7.0. Use fyne.io/fyne/v2/layout.NewRowWrapLayout instead.
 func NewRowWrapLayout() fyne.Layout {
 	p := theme.Padding()
 	return &rowWrapLayout{
@@ -27,7 +27,7 @@ func NewRowWrapLayout() fyne.Layout {
 // NewRowWrapLayoutWithCustomPadding returns a new RowWrapLayout instance
 // with custom horizontal and vertical inner padding.
 //
-// Since: 2.7
+// Deprecated: Moved upstream into Fyne as of v2.7.0. Use fyne.io/fyne/v2/layout.NewRowWrapLayout instead.
 func NewRowWrapLayoutWithCustomPadding(horizontal, vertical float32) fyne.Layout {
 	return &rowWrapLayout{
 		horizontalPadding: horizontal,
