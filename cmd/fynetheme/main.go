@@ -22,8 +22,8 @@ const (
 )
 
 func main() {
-	app := app.New()
-	w := app.NewWindow("Theme Insight")
+	app := app.NewWithID("io.github.erikkalkoken.fyne-kx.fynetheme")
+	w := app.NewWindow("Fyne Theme Browser")
 	tabs := container.NewAppTabs(
 		container.NewTabItem("Colors", makeColors()),
 		container.NewTabItem("Icons", makeIcons()),
@@ -63,41 +63,7 @@ func main() {
 	w.ShowAndRun()
 }
 
-type colorRow struct {
-	label string
-	name  fyne.ThemeColorName
-}
-
 func makeColors() fyne.CanvasObject {
-	colors := []colorRow{
-		{"ColorNameBackground", theme.ColorNameBackground},
-		{"ColorNameButton", theme.ColorNameButton},
-		{"ColorNameDisabled", theme.ColorNameDisabled},
-		{"ColorNameDisabledButton", theme.ColorNameDisabledButton},
-		{"ColorNameError", theme.ColorNameError},
-		{"ColorNameFocus", theme.ColorNameFocus},
-		{"ColorNameForeground", theme.ColorNameForeground},
-		{"ColorNameForegroundOnError", theme.ColorNameForegroundOnError},
-		{"ColorNameForegroundOnPrimary", theme.ColorNameForegroundOnPrimary},
-		{"ColorNameForegroundOnSuccess", theme.ColorNameForegroundOnSuccess},
-		{"ColorNameForegroundOnWarning", theme.ColorNameForegroundOnWarning},
-		{"ColorNameHeaderBackground", theme.ColorNameHeaderBackground},
-		{"ColorNameHover", theme.ColorNameHover},
-		{"ColorNameHyperlink", theme.ColorNameHyperlink},
-		{"ColorNameInputBackground", theme.ColorNameInputBackground},
-		{"ColorNameInputBorder", theme.ColorNameInputBorder},
-		{"ColorNameMenuBackground", theme.ColorNameMenuBackground},
-		{"ColorNameOverlayBackground", theme.ColorNameOverlayBackground},
-		{"ColorNamePlaceHolder", theme.ColorNamePlaceHolder},
-		{"ColorNamePressed", theme.ColorNamePressed},
-		{"ColorNamePrimary", theme.ColorNamePrimary},
-		{"ColorNameScrollBar", theme.ColorNameScrollBar},
-		{"ColorNameSelection", theme.ColorNameSelection},
-		{"ColorNameSeparator", theme.ColorNameSeparator},
-		{"ColorNameShadow", theme.ColorNameShadow},
-		{"ColorNameSuccess", theme.ColorNameSuccess},
-		{"ColorNameWarning", theme.ColorNameWarning},
-	}
 	hasTransparencyDark := make(map[fyne.ThemeColorName]bool)
 	hasTransparencyLight := make(map[fyne.ThemeColorName]bool)
 	th := theme.Current()
@@ -201,29 +167,7 @@ func makeColors() fyne.CanvasObject {
 	)
 }
 
-type sizeRow struct {
-	label string
-	name  fyne.ThemeSizeName
-}
-
 func makeSizes() fyne.CanvasObject {
-	sizes := []sizeRow{
-		{"SizeNameCaptionText", theme.SizeNameCaptionText},
-		{"SizeNameHeadingText", theme.SizeNameHeadingText},
-		{"SizeNameInlineIcon", theme.SizeNameInlineIcon},
-		{"SizeNameInnerPadding", theme.SizeNameInnerPadding},
-		{"SizeNameInputBorder", theme.SizeNameInputBorder},
-		{"SizeNameInputRadius", theme.SizeNameInputRadius},
-		{"SizeNameLineSpacing", theme.SizeNameLineSpacing},
-		{"SizeNamePadding", theme.SizeNamePadding},
-		{"SizeNameScrollBar", theme.SizeNameScrollBar},
-		{"SizeNameScrollBarRadius", theme.SizeNameScrollBarRadius},
-		{"SizeNameScrollBarSmall", theme.SizeNameScrollBarSmall},
-		{"SizeNameSelectionRadius", theme.SizeNameSelectionRadius},
-		{"SizeNameSeparatorThickness", theme.SizeNameSeparatorThickness},
-		{"SizeNameSubHeadingText", theme.SizeNameSubHeadingText},
-		{"SizeNameText", theme.SizeNameText},
-	}
 	sizesFiltered := cloneSlice(sizes)
 	list := widget.NewList(
 		func() int {
@@ -272,112 +216,8 @@ func makeSizes() fyne.CanvasObject {
 	)
 }
 
-type iconRow struct {
-	label string
-	name  fyne.ThemeIconName
-}
-
 func makeIcons() fyne.CanvasObject {
-	sizes := []iconRow{
-		{"IconNameAccount", theme.IconNameAccount},
-		{"IconNameArrowDropDown", theme.IconNameArrowDropDown},
-		{"IconNameArrowDropUp", theme.IconNameArrowDropUp},
-		{"IconNameBrokenImage", theme.IconNameBrokenImage},
-		{"IconNameCancel", theme.IconNameCancel},
-		{"IconNameCheckButton", theme.IconNameCheckButton},
-		{"IconNameCheckButtonChecked", theme.IconNameCheckButtonChecked},
-		{"IconNameCheckButtonFill", theme.IconNameCheckButtonFill},
-		{"IconNameColorAchromatic", theme.IconNameColorAchromatic},
-		{"IconNameColorChromatic", theme.IconNameColorChromatic},
-		{"IconNameColorPalette", theme.IconNameColorPalette},
-		{"IconNameComputer", theme.IconNameComputer},
-		{"IconNameConfirm", theme.IconNameConfirm},
-		{"IconNameContentAdd", theme.IconNameContentAdd},
-		{"IconNameContentClear", theme.IconNameContentClear},
-		{"IconNameContentCopy", theme.IconNameContentCopy},
-		{"IconNameContentCut", theme.IconNameContentCut},
-		{"IconNameContentPaste", theme.IconNameContentPaste},
-		{"IconNameContentRedo", theme.IconNameContentRedo},
-		{"IconNameContentRemove", theme.IconNameContentRemove},
-		{"IconNameContentUndo", theme.IconNameContentUndo},
-		{"IconNameDelete", theme.IconNameDelete},
-		{"IconNameDesktop", theme.IconNameDesktop},
-		{"IconNameDocument", theme.IconNameDocument},
-		{"IconNameDocumentCreate", theme.IconNameDocumentCreate},
-		{"IconNameDocumentPrint", theme.IconNameDocumentPrint},
-		{"IconNameDocumentSave", theme.IconNameDocumentSave},
-		{"IconNameDownload", theme.IconNameDownload},
-		{"IconNameDragCornerIndicator", theme.IconNameDragCornerIndicator},
-		{"IconNameError", theme.IconNameError},
-		{"IconNameFile", theme.IconNameFile},
-		{"IconNameFileApplication", theme.IconNameFileApplication},
-		{"IconNameFileAudio", theme.IconNameFileAudio},
-		{"IconNameFileImage", theme.IconNameFileImage},
-		{"IconNameFileText", theme.IconNameFileText},
-		{"IconNameFileVideo", theme.IconNameFileVideo},
-		{"IconNameFolder", theme.IconNameFolder},
-		{"IconNameFolderNew", theme.IconNameFolderNew},
-		{"IconNameFolderOpen", theme.IconNameFolderOpen},
-		{"IconNameGrid", theme.IconNameGrid},
-		{"IconNameHelp", theme.IconNameHelp},
-		{"IconNameHistory", theme.IconNameHistory},
-		{"IconNameHome", theme.IconNameHome},
-		{"IconNameInfo", theme.IconNameInfo},
-		{"IconNameList", theme.IconNameList},
-		{"IconNameLogin", theme.IconNameLogin},
-		{"IconNameLogout", theme.IconNameLogout},
-		{"IconNameMailAttachment", theme.IconNameMailAttachment},
-		{"IconNameMailCompose", theme.IconNameMailCompose},
-		{"IconNameMailForward", theme.IconNameMailForward},
-		{"IconNameMailReply", theme.IconNameMailReply},
-		{"IconNameMailReplyAll", theme.IconNameMailReplyAll},
-		{"IconNameMailSend", theme.IconNameMailSend},
-		{"IconNameMediaFastForward", theme.IconNameMediaFastForward},
-		{"IconNameMediaFastRewind", theme.IconNameMediaFastRewind},
-		{"IconNameMediaMusic", theme.IconNameMediaMusic},
-		{"IconNameMediaPause", theme.IconNameMediaPause},
-		{"IconNameMediaPhoto", theme.IconNameMediaPhoto},
-		{"IconNameMediaPlay", theme.IconNameMediaPlay},
-		{"IconNameMediaRecord", theme.IconNameMediaRecord},
-		{"IconNameMediaReplay", theme.IconNameMediaReplay},
-		{"IconNameMediaSkipNext", theme.IconNameMediaSkipNext},
-		{"IconNameMediaSkipPrevious", theme.IconNameMediaSkipPrevious},
-		{"IconNameMediaStop", theme.IconNameMediaStop},
-		{"IconNameMediaVideo", theme.IconNameMediaVideo},
-		{"IconNameMenu", theme.IconNameMenu},
-		{"IconNameMenuExpand", theme.IconNameMenuExpand},
-		{"IconNameMoreHorizontal", theme.IconNameMoreHorizontal},
-		{"IconNameMoreVertical", theme.IconNameMoreVertical},
-		{"IconNameMoveDown", theme.IconNameMoveDown},
-		{"IconNameMoveUp", theme.IconNameMoveUp},
-		{"IconNameNavigateBack", theme.IconNameNavigateBack},
-		{"IconNameNavigateNext", theme.IconNameNavigateNext},
-		{"IconNameQuestion", theme.IconNameQuestion},
-		{"IconNameRadioButton", theme.IconNameRadioButton},
-		{"IconNameRadioButtonChecked", theme.IconNameRadioButtonChecked},
-		{"IconNameRadioButtonFill", theme.IconNameRadioButtonFill},
-		{"IconNameSearch", theme.IconNameSearch},
-		{"IconNameSearchReplace", theme.IconNameSearchReplace},
-		{"IconNameSettings", theme.IconNameSettings},
-		{"IconNameStorage", theme.IconNameStorage},
-		{"IconNameUpload", theme.IconNameUpload},
-		{"IconNameViewFullScreen", theme.IconNameViewFullScreen},
-		{"IconNameViewRefresh", theme.IconNameViewRefresh},
-		{"IconNameViewRestore", theme.IconNameViewRestore},
-		{"IconNameViewZoomFit", theme.IconNameViewZoomFit},
-		{"IconNameViewZoomIn", theme.IconNameViewZoomIn},
-		{"IconNameViewZoomOut", theme.IconNameViewZoomOut},
-		{"IconNameVisibility", theme.IconNameVisibility},
-		{"IconNameVisibilityOff", theme.IconNameVisibilityOff},
-		{"IconNameVolumeDown", theme.IconNameVolumeDown},
-		{"IconNameVolumeMute", theme.IconNameVolumeMute},
-		{"IconNameVolumeUp", theme.IconNameVolumeUp},
-		{"IconNameWarning", theme.IconNameWarning},
-		{"IconNameWindowClose", theme.IconNameWindowClose},
-		{"IconNameWindowMaximize", theme.IconNameWindowMaximize},
-		{"IconNameWindowMinimize", theme.IconNameWindowMinimize},
-	}
-	iconsFiltered := cloneSlice(sizes)
+	iconsFiltered := cloneSlice(icons)
 	var iconSize float32 = iconSizeStart
 	iconColors := []string{"Default", "Disabled", "Error", "Primary", "Success", "Warning"}
 	var iconColor = "Default"
@@ -431,7 +271,7 @@ func makeIcons() fyne.CanvasObject {
 	search.OnChanged = func(s string) {
 		iconsFiltered = make([]iconRow, 0)
 		s2 := strings.ToLower(s)
-		for _, c := range sizes {
+		for _, c := range icons {
 			if strings.Contains(strings.ToLower(c.label), s2) {
 				iconsFiltered = append(iconsFiltered, c)
 			}
