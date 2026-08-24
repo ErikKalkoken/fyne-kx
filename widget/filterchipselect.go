@@ -47,7 +47,6 @@ type FilterChipSelect struct {
 	iconTrailing                 *widget.Icon
 	isMobile                     bool
 	label                        *widget.Label
-	minSize                      fyne.Size // cached for hover/top pos calcs
 	resourceIconOn               fyne.Resource
 	resourceIconOnDisabled       fyne.Resource
 	resourceIconTrailing         fyne.Resource
@@ -190,7 +189,7 @@ func (w *FilterChipSelect) showDropDownMenu() {
 		}
 	}
 	m := fyne.NewMenu("", items...)
-	pos := fyne.NewPos(0, w.minSize.Height)
+	pos := fyne.NewPos(0, w.Size().Height)
 	widget.ShowPopUpMenuAtRelativePosition(m, fyne.CurrentApp().Driver().CanvasForObject(w), pos, w)
 }
 
@@ -359,28 +358,10 @@ func (w *FilterChipSelect) Refresh() {
 	w.BaseWidget.Refresh()
 }
 
-func (w *FilterChipSelect) MinSize() fyne.Size {
-	w.ExtendBaseWidget(w)
-	w.minSize = w.BaseWidget.MinSize()
-	return w.minSize
-}
-
 func (w *FilterChipSelect) Tapped(pe *fyne.PointEvent) {
 	if w.Disabled() {
 		return
 	}
-	if !w.minSize.IsZero() &&
-		(pe.Position.X > w.minSize.Width || pe.Position.Y > w.minSize.Height) {
-		// tapped outside
-		return
-	}
-	// if !w.focused {
-	// 	if !fyne.CurrentDevice().IsMobile() {
-	// 		if c := fyne.CurrentApp().Driver().CanvasForObject(w); c != nil {
-	// 			c.Focus(w)
-	// 		}
-	// 	}
-	// }
 	w.showInteraction()
 }
 
@@ -400,8 +381,9 @@ func (w *FilterChipSelect) MouseMoved(me *desktop.MouseEvent) {
 		return
 	}
 	oldHovered := w.hovered
-	w.hovered = w.minSize.IsZero() ||
-		(me.Position.X <= w.minSize.Width && me.Position.Y <= w.minSize.Height)
+	size := w.Size()
+	w.hovered = size.IsZero() ||
+		(me.Position.X <= size.Width && me.Position.Y <= size.Height)
 
 	if oldHovered != w.hovered {
 		w.Refresh()

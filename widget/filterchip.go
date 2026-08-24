@@ -29,7 +29,6 @@ type FilterChip struct {
 	icon                 *widget.Icon
 	iconPadded           *fyne.Container
 	label                *widget.Label
-	minSize              fyne.Size // cached for hover/top pos calcs
 	resourceIcon         fyne.Resource
 	resourceIconDisabled fyne.Resource
 }
@@ -115,28 +114,10 @@ func (w *FilterChip) updateState() {
 	}
 }
 
-func (w *FilterChip) MinSize() fyne.Size {
-	w.ExtendBaseWidget(w)
-	w.minSize = w.BaseWidget.MinSize()
-	return w.minSize
-}
-
 func (w *FilterChip) Tapped(pe *fyne.PointEvent) {
 	if w.Disabled() {
 		return
 	}
-	if !w.minSize.IsZero() &&
-		(pe.Position.X > w.minSize.Width || pe.Position.Y > w.minSize.Height) {
-		// tapped outside
-		return
-	}
-	// if !w.focused {
-	// 	if !fyne.CurrentDevice().IsMobile() {
-	// 		if c := fyne.CurrentApp().Driver().CanvasForObject(w); c != nil {
-	// 			c.Focus(w)
-	// 		}
-	// 	}
-	// }
 	w.SetState(!w.On)
 }
 
@@ -156,8 +137,9 @@ func (w *FilterChip) MouseMoved(me *desktop.MouseEvent) {
 		return
 	}
 	oldHovered := w.hovered
-	w.hovered = w.minSize.IsZero() ||
-		(me.Position.X <= w.minSize.Width && me.Position.Y <= w.minSize.Height)
+	size := w.Size()
+	w.hovered = size.IsZero() ||
+		(me.Position.X <= size.Width && me.Position.Y <= size.Height)
 
 	if oldHovered != w.hovered {
 		w.Refresh()
