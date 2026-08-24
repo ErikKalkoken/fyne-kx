@@ -94,7 +94,7 @@ func newFilterChipSelect(placeholder string, options []string, changed func(sele
 	}
 	w.ExtendBaseWidget(w)
 	p := theme.Padding()
-	w.iconOnPadded = container.New(layout.NewCustomPaddedLayout(0, 0, p, 0), w.iconOn)
+	w.iconOnPadded = container.New(layout.NewCustomPaddedLayout(0, 0, 2*p, -p), w.iconOn)
 	w.bg = canvas.NewRectangle(color.Transparent)
 	w.bg.StrokeWidth = theme.Size(theme.SizeNameInputBorder)
 	w.bg.CornerRadius = theme.Size(theme.SizeNameInputRadius)
@@ -448,15 +448,13 @@ func (w *FilterChipSelect) CreateRenderer() fyne.WidgetRenderer {
 	p := theme.Padding()
 	c := container.NewHBox(container.NewStack(
 		w.bg,
-		container.New(
-			layout.NewCustomPaddedLayout(0, 0, p, p),
-			container.New(layout.NewCustomPaddedHBoxLayout(0),
-				layout.NewSpacer(),
-				container.NewVBox(layout.NewSpacer(), w.iconOnPadded, layout.NewSpacer()),
-				container.NewVBox(layout.NewSpacer(), w.label, layout.NewSpacer()),
-				container.NewVBox(layout.NewSpacer(), w.iconTrailing, layout.NewSpacer()),
-				layout.NewSpacer(),
-			),
-		)))
+		container.New(layout.NewCustomPaddedHBoxLayout(0),
+			layout.NewSpacer(),
+			container.NewVBox(layout.NewSpacer(), w.iconOnPadded, layout.NewSpacer()),
+			container.NewVBox(layout.NewSpacer(), container.New(layout.NewCustomPaddedLayout(0, 0, 0, -p), w.label), layout.NewSpacer()),
+			container.NewVBox(layout.NewSpacer(), container.New(layout.NewCustomPaddedLayout(0, 0, 0, p), w.iconTrailing), layout.NewSpacer()),
+			layout.NewSpacer(),
+		),
+	))
 	return widget.NewSimpleRenderer(c)
 }

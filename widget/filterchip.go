@@ -56,7 +56,7 @@ func NewFilterChip(text string, changed func(on bool)) *FilterChip {
 	}
 	w.ExtendBaseWidget(w)
 	p := theme.Padding()
-	w.iconPadded = container.New(layout.NewCustomPaddedLayout(0, 0, p, 0), w.icon)
+	w.iconPadded = container.New(layout.NewCustomPaddedLayout(0, 0, 2*p, -p), w.icon)
 	w.iconPadded.Hide()
 	return w
 }
@@ -201,18 +201,15 @@ func (w *FilterChip) TypedKey(key *fyne.KeyEvent) {}
 
 func (w *FilterChip) CreateRenderer() fyne.WidgetRenderer {
 	w.updateState()
-	p := theme.Padding()
 	c := container.NewHBox(container.NewStack(
 		w.bg,
 		container.New(
-			layout.NewCustomPaddedLayout(0, 0, p, p),
-			container.New(
-				layout.NewCustomPaddedHBoxLayout(0),
-				layout.NewSpacer(),
-				container.NewVBox(layout.NewSpacer(), w.iconPadded, layout.NewSpacer()),
-				container.NewVBox(layout.NewSpacer(), w.label, layout.NewSpacer()),
-				layout.NewSpacer(),
-			),
-		)))
+			layout.NewCustomPaddedHBoxLayout(0),
+			layout.NewSpacer(),
+			container.NewVBox(layout.NewSpacer(), w.iconPadded, layout.NewSpacer()),
+			container.NewVBox(layout.NewSpacer(), w.label, layout.NewSpacer()),
+			layout.NewSpacer(),
+		),
+	))
 	return widget.NewSimpleRenderer(c)
 }
