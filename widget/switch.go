@@ -21,7 +21,6 @@ type Switch struct {
 
 	focused bool
 	hovered bool
-	minSize fyne.Size // cached for hover/top pos calcs
 }
 
 var _ desktop.Hoverable = (*Switch)(nil)
@@ -98,11 +97,6 @@ func (w *Switch) Tapped(pe *fyne.PointEvent) {
 	if w.Disabled() {
 		return
 	}
-	if !w.minSize.IsZero() &&
-		(pe.Position.X > w.minSize.Width || pe.Position.Y > w.minSize.Height) {
-		// tapped outside
-		return
-	}
 	w.SetOn(!w.On)
 }
 
@@ -116,35 +110,27 @@ func (w *Switch) Cursor() desktop.Cursor {
 	return desktop.DefaultCursor
 }
 
-// MinSize returns the size that this widget should not shrink below
-func (w *Switch) MinSize() fyne.Size {
-	w.ExtendBaseWidget(w)
-	w.minSize = w.BaseWidget.MinSize()
-	return w.minSize
-}
-
 // MouseIn is a hook that is called if the mouse pointer enters the element.
 func (w *Switch) MouseIn(me *desktop.MouseEvent) {
-	w.MouseMoved(me)
-}
-
-// MouseMoved is called when a desktop pointer hovers over the widget
-func (w *Switch) MouseMoved(me *desktop.MouseEvent) {
 	if w.Disabled() {
 		return
 	}
 	oldHovered := w.hovered
-	w.hovered = w.minSize.IsZero() ||
-		(me.Position.X <= w.minSize.Width && me.Position.Y <= w.minSize.Height)
-
+	w.hovered = true
 	if oldHovered != w.hovered {
 		w.Refresh()
 	}
 }
 
+// MouseMoved is called when a desktop pointer hovers over the widget
+func (w *Switch) MouseMoved(me *desktop.MouseEvent) {
+	// needed to satisfy the interface only
+}
+
 func (w *Switch) MouseOut() {
-	if w.hovered {
-		w.hovered = false
+	oldHovered := w.hovered
+	w.hovered = false
+	if oldHovered != w.hovered {
 		w.Refresh()
 	}
 }
