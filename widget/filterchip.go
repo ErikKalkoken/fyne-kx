@@ -185,13 +185,11 @@ func (w *FilterChip) CreateRenderer() fyne.WidgetRenderer {
 	w.updateState()
 	c := container.NewStack(
 		w.bg,
-		container.New(
+		container.NewCenter(container.New(
 			layout.NewCustomPaddedHBoxLayout(0),
-			layout.NewSpacer(),
-			container.NewVBox(layout.NewSpacer(), w.iconPadded, layout.NewSpacer()),
-			container.NewVBox(layout.NewSpacer(), w.label, layout.NewSpacer()),
-			layout.NewSpacer(),
+			w.iconPadded,
+			w.label,
 		),
-	)
+		))
 	return widget.NewSimpleRenderer(c)
 }

@@ -430,13 +430,11 @@ func (w *FilterChipSelect) CreateRenderer() fyne.WidgetRenderer {
 	p := theme.Padding()
 	c := container.NewStack(
 		w.bg,
-		container.New(layout.NewCustomPaddedHBoxLayout(0),
-			layout.NewSpacer(),
-			container.NewVBox(layout.NewSpacer(), w.iconOnPadded, layout.NewSpacer()),
-			container.NewVBox(layout.NewSpacer(), container.New(layout.NewCustomPaddedLayout(0, 0, 0, -p), w.label), layout.NewSpacer()),
-			container.NewVBox(layout.NewSpacer(), container.New(layout.NewCustomPaddedLayout(0, 0, 0, p), w.iconTrailing), layout.NewSpacer()),
-			layout.NewSpacer(),
+		container.NewCenter(container.New(layout.NewCustomPaddedHBoxLayout(0),
+			w.iconOnPadded,
+			container.New(layout.NewCustomPaddedLayout(0, 0, 0, -p), w.label),
+			container.New(layout.NewCustomPaddedLayout(0, 0, 0, p), w.iconTrailing),
 		),
-	)
+		))
 	return widget.NewSimpleRenderer(c)
 }

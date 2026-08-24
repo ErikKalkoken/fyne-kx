@@ -151,7 +151,7 @@ func makeFilterChip() fyne.CanvasObject {
 		log.Printf("Bravo: %v\n", on)
 	})
 	c3.On = true
-	c := container.NewHBox(
+	c := container.NewVBox(
 		kxwidget.NewFilterChip("Alpha", func(on bool) {
 			log.Printf("Alpha: %v\n", on)
 		}),
@@ -159,11 +159,7 @@ func makeFilterChip() fyne.CanvasObject {
 		c1,
 		c2,
 	)
-	row2 := container.NewHBox(
-		widget.NewButton("Alpha", nil),
-		widget.NewButtonWithIcon("Bravo", theme.ConfirmIcon(), nil),
-	)
-	return container.NewVBox(c, row2)
+	return c
 }
 
 func makeFilterChipGroup() fyne.CanvasObject {
