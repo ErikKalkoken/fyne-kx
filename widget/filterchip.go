@@ -129,28 +129,18 @@ func (w *FilterChip) Cursor() desktop.Cursor {
 }
 
 func (w *FilterChip) MouseIn(me *desktop.MouseEvent) {
-	w.MouseMoved(me)
-}
-
-func (w *FilterChip) MouseMoved(me *desktop.MouseEvent) {
 	if w.Disabled() {
 		return
 	}
-	oldHovered := w.hovered
-	size := w.Size()
-	w.hovered = size.IsZero() ||
-		(me.Position.X <= size.Width && me.Position.Y <= size.Height)
+	w.hovered = true
+}
 
-	if oldHovered != w.hovered {
-		w.Refresh()
-	}
+func (w *FilterChip) MouseMoved(me *desktop.MouseEvent) {
+	// needed to satisfy the interface only
 }
 
 func (w *FilterChip) MouseOut() {
-	if w.hovered {
-		w.hovered = false
-		w.Refresh()
-	}
+	w.hovered = false
 }
 
 // FocusGained is called when the Check has been given focus.
