@@ -50,6 +50,7 @@ func main() {
 	for i, it := range pages {
 		title := widget.NewLabel(it.name)
 		title.TextStyle.Bold = true
+		title.SizeName = theme.SizeNameSubHeadingText
 		p := container.NewBorder(
 			container.NewVBox(title, widget.NewSeparator()),
 			nil,

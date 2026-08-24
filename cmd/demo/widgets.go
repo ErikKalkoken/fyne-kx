@@ -14,24 +14,84 @@ import (
 )
 
 func makeBadge() fyne.CanvasObject {
-	badges := container.NewVBox()
-	badgesConfig := []struct {
+	makeTopic := func(title string, topic fyne.CanvasObject) fyne.CanvasObject {
+		label := widget.NewLabel(title)
+		label.TextStyle.Bold = true
+		c := container.NewBorder(
+			label,
+			nil,
+			nil,
+			nil,
+			topic,
+		)
+		return c
+	}
+
+	importance := container.New(layout.NewRowWrapLayout())
+	defineImportance := []struct {
 		name       string
 		importance widget.Importance
 	}{
-		{"danger", widget.DangerImportance},
-		{"high", widget.HighImportance},
-		{"low", widget.LowImportance},
-		{"medium", widget.MediumImportance},
-		{"success", widget.SuccessImportance},
-		{"warning", widget.WarningImportance},
+		{"Danger", widget.DangerImportance},
+		{"High", widget.HighImportance},
+		{"Low", widget.LowImportance},
+		{"Medium", widget.MediumImportance},
+		{"Success", widget.SuccessImportance},
+		{"Warning", widget.WarningImportance},
 	}
-	for _, bc := range badgesConfig {
-		b := kxwidget.NewBadge("Alpha")
+	for _, bc := range defineImportance {
+		b := kxwidget.NewBadge(bc.name)
 		b.Importance = bc.importance
-		badges.Add(container.NewHBox(b, widget.NewLabel(bc.name+" importance")))
+		importance.Add(b)
 	}
-	return badges
+	t1 := makeTopic("Importance", importance)
+
+	alignment := container.NewVBox()
+	defineAlignment := []struct {
+		name  string
+		align fyne.TextAlign
+	}{
+		{"Leading", fyne.TextAlignLeading},
+		{"Center", fyne.TextAlignCenter},
+		{"Trailing", fyne.TextAlignTrailing},
+	}
+	for _, c := range defineAlignment {
+		b := kxwidget.NewBadge(c.name)
+		b.Alignment = c.align
+		b.Importance = widget.HighImportance
+		alignment.Add(b)
+	}
+	t2 := makeTopic("Alignment", alignment)
+
+	sizes := container.NewVBox()
+	defineSizes := []struct {
+		name     string
+		sizeName fyne.ThemeSizeName
+	}{
+		{"Text", theme.SizeNameText},
+		{"Caption", theme.SizeNameCaptionText},
+		{"Subheading", theme.SizeNameSubHeadingText},
+	}
+	for _, c := range defineSizes {
+		b := kxwidget.NewBadge(c.name)
+		b.SizeName = c.sizeName
+		b.Importance = widget.WarningImportance
+		sizes.Add(b)
+	}
+	t3 := makeTopic("Sizes", sizes)
+
+	// b1 := kxwidget.NewBadge("Alpha")
+	// b1.Importance = widget.HighImportance
+	// b2 := kxwidget.NewBadge("Bravo")
+	// b2.Importance = widget.HighImportance
+	// other := container.NewVBox(
+	// 	widget.NewLabel("Alpha"),
+	// 	b1,
+	// 	container.NewHBox(widget.NewLabel("Bravo"), b2),
+	// )
+	// t4 := makeTopic("Label comparison", other)
+
+	return container.NewVBox(t1, t2, t3)
 }
 
 func makeSlider() fyne.CanvasObject {
@@ -194,9 +254,37 @@ func makeIconButton() fyne.CanvasObject {
 	})
 	i2 := kxwidget.NewIconButton(theme.AccountIcon(), nil)
 	i2.Disable()
-	c := container.NewVBox(
-		container.NewHBox(i1, widget.NewLabel("Enabled"), layout.NewSpacer()),
-		container.NewHBox(i2, widget.NewLabel("Disabled"), layout.NewSpacer()),
+	makeBorder := func() fyne.CanvasObject {
+		r := canvas.NewRectangle(theme.Color(theme.ColorNameInputBackground))
+		r.SetMinSize(fyne.NewSquareSize(theme.Padding() * 5))
+		return r
+	}
+	i3 := kxwidget.NewIconButtonWithMenu(theme.FolderIcon(), fyne.NewMenu("",
+		fyne.NewMenuItem("first", nil),
+		fyne.NewMenuItem("second", nil),
+	))
+	c := container.NewGridWithRows(
+		3,
+		container.NewBorder(
+			makeBorder(),
+			makeBorder(),
+			makeBorder(),
+			container.NewHBox(makeBorder(), widget.NewLabel("Enabled")),
+			i1,
+		),
+		container.NewBorder(
+			makeBorder(),
+			makeBorder(),
+			makeBorder(),
+			container.NewHBox(makeBorder(), widget.NewLabel("Disabled")),
+			i2,
+		),
+
+		container.NewHBox(
+			container.NewCenter(i3),
+			layout.NewSpacer(),
+			widget.NewLabel("With menu"),
+		),
 	)
 	return c
 }
