@@ -29,7 +29,6 @@ type FilterChip struct {
 	icon                 *widget.Icon
 	iconPadded           *fyne.Container
 	label                *widget.Label
-	minSize              fyne.Size // cached for hover/top pos calcs
 	resourceIcon         fyne.Resource
 	resourceIconDisabled fyne.Resource
 }
@@ -56,7 +55,7 @@ func NewFilterChip(text string, changed func(on bool)) *FilterChip {
 	}
 	w.ExtendBaseWidget(w)
 	p := theme.Padding()
-	w.iconPadded = container.New(layout.NewCustomPaddedLayout(0, 0, p, 0), w.icon)
+	w.iconPadded = container.New(layout.NewCustomPaddedLayout(0, 0, 2*p, -p), w.icon)
 	w.iconPadded.Hide()
 	return w
 }
@@ -115,28 +114,10 @@ func (w *FilterChip) updateState() {
 	}
 }
 
-func (w *FilterChip) MinSize() fyne.Size {
-	w.ExtendBaseWidget(w)
-	w.minSize = w.BaseWidget.MinSize()
-	return w.minSize
-}
-
 func (w *FilterChip) Tapped(pe *fyne.PointEvent) {
 	if w.Disabled() {
 		return
 	}
-	if !w.minSize.IsZero() &&
-		(pe.Position.X > w.minSize.Width || pe.Position.Y > w.minSize.Height) {
-		// tapped outside
-		return
-	}
-	// if !w.focused {
-	// 	if !fyne.CurrentDevice().IsMobile() {
-	// 		if c := fyne.CurrentApp().Driver().CanvasForObject(w); c != nil {
-	// 			c.Focus(w)
-	// 		}
-	// 	}
-	// }
 	w.SetState(!w.On)
 }
 
@@ -148,27 +129,18 @@ func (w *FilterChip) Cursor() desktop.Cursor {
 }
 
 func (w *FilterChip) MouseIn(me *desktop.MouseEvent) {
-	w.MouseMoved(me)
-}
-
-func (w *FilterChip) MouseMoved(me *desktop.MouseEvent) {
 	if w.Disabled() {
 		return
 	}
-	oldHovered := w.hovered
-	w.hovered = w.minSize.IsZero() ||
-		(me.Position.X <= w.minSize.Width && me.Position.Y <= w.minSize.Height)
+	w.hovered = true
+}
 
-	if oldHovered != w.hovered {
-		w.Refresh()
-	}
+func (w *FilterChip) MouseMoved(me *desktop.MouseEvent) {
+	// needed to satisfy the interface only
 }
 
 func (w *FilterChip) MouseOut() {
-	if w.hovered {
-		w.hovered = false
-		w.Refresh()
-	}
+	w.hovered = false
 }
 
 // FocusGained is called when the Check has been given focus.
@@ -201,18 +173,13 @@ func (w *FilterChip) TypedKey(key *fyne.KeyEvent) {}
 
 func (w *FilterChip) CreateRenderer() fyne.WidgetRenderer {
 	w.updateState()
-	p := theme.Padding()
-	c := container.NewHBox(container.NewStack(
+	c := container.NewStack(
 		w.bg,
-		container.New(
-			layout.NewCustomPaddedLayout(0, 0, p, p),
-			container.New(
-				layout.NewCustomPaddedHBoxLayout(0),
-				layout.NewSpacer(),
-				container.NewVBox(layout.NewSpacer(), w.iconPadded, layout.NewSpacer()),
-				container.NewVBox(layout.NewSpacer(), w.label, layout.NewSpacer()),
-				layout.NewSpacer(),
-			),
-		)))
+		container.NewCenter(container.New(
+			layout.NewCustomPaddedHBoxLayout(0),
+			w.iconPadded,
+			w.label,
+		),
+		))
 	return widget.NewSimpleRenderer(c)
 }

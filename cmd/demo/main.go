@@ -26,7 +26,7 @@ type treeItem struct {
 }
 
 func main() {
-	app := app.New()
+	app := app.NewWithID("io.github.erikkalkoken.fyne-kx.demo")
 	w := app.NewWindow("KX Demo")
 
 	pages := []treeItem{
@@ -50,6 +50,7 @@ func main() {
 	for i, it := range pages {
 		title := widget.NewLabel(it.name)
 		title.TextStyle.Bold = true
+		title.SizeName = theme.SizeNameSubHeadingText
 		p := container.NewBorder(
 			container.NewVBox(title, widget.NewSeparator()),
 			nil,

@@ -47,7 +47,6 @@ type FilterChipSelect struct {
 	iconTrailing                 *widget.Icon
 	isMobile                     bool
 	label                        *widget.Label
-	minSize                      fyne.Size // cached for hover/top pos calcs
 	resourceIconOn               fyne.Resource
 	resourceIconOnDisabled       fyne.Resource
 	resourceIconTrailing         fyne.Resource
@@ -94,7 +93,7 @@ func newFilterChipSelect(placeholder string, options []string, changed func(sele
 	}
 	w.ExtendBaseWidget(w)
 	p := theme.Padding()
-	w.iconOnPadded = container.New(layout.NewCustomPaddedLayout(0, 0, p, 0), w.iconOn)
+	w.iconOnPadded = container.New(layout.NewCustomPaddedLayout(0, 0, 2*p, -p), w.iconOn)
 	w.bg = canvas.NewRectangle(color.Transparent)
 	w.bg.StrokeWidth = theme.Size(theme.SizeNameInputBorder)
 	w.bg.CornerRadius = theme.Size(theme.SizeNameInputRadius)
@@ -190,7 +189,7 @@ func (w *FilterChipSelect) showDropDownMenu() {
 		}
 	}
 	m := fyne.NewMenu("", items...)
-	pos := fyne.NewPos(0, w.minSize.Height)
+	pos := fyne.NewPos(0, w.Size().Height)
 	widget.ShowPopUpMenuAtRelativePosition(m, fyne.CurrentApp().Driver().CanvasForObject(w), pos, w)
 }
 
@@ -359,28 +358,10 @@ func (w *FilterChipSelect) Refresh() {
 	w.BaseWidget.Refresh()
 }
 
-func (w *FilterChipSelect) MinSize() fyne.Size {
-	w.ExtendBaseWidget(w)
-	w.minSize = w.BaseWidget.MinSize()
-	return w.minSize
-}
-
 func (w *FilterChipSelect) Tapped(pe *fyne.PointEvent) {
 	if w.Disabled() {
 		return
 	}
-	if !w.minSize.IsZero() &&
-		(pe.Position.X > w.minSize.Width || pe.Position.Y > w.minSize.Height) {
-		// tapped outside
-		return
-	}
-	// if !w.focused {
-	// 	if !fyne.CurrentDevice().IsMobile() {
-	// 		if c := fyne.CurrentApp().Driver().CanvasForObject(w); c != nil {
-	// 			c.Focus(w)
-	// 		}
-	// 	}
-	// }
 	w.showInteraction()
 }
 
@@ -392,27 +373,18 @@ func (w *FilterChipSelect) Cursor() desktop.Cursor {
 }
 
 func (w *FilterChipSelect) MouseIn(me *desktop.MouseEvent) {
-	w.MouseMoved(me)
-}
-
-func (w *FilterChipSelect) MouseMoved(me *desktop.MouseEvent) {
 	if w.Disabled() {
 		return
 	}
-	oldHovered := w.hovered
-	w.hovered = w.minSize.IsZero() ||
-		(me.Position.X <= w.minSize.Width && me.Position.Y <= w.minSize.Height)
+	w.hovered = true
+}
 
-	if oldHovered != w.hovered {
-		w.Refresh()
-	}
+func (w *FilterChipSelect) MouseMoved(me *desktop.MouseEvent) {
+	// needed to satisfy the interface only
 }
 
 func (w *FilterChipSelect) MouseOut() {
-	if w.hovered {
-		w.hovered = false
-		w.Refresh()
-	}
+	w.hovered = false
 }
 
 // FocusGained is called when the Check has been given focus.
@@ -446,17 +418,13 @@ func (w *FilterChipSelect) TypedKey(key *fyne.KeyEvent) {}
 func (w *FilterChipSelect) CreateRenderer() fyne.WidgetRenderer {
 	w.updateState()
 	p := theme.Padding()
-	c := container.NewHBox(container.NewStack(
+	c := container.NewStack(
 		w.bg,
-		container.New(
-			layout.NewCustomPaddedLayout(0, 0, p, p),
-			container.New(layout.NewCustomPaddedHBoxLayout(0),
-				layout.NewSpacer(),
-				container.NewVBox(layout.NewSpacer(), w.iconOnPadded, layout.NewSpacer()),
-				container.NewVBox(layout.NewSpacer(), w.label, layout.NewSpacer()),
-				container.NewVBox(layout.NewSpacer(), w.iconTrailing, layout.NewSpacer()),
-				layout.NewSpacer(),
-			),
-		)))
+		container.NewCenter(container.New(layout.NewCustomPaddedHBoxLayout(0),
+			w.iconOnPadded,
+			container.New(layout.NewCustomPaddedLayout(0, 0, 0, -p), w.label),
+			container.New(layout.NewCustomPaddedLayout(0, 0, 0, p), w.iconTrailing),
+		),
+		))
 	return widget.NewSimpleRenderer(c)
 }
