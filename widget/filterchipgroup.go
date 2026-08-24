@@ -101,9 +101,9 @@ func (w *FilterChipGroup) setSelected(s []string) {
 func (w *FilterChipGroup) CreateRenderer() fyne.WidgetRenderer {
 	w.setSelected(w.Selected)
 	p := w.Theme().Size(theme.SizeNamePadding)
-	box := container.New(layout.NewRowWrapLayoutWithCustomPadding(2*p, 2*p))
+	box := container.New(layout.NewRowWrapLayoutWithCustomPadding(p, p))
 	for _, c := range w.chips {
 		box.Add(c)
 	}
-	return widget.NewSimpleRenderer(container.New(layout.NewCustomPaddedLayout(p, p, p, p), box))
+	return widget.NewSimpleRenderer(box)
 }

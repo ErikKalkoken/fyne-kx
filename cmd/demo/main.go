@@ -26,7 +26,7 @@ type treeItem struct {
 }
 
 func main() {
-	app := app.New()
+	app := app.NewWithID("io.github.erikkalkoken.fyne-kx.demo")
 	w := app.NewWindow("KX Demo")
 
 	pages := []treeItem{
