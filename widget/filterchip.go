@@ -183,7 +183,7 @@ func (w *FilterChip) TypedKey(key *fyne.KeyEvent) {}
 
 func (w *FilterChip) CreateRenderer() fyne.WidgetRenderer {
 	w.updateState()
-	c := container.NewHBox(container.NewStack(
+	c := container.NewStack(
 		w.bg,
 		container.New(
 			layout.NewCustomPaddedHBoxLayout(0),
@@ -192,6 +192,6 @@ func (w *FilterChip) CreateRenderer() fyne.WidgetRenderer {
 			container.NewVBox(layout.NewSpacer(), w.label, layout.NewSpacer()),
 			layout.NewSpacer(),
 		),
-	))
+	)
 	return widget.NewSimpleRenderer(c)
 }
