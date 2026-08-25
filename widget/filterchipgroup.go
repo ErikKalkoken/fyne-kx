@@ -1,6 +1,8 @@
 package widget
 
 import (
+	"slices"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
@@ -27,14 +29,14 @@ type FilterChipGroup struct {
 
 // NewFilterChipGroup returns a new [FilterChipGroup].
 func NewFilterChipGroup(options []string, changed func([]string)) *FilterChipGroup {
-	optionsCleaned := sliceDeleteFunc(sliceDeduplicate(options), func(v string) bool {
+	optionsCleaned := slices.DeleteFunc(sliceDeduplicate(options), func(v string) bool {
 		return v == ""
 	})
 	w := &FilterChipGroup{
 		chips:     make([]*FilterChip, 0),
 		OnChanged: changed,
 		options:   optionsCleaned,
-		Options:   sliceClone(optionsCleaned),
+		Options:   slices.Clone(optionsCleaned),
 		Selected:  make([]string, 0),
 	}
 	w.ExtendBaseWidget(w)
@@ -66,7 +68,7 @@ func (w *FilterChipGroup) updateSelected(isSelected map[string]bool) {
 			w.selected = append(w.selected, x)
 		}
 	}
-	w.Selected = sliceClone(w.selected)
+	w.Selected = slices.Clone(w.selected)
 }
 
 // SetSelected updates the selected options.
