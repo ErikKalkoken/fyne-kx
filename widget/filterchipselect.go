@@ -14,6 +14,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/ErikKalkoken/fyne-kx/internal/xslices"
 )
 
 // FilterChipSelect represents a filter chip widget that allows the user to select
@@ -139,7 +140,7 @@ func (w *FilterChipSelect) setOptions(options []string) {
 	options = slices.DeleteFunc(options, func(s string) bool {
 		return s == ""
 	})
-	w.Options = sliceDeduplicate(options)
+	w.Options = xslices.Deduplicate(options)
 }
 
 func (w *FilterChipSelect) showInteraction() {
