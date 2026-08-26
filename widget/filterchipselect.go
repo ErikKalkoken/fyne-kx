@@ -2,6 +2,7 @@ package widget
 
 import (
 	"image/color"
+	"slices"
 	"sort"
 	"strings"
 
@@ -13,6 +14,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/ErikKalkoken/fyne-kx/internal/xslices"
 )
 
 // FilterChipSelect represents a filter chip widget that allows the user to select
@@ -113,7 +115,7 @@ func (w *FilterChipSelect) SetSelected(v string) {
 	if w.Selected == v {
 		return
 	}
-	if v != "" && !sliceContains(w.Options, v) {
+	if v != "" && !slices.Contains(w.Options, v) {
 		return
 	}
 	if v == "" && w.Text == "" {
@@ -135,10 +137,10 @@ func (w *FilterChipSelect) SetOptions(options []string) {
 }
 
 func (w *FilterChipSelect) setOptions(options []string) {
-	options = sliceDeleteFunc(options, func(s string) bool {
+	options = slices.DeleteFunc(options, func(s string) bool {
 		return s == ""
 	})
-	w.Options = sliceDeduplicate(options)
+	w.Options = xslices.Deduplicate(options)
 }
 
 func (w *FilterChipSelect) showInteraction() {
@@ -159,8 +161,8 @@ func (w *FilterChipSelect) showDropDownMenu() {
 		items = append(items, it)
 		items = append(items, fyne.NewMenuItemSeparator())
 	}
-	options := sliceClone(w.Options)
-	if w.Selected != "" && !sliceContains(options, w.Selected) {
+	options := slices.Clone(w.Options)
+	if w.Selected != "" && !slices.Contains(options, w.Selected) {
 		options = append(options, w.Selected)
 	}
 	if len(options) == 0 {
@@ -194,8 +196,8 @@ func (w *FilterChipSelect) showDropDownMenu() {
 }
 
 func (w *FilterChipSelect) showSearchDialog() {
-	itemsFiltered := sliceClone(w.Options)
-	if w.Selected != "" && !sliceContains(itemsFiltered, w.Selected) {
+	itemsFiltered := slices.Clone(w.Options)
+	if w.Selected != "" && !slices.Contains(itemsFiltered, w.Selected) {
 		itemsFiltered = append(itemsFiltered, w.Selected)
 	}
 	if !w.SortDisabled {
@@ -256,7 +258,7 @@ func (w *FilterChipSelect) showSearchDialog() {
 	})
 	entry.OnChanged = func(search string) {
 		if len(search) < 2 {
-			itemsFiltered = sliceClone(w.Options)
+			itemsFiltered = slices.Clone(w.Options)
 			list.Refresh()
 			return
 		}

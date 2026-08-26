@@ -1,4 +1,4 @@
-// Package queue provides queues.
+// Package stack provides a basic stack.
 package stack
 
 import (
@@ -16,8 +16,7 @@ type Stack[T any] struct {
 
 // New returns a new [Stack].
 func New[T any]() *Stack[T] {
-	st := &Stack[T]{s: make([]T, 0)}
-	return st
+	return &Stack[T]{}
 }
 
 // Push adds an item on the stack.
@@ -35,8 +34,10 @@ func (st *Stack[T]) Pop() (T, error) {
 	if len(st.s) == 0 {
 		return v, ErrEmpty
 	}
-	v = st.s[len(st.s)-1]
-	st.s = st.s[:len(st.s)-1]
+	idx := len(st.s) - 1
+	v = st.s[idx]
+	clear(st.s[idx:]) // zeros out the element for GC
+	st.s = st.s[:idx]
 	return v, nil
 }
 
