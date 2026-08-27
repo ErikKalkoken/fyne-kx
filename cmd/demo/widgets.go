@@ -228,7 +228,17 @@ func makeFilterChipGroup() fyne.CanvasObject {
 		log.Println(s)
 	})
 	g.Selected = []string{"Bravo", "Golf"}
-	c := container.NewVBox(g)
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if g.Disabled() {
+			g.Enable()
+			b.SetText("Disable")
+		} else {
+			g.Disable()
+			b.SetText("Enable")
+		}
+	}
+	c := container.NewVBox(g, container.NewPadded(), b)
 	return c
 }
 
@@ -242,9 +252,19 @@ func makeFilterChipSelect(w fyne.Window) fyne.CanvasObject {
 	},
 		w,
 	)
-	s3 := kxwidget.NewFilterChipSelect("Disabled", options, nil)
-	s3.Disable()
-	c := container.NewVBox(s1, s2, s3)
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if s1.Disabled() {
+			s1.Enable()
+			s2.Enable()
+			b.SetText("Disable")
+		} else {
+			s1.Disable()
+			s2.Disable()
+			b.SetText("Enable")
+		}
+	}
+	c := container.NewVBox(s1, s2, container.NewPadded(), b)
 	return c
 }
 

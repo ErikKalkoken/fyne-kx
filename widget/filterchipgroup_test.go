@@ -1,6 +1,7 @@
 package widget_test
 
 import (
+	"slices"
 	"testing"
 
 	"fyne.io/fyne/v2"
@@ -13,11 +14,13 @@ import (
 func TestFilterChipGroup_CanCreate(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
+
 	t.Run("options are deduplicated and cleaned", func(t *testing.T) {
 		x := kxwidget.NewFilterChipGroup([]string{"a", "c", "c", "", "d"}, nil)
 		want := []string{"a", "c", "d"}
 		assert.Equal(t, want, x.Options)
 	})
+
 	t.Run("can set initial selection", func(t *testing.T) {
 		x := kxwidget.NewFilterChipGroup([]string{"a", "b"}, nil)
 		x.Selected = []string{"a"}
@@ -33,6 +36,7 @@ func TestFilterChipGroup_CanCreate(t *testing.T) {
 func TestFilterChipGroup_SetSelection(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
+
 	t.Run("can select option", func(t *testing.T) {
 		tapped := make([][]string, 0)
 		x := kxwidget.NewFilterChipGroup([]string{"a", "b", "c"}, func(s []string) {
@@ -48,6 +52,7 @@ func TestFilterChipGroup_SetSelection(t *testing.T) {
 		assert.Equal(t, [][]string{{"a", "b"}}, tapped)
 		test.AssertImageMatches(t, "filterchipgroup/setselected_select.png", w.Canvas().Capture())
 	})
+
 	t.Run("can deselect option", func(t *testing.T) {
 		x := kxwidget.NewFilterChipGroup([]string{"a", "b"}, nil)
 		x.Selected = []string{"a"}
@@ -60,6 +65,7 @@ func TestFilterChipGroup_SetSelection(t *testing.T) {
 		assert.Equal(t, []string{}, x.Selected)
 		test.AssertImageMatches(t, "filterchipgroup/setselected_deselect.png", w.Canvas().Capture())
 	})
+
 	t.Run("can ignore invalid elements in selection", func(t *testing.T) {
 		x := kxwidget.NewFilterChipGroup([]string{"a", "b"}, nil)
 		w := test.NewWindow(x)
@@ -69,5 +75,35 @@ func TestFilterChipGroup_SetSelection(t *testing.T) {
 		x.SetSelected([]string{"b", "c", ""})
 		assert.Equal(t, []string{"b"}, x.Selected)
 		test.AssertImageMatches(t, "filterchipgroup/setselected_ignore.png", w.Canvas().Capture())
+	})
+
+	t.Run("does nothing when no change", func(t *testing.T) {
+		tapped := make([][]string, 0)
+		x := kxwidget.NewFilterChipGroup([]string{"a", "b", "c"}, func(s []string) {
+			tapped = append(tapped, s)
+		})
+		x.Selected = []string{"a", "b"}
+		w := test.NewWindow(x)
+		defer w.Close()
+		w.Resize(fyne.NewSize(250, 50))
+
+		x.SetSelected([]string{"b", "a"})
+
+		assert.Equal(t, []string{"a", "b"}, x.Selected)
+		assert.Empty(t, tapped)
+	})
+
+	t.Run("does not mutate caller's input slice", func(t *testing.T) {
+		x := kxwidget.NewFilterChipGroup([]string{"a", "b", "c"}, nil)
+		w := test.NewWindow(x)
+		defer w.Close()
+		w.Resize(fyne.NewSize(250, 50))
+
+		input := []string{"a", "", "b"}
+		inputCopy := slices.Clone(input)
+
+		x.SetSelected(input)
+
+		assert.Equal(t, inputCopy, input, "SetSelected must not mutate the caller's slice")
 	})
 }
