@@ -15,8 +15,8 @@ func TestFilterChipSelect_CanCreateEnabledOff(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	chip := kxwidget.NewFilterChipSelect("Test", []string{"Alpha", "Bravo"}, nil)
-	w := test.NewWindow(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelect("Test", []string{"Alpha", "Bravo"}, nil)
+	w := test.NewWindow(c)
 	defer w.Close()
 
 	test.AssertImageMatches(t, "filterchipselect/enabled_off.png", w.Canvas().Capture())
@@ -26,9 +26,9 @@ func TestFilterChipSelect_CanCreateEnabledOn(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	chip := kxwidget.NewFilterChipSelect("Test", []string{"Alpha", "Bravo"}, nil)
-	chip.Selected = "Alpha"
-	w := test.NewWindow(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelect("Test", []string{"Alpha", "Bravo"}, nil)
+	c.Selected = "Alpha"
+	w := test.NewWindow(c)
 	defer w.Close()
 
 	test.AssertImageMatches(t, "filterchipselect/enabled_on.png", w.Canvas().Capture())
@@ -38,9 +38,9 @@ func TestFilterChipSelect_CanCreateDisabledOff(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	chip := kxwidget.NewFilterChipSelect("Test", []string{"Alpha", "Bravo"}, nil)
-	chip.Disable()
-	w := test.NewWindow(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelect("Test", []string{"Alpha", "Bravo"}, nil)
+	c.Disable()
+	w := test.NewWindow(c)
 	defer w.Close()
 
 	test.AssertImageMatches(t, "filterchipselect/disabled_off.png", w.Canvas().Capture())
@@ -50,15 +50,15 @@ func TestFilterChipSelect_CanCreateDisabledOn(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	chip := kxwidget.NewFilterChipSelect("Test", []string{"Alpha", "Bravo"}, nil)
-	chip.Selected = "Alpha"
-	chip.Disable()
-	w := test.NewWindow(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelect("Test", []string{"Alpha", "Bravo"}, nil)
+	c.Selected = "Alpha"
+	c.Disable()
+	w := test.NewWindow(c)
 	defer w.Close()
 
 	test.AssertImageMatches(t, "filterchipselect/disabled_on.png", w.Canvas().Capture())
 }
-func TestFilterChipSelect(t *testing.T) {
+func TestFilterChipSelect_NewFilterChipSelect(t *testing.T) {
 	test.NewTempApp(t)
 	t.Run("options are deduplicated", func(t *testing.T) {
 		x := kxwidget.NewFilterChipSelect("placeholder", []string{"b", "a", "b"}, nil)
@@ -66,7 +66,16 @@ func TestFilterChipSelect(t *testing.T) {
 	})
 }
 
-func TestFilterChipSelectSetSelected(t *testing.T) {
+func TestFilterChipSelected_NewFilterChipSelectWithSearch(t *testing.T) {
+	a := test.NewTempApp(t)
+	w := a.NewWindow("Dummy")
+	t.Run("options are deduplicated", func(t *testing.T) {
+		x := kxwidget.NewFilterChipSelectWithSearch("placeholder", []string{"b", "a", "b", "a"}, nil, w)
+		assert.Equal(t, []string{"b", "a"}, x.Options)
+	})
+}
+
+func TestFilterChipSelect_SetSelected(t *testing.T) {
 	test.NewTempApp(t)
 	t.Run("can select an option", func(t *testing.T) {
 		x := kxwidget.NewFilterChipSelect("placeholder", []string{"a", "b"}, nil)
@@ -128,7 +137,7 @@ func TestFilterChipSelectSetSelected(t *testing.T) {
 	})
 }
 
-func TestFilterChipSelectClearSelected(t *testing.T) {
+func TestFilterChipSelect_ClearSelected(t *testing.T) {
 	test.NewTempApp(t)
 	t.Run("can clear selection", func(t *testing.T) {
 		// given
@@ -158,13 +167,35 @@ func TestFilterChipSelectClearSelected(t *testing.T) {
 	})
 }
 
-func TestFilterChipSelectedSetOptions(t *testing.T) {
+func TestFilterChipSelected_SetOptions(t *testing.T) {
 	test.NewTempApp(t)
-	t.Run("options are deduplicated when set", func(t *testing.T) {
-		x := kxwidget.NewFilterChipSelect("placeholder", []string{}, nil)
-		x.SetOptions([]string{"b", "a", "b", "a"})
-		assert.Equal(t, []string{"b", "a"}, x.Options)
+	test.ApplyTheme(t, test.Theme())
+
+	t.Run("options are sanitized before shown as drop down", func(t *testing.T) {
+		c := kxwidget.NewFilterChipSelect("placeholder", []string{}, nil)
+		c.Options = []string{"b", "a", "b", "a", ""}
+		w := test.NewWindow(container.NewCenter(c))
+		defer w.Close()
+		w.Resize(fyne.NewSize(200, 200))
+
+		test.Tap(c)
+
+		test.AssertImageMatches(t, "filterchipselect/santized_options_dropdown.png", w.Canvas().Capture())
 	})
+
+	t.Run("options are sanitized before shown in search modal", func(t *testing.T) {
+		w := test.NewWindow(nil)
+		defer w.Close()
+		w.Resize(fyne.NewSize(200, 200))
+		c := kxwidget.NewFilterChipSelectWithSearch("placeholder", []string{}, nil, w)
+		c.Options = []string{"b", "a", "b", "a", ""}
+		w.SetContent(container.NewCenter(c))
+
+		test.Tap(c)
+
+		test.AssertImageMatches(t, "filterchipselect/santized_options_modal.png", w.Canvas().Capture())
+	})
+
 	t.Run("selection is not cleared when no longer valid", func(t *testing.T) {
 		// given
 		x := kxwidget.NewFilterChipSelect("placeholder", []string{"c"}, nil)
@@ -176,25 +207,16 @@ func TestFilterChipSelectedSetOptions(t *testing.T) {
 	})
 }
 
-func TestFilterChipSelectedWithSearch(t *testing.T) {
-	a := test.NewTempApp(t)
-	w := a.NewWindow("Dummy")
-	t.Run("options are deduplicated", func(t *testing.T) {
-		x := kxwidget.NewFilterChipSelectWithSearch("placeholder", []string{"b", "a", "b", "a"}, nil, w)
-		assert.Equal(t, []string{"b", "a"}, x.Options)
-	})
-}
-
 func TestFilterChipSelect_CanShowDropDownSorted(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	chip := kxwidget.NewFilterChipSelect("Test", []string{"Bravo", "Alpha"}, nil)
-	w := test.NewWindow(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelect("Test", []string{"Bravo", "Alpha"}, nil)
+	w := test.NewWindow(container.NewCenter(c))
 	defer w.Close()
 	w.Resize(fyne.NewSize(100, 200))
 
-	test.Tap(chip)
+	test.Tap(c)
 
 	test.AssertImageMatches(t, "filterchipselect/dropdown_sorted.png", w.Canvas().Capture())
 }
@@ -203,43 +225,43 @@ func TestFilterChipSelect_CanShowDropDownUnSorted(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	chip := kxwidget.NewFilterChipSelect("Test", []string{"Bravo", "Alpha"}, nil)
-	chip.SortDisabled = true
-	w := test.NewWindow(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelect("Test", []string{"Bravo", "Alpha"}, nil)
+	c.SortDisabled = true
+	w := test.NewWindow(container.NewCenter(c))
 	defer w.Close()
 	w.Resize(fyne.NewSize(100, 200))
 
-	test.Tap(chip)
+	test.Tap(c)
 
 	test.AssertImageMatches(t, "filterchipselect/dropdown_unsorted.png", w.Canvas().Capture())
 }
 
-func TestFilterChipSelect_DrowDownContainsSelectedWhenOtherOptions(t *testing.T) {
+func TestFilterChipSelect_DropDownContainsSelectedWhenOtherOptions(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	chip := kxwidget.NewFilterChipSelect("Test", []string{"Bravo", "Alpha"}, nil)
-	chip.Selected = "Charlie"
-	w := test.NewWindow(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelect("Test", []string{"Bravo", "Alpha"}, nil)
+	c.Selected = "Charlie"
+	w := test.NewWindow(container.NewCenter(c))
 	defer w.Close()
 	w.Resize(fyne.NewSize(200, 500))
 
-	test.Tap(chip)
+	test.Tap(c)
 
 	test.AssertImageMatches(t, "filterchipselect/dropdown_roque_option.png", w.Canvas().Capture())
 }
 
-func TestFilterChipSelect_DrowDownContainsSelectedWhenNoOptions(t *testing.T) {
+func TestFilterChipSelect_DropDownContainsSelectedWhenNoOptions(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	chip := kxwidget.NewFilterChipSelect("Test", []string{}, nil)
-	chip.Selected = "Charlie"
-	w := test.NewWindow(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelect("Test", []string{}, nil)
+	c.Selected = "Charlie"
+	w := test.NewWindow(container.NewCenter(c))
 	defer w.Close()
 	w.Resize(fyne.NewSize(200, 300))
 
-	test.Tap(chip)
+	test.Tap(c)
 
 	test.AssertImageMatches(t, "filterchipselect/dropdown_roque_option_2.png", w.Canvas().Capture())
 }
@@ -251,10 +273,10 @@ func TestFilterChipSelect_CanShowSearchBoxSorted(t *testing.T) {
 	w := test.NewWindow(nil)
 	defer w.Close()
 	w.Resize(fyne.NewSize(500, 500))
-	chip := kxwidget.NewFilterChipSelectWithSearch("Test", []string{"Bravo", "Alpha"}, nil, w)
-	w.SetContent(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelectWithSearch("Test", []string{"Bravo", "Alpha"}, nil, w)
+	w.SetContent(container.NewCenter(c))
 
-	test.Tap(chip)
+	test.Tap(c)
 
 	test.AssertImageMatches(t, "filterchipselect/search_sorted.png", w.Canvas().Capture())
 }
@@ -266,11 +288,11 @@ func TestFilterChipSelect_CanShowSearchBoxUnsorted(t *testing.T) {
 	w := test.NewWindow(nil)
 	defer w.Close()
 	w.Resize(fyne.NewSize(500, 500))
-	chip := kxwidget.NewFilterChipSelectWithSearch("Test", []string{"Bravo", "Alpha"}, nil, w)
-	chip.SortDisabled = true
-	w.SetContent(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelectWithSearch("Test", []string{"Bravo", "Alpha"}, nil, w)
+	c.SortDisabled = true
+	w.SetContent(container.NewCenter(c))
 
-	test.Tap(chip)
+	test.Tap(c)
 
 	test.AssertImageMatches(t, "filterchipselect/search_unsorted.png", w.Canvas().Capture())
 }
@@ -282,11 +304,11 @@ func TestFilterChipSelect_SearchBoxContainsSelectedWhenOtherOptions(t *testing.T
 	w := test.NewWindow(nil)
 	defer w.Close()
 	w.Resize(fyne.NewSize(500, 500))
-	chip := kxwidget.NewFilterChipSelectWithSearch("Test", []string{"Bravo", "Alpha"}, nil, w)
-	chip.Selected = "Charlie"
-	w.SetContent(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelectWithSearch("Test", []string{"Bravo", "Alpha"}, nil, w)
+	c.Selected = "Charlie"
+	w.SetContent(container.NewCenter(c))
 
-	test.Tap(chip)
+	test.Tap(c)
 
 	test.AssertImageMatches(t, "filterchipselect/search_roque_option.png", w.Canvas().Capture())
 }
@@ -298,11 +320,11 @@ func TestFilterChipSelect_SearchBoxContainsSelectedWhenNoOptions(t *testing.T) {
 	w := test.NewWindow(nil)
 	defer w.Close()
 	w.Resize(fyne.NewSize(500, 500))
-	chip := kxwidget.NewFilterChipSelectWithSearch("Test", []string{}, nil, w)
-	chip.Selected = "Charlie"
-	w.SetContent(container.NewCenter(chip))
+	c := kxwidget.NewFilterChipSelectWithSearch("Test", []string{}, nil, w)
+	c.Selected = "Charlie"
+	w.SetContent(container.NewCenter(c))
 
-	test.Tap(chip)
+	test.Tap(c)
 
 	test.AssertImageMatches(t, "filterchipselect/search_roque_option_2.png", w.Canvas().Capture())
 }

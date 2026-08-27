@@ -1,38 +1,41 @@
 package widget
 
 import (
-	"image/color"
 	"slices"
 	"sort"
 	"strings"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
-	"fyne.io/fyne/v2/driver/desktop"
-	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+
 	"github.com/ErikKalkoken/fyne-kx/internal/xslices"
 )
 
 // FilterChipSelect represents a filter chip widget that allows the user to select
-// and de-select one option from a list of options.
+// from a list of options.
 type FilterChipSelect struct {
-	widget.DisableableWidget
+	chip
 
 	// The label shown for clearing a selection.
 	ClearLabel string
 
+	// OnChanged is called when the selected option changed.
 	OnChanged func(selected string)
-	Options   []string
 
-	// Text is shown as label when nothing is selected.
-	// To create a filter which is always selected leave Text empty
-	// and select an initial option.
-	// When in always selected state, the options are deduplicated, but not sorted.
-	Text string
+	// Options is the list of options that can be selected
+	// They are deduplicated and sorted alphabetically by default.
+	// Empty option strings will be ignored.
+	Options []string
+
+	// The placeholder text is shown as label when nothing is selected.
+	//
+	// To create a filter which is always selected leave placeholder empty
+	// and set an initial option.
+	// Option are not sorted when in always selected state.
+	Placeholder string
 
 	// The currently selected option or empty when nothing is selected.
 	// This can also be used to set an initial option.
@@ -41,26 +44,11 @@ type FilterChipSelect struct {
 	// Whether to disable sorting of options.
 	SortDisabled bool
 
-	bg                           *canvas.Rectangle
-	focused                      bool
-	hovered                      bool
-	iconOn                       *widget.Icon
-	iconOnPadded                 *fyne.Container
-	iconTrailing                 *widget.Icon
-	isMobile                     bool
-	label                        *widget.Label
-	resourceIconOn               fyne.Resource
-	resourceIconOnDisabled       fyne.Resource
-	resourceIconTrailing         fyne.Resource
-	resourceIconTrailingDisabled fyne.Resource
-	window                       fyne.Window
+	// The window for showing the search modal.
+	// Will show the search modal when not nil and the drop down otherwise.
+	// This can only be set initially.
+	Window fyne.Window
 }
-
-var _ desktop.Hoverable = (*FilterChipSelect)(nil)
-var _ fyne.Disableable = (*FilterChipSelect)(nil)
-var _ fyne.Focusable = (*FilterChipSelect)(nil)
-var _ fyne.Tappable = (*FilterChipSelect)(nil)
-var _ fyne.Widget = (*FilterChipSelect)(nil)
 
 // NewFilterChipSelect returns a new [FilterChipSelect] widget with a drop down menu.
 func NewFilterChipSelect(placeholder string, options []string, changed func(selected string)) *FilterChipSelect {
@@ -69,38 +57,37 @@ func NewFilterChipSelect(placeholder string, options []string, changed func(sele
 }
 
 // NewFilterChipSelectWithSearch returns a new [FilterChipSelect] widget with a search dialog.
+//
+// placeholder is shown as label text when nothing is selected.
 func NewFilterChipSelectWithSearch(placeholder string, options []string, changed func(selected string), window fyne.Window) *FilterChipSelect {
-	if placeholder == "" {
-		// This variant requires a placeholder
-		placeholder = "PLACEHOLDER"
-	}
 	w := newFilterChipSelect(placeholder, options, changed, window)
 	return w
 }
 
 func newFilterChipSelect(placeholder string, options []string, changed func(selected string), window fyne.Window) *FilterChipSelect {
 	w := &FilterChipSelect{
-		ClearLabel:                   "Clear",
-		iconOn:                       widget.NewIcon(theme.ConfirmIcon()),
-		iconTrailing:                 widget.NewIcon(theme.MenuDropDownIcon()),
-		isMobile:                     fyne.CurrentDevice().IsMobile(),
-		label:                        widget.NewLabel(placeholder),
-		OnChanged:                    changed,
-		resourceIconOn:               theme.ConfirmIcon(),
-		resourceIconOnDisabled:       theme.NewDisabledResource(theme.ConfirmIcon()),
-		resourceIconTrailing:         theme.MenuDropDownIcon(),
-		resourceIconTrailingDisabled: theme.NewDisabledResource(theme.MenuDropDownIcon()),
-		Text:                         placeholder,
-		window:                       window,
+		OnChanged:   changed,
+		Placeholder: placeholder,
+		Window:      window,
+		Options:     cleanOptions(options),
 	}
 	w.ExtendBaseWidget(w)
-	p := theme.Padding()
-	w.iconOnPadded = container.New(layout.NewCustomPaddedLayout(0, 0, 2*p, -p), w.iconOn)
-	w.bg = canvas.NewRectangle(color.Transparent)
-	w.bg.StrokeWidth = theme.Size(theme.SizeNameInputBorder)
-	w.bg.CornerRadius = theme.Size(theme.SizeNameInputRadius)
-	w.setOptions(options)
 	return w
+}
+
+func (w *FilterChipSelect) CreateRenderer() fyne.WidgetRenderer {
+	w.updateState()
+	w.trailingIcon = theme.MenuDropDownIcon()
+	if w.Window == nil {
+		// show drop down
+		w.onTapped = w.showDropDownMenu
+	} else {
+		// show search dialog
+		w.onTapped = func() {
+			w.showSearchDialog(w.Window)
+		}
+	}
+	return w.chip.CreateRenderer()
 }
 
 // ClearSelected clears any selection.
@@ -109,6 +96,7 @@ func (w *FilterChipSelect) ClearSelected() {
 }
 
 // SetSelected selects an option.
+//
 // An empty string will clear the selection.
 // Invalid options will be ignored.
 func (w *FilterChipSelect) SetSelected(v string) {
@@ -118,7 +106,7 @@ func (w *FilterChipSelect) SetSelected(v string) {
 	if v != "" && !slices.Contains(w.Options, v) {
 		return
 	}
-	if v == "" && w.Text == "" {
+	if v == "" && w.Placeholder == "" {
 		return
 	}
 	w.Selected = v
@@ -128,32 +116,35 @@ func (w *FilterChipSelect) SetSelected(v string) {
 	w.Refresh()
 }
 
-// SetOptions sets the options.
-// Options are always sorted alphabetically and deduplicated.
-// Empty option strings will be ignored.
-func (w *FilterChipSelect) SetOptions(options []string) {
-	w.setOptions(options)
-	w.Refresh()
+func (w *FilterChipSelect) Refresh() {
+	w.updateState()
+	w.chip.Refresh()
 }
 
-func (w *FilterChipSelect) setOptions(options []string) {
-	options = slices.DeleteFunc(options, func(s string) bool {
-		return s == ""
-	})
-	w.Options = xslices.Deduplicate(options)
-}
-
-func (w *FilterChipSelect) showInteraction() {
-	if w.window == nil {
-		w.showDropDownMenu()
-	} else {
-		w.showSearchDialog()
+func (w *FilterChipSelect) updateState() {
+	if w.ClearLabel == "" {
+		w.ClearLabel = "Clear"
 	}
+	if w.Selected == "" {
+		w.text = w.Placeholder
+		w.on = false
+		w.leadingIcon = nil
+	} else {
+		w.text = w.Selected
+		w.on = true
+		w.leadingIcon = theme.ConfirmIcon()
+	}
+}
+
+// SetOptions sets the options.
+func (w *FilterChipSelect) SetOptions(options []string) {
+	w.Options = cleanOptions(options)
+	w.Refresh()
 }
 
 func (w *FilterChipSelect) showDropDownMenu() {
 	items := make([]*fyne.MenuItem, 0)
-	if w.Text != "" && w.Selected != "" {
+	if w.text != "" && w.Selected != "" {
 		it := fyne.NewMenuItem(w.ClearLabel, func() {
 			w.SetSelected("")
 		})
@@ -161,7 +152,7 @@ func (w *FilterChipSelect) showDropDownMenu() {
 		items = append(items, it)
 		items = append(items, fyne.NewMenuItemSeparator())
 	}
-	options := slices.Clone(w.Options)
+	options := cleanOptions(w.Options)
 	if w.Selected != "" && !slices.Contains(options, w.Selected) {
 		options = append(options, w.Selected)
 	}
@@ -176,7 +167,6 @@ func (w *FilterChipSelect) showDropDownMenu() {
 			})
 		}
 		for _, o := range options {
-			o := o
 			it := fyne.NewMenuItem(" "+o+" ", func() {
 				w.SetSelected(o)
 			})
@@ -195,16 +185,20 @@ func (w *FilterChipSelect) showDropDownMenu() {
 	widget.ShowPopUpMenuAtRelativePosition(m, fyne.CurrentApp().Driver().CanvasForObject(w), pos, w)
 }
 
-func (w *FilterChipSelect) showSearchDialog() {
-	itemsFiltered := slices.Clone(w.Options)
-	if w.Selected != "" && !slices.Contains(itemsFiltered, w.Selected) {
-		itemsFiltered = append(itemsFiltered, w.Selected)
+func (w *FilterChipSelect) showSearchDialog(window fyne.Window) {
+	options := cleanOptions(w.Options)
+	baseItems := slices.Clone(options)
+	if w.Selected != "" && !slices.Contains(baseItems, w.Selected) {
+		baseItems = append(baseItems, w.Selected)
 	}
 	if !w.SortDisabled {
-		sort.Slice(itemsFiltered, func(i, j int) bool {
-			return strings.ToLower(itemsFiltered[i]) < strings.ToLower(itemsFiltered[j])
+		sort.Slice(baseItems, func(i, j int) bool {
+			return strings.ToLower(baseItems[i]) < strings.ToLower(baseItems[j])
 		})
 	}
+
+	itemsFiltered := slices.Clone(baseItems)
+
 	var d dialog.Dialog
 	list := widget.NewList(
 		func() int {
@@ -251,20 +245,28 @@ func (w *FilterChipSelect) showSearchDialog() {
 		d.Hide()
 	}
 	list.HideSeparators = true
+
 	entry := widget.NewEntry()
 	entry.PlaceHolder = "Type to start searching..."
-	entry.ActionItem = NewIconButton(theme.CancelIcon(), func() {
+	clearButton := NewIconButton(theme.CancelIcon(), func() {
 		entry.SetText("")
 	})
+	clearButton.Hide()
+	entry.ActionItem = clearButton
 	entry.OnChanged = func(search string) {
+		if search != "" {
+			clearButton.Show()
+		} else {
+			clearButton.Hide()
+		}
 		if len(search) < 2 {
-			itemsFiltered = slices.Clone(w.Options)
+			itemsFiltered = slices.Clone(baseItems)
 			list.Refresh()
 			return
 		}
 		itemsFiltered = make([]string, 0)
 		search2 := strings.ToLower(search)
-		for _, s := range w.Options {
+		for _, s := range baseItems {
 			if strings.Contains(strings.ToLower(s), search2) {
 				itemsFiltered = append(itemsFiltered, s)
 			}
@@ -283,7 +285,7 @@ func (w *FilterChipSelect) showSearchDialog() {
 	}
 	empty := widget.NewLabel("No entries")
 	empty.Importance = widget.LowImportance
-	if len(w.Options) == 0 {
+	if len(options) == 0 {
 		empty.Show()
 		entry.Disable()
 	} else {
@@ -304,129 +306,20 @@ func (w *FilterChipSelect) showSearchDialog() {
 		nil,
 		list,
 	)
-	d = dialog.NewCustomWithoutButtons("Filter by "+w.Text, c, w.window)
-	_, s := w.window.Canvas().InteractiveArea()
-	if w.isMobile {
+	d = dialog.NewCustomWithoutButtons("Filter by "+w.text, c, window)
+	_, s := window.Canvas().InteractiveArea()
+	if fyne.CurrentDevice().IsMobile() {
 		d.Resize(fyne.NewSize(s.Width, s.Height))
 	} else {
 		d.Resize(fyne.NewSize(600, max(400, s.Height*0.8)))
 	}
 	d.Show()
-	w.window.Canvas().Focus(entry)
+	window.Canvas().Focus(entry)
 }
 
-func (w *FilterChipSelect) updateState() {
-	th := w.Theme()
-	v := fyne.CurrentApp().Settings().ThemeVariant()
-
-	if w.Disabled() {
-		w.label.Importance = widget.LowImportance
-		w.iconOn.SetResource(w.resourceIconOnDisabled)
-		w.bg.StrokeColor = th.Color(theme.ColorNameDisabled, v)
-		w.iconTrailing.SetResource(w.resourceIconTrailingDisabled)
-	} else {
-		w.label.Importance = widget.MediumImportance
-		w.iconOn.SetResource(w.resourceIconOn)
-		w.bg.StrokeColor = th.Color(theme.ColorNameInputBorder, v)
-		w.iconTrailing.SetResource(w.resourceIconTrailing)
-	}
-	if w.Selected != "" {
-		w.label.Text = w.Selected
-		w.iconOnPadded.Show()
-		if w.Disabled() {
-			w.bg.FillColor = th.Color(theme.ColorNameDisabledButton, v)
-			w.bg.StrokeColor = th.Color(theme.ColorNameDisabledButton, v)
-		} else {
-			w.bg.FillColor = th.Color(theme.ColorNameSelection, v)
-			w.bg.StrokeColor = th.Color(theme.ColorNameSelection, v)
-		}
-	} else {
-		w.label.Text = w.Text
-		w.iconOnPadded.Hide()
-		w.bg.FillColor = color.Transparent
-	}
-
-	if w.focused {
-		w.bg.StrokeColor = th.Color(theme.ColorNameFocus, v)
-	}
-}
-
-func (w *FilterChipSelect) Refresh() {
-	w.updateState()
-	w.bg.Refresh()
-	w.label.Refresh()
-	w.iconOn.Refresh()
-	w.iconTrailing.Refresh()
-	w.BaseWidget.Refresh()
-}
-
-func (w *FilterChipSelect) Tapped(pe *fyne.PointEvent) {
-	if w.Disabled() {
-		return
-	}
-	w.showInteraction()
-}
-
-func (w *FilterChipSelect) Cursor() desktop.Cursor {
-	if w.hovered {
-		return desktop.PointerCursor
-	}
-	return desktop.DefaultCursor
-}
-
-func (w *FilterChipSelect) MouseIn(me *desktop.MouseEvent) {
-	if w.Disabled() {
-		return
-	}
-	w.hovered = true
-}
-
-func (w *FilterChipSelect) MouseMoved(me *desktop.MouseEvent) {
-	// needed to satisfy the interface only
-}
-
-func (w *FilterChipSelect) MouseOut() {
-	w.hovered = false
-}
-
-// FocusGained is called when the Check has been given focus.
-func (w *FilterChipSelect) FocusGained() {
-	if w.Disabled() {
-		return
-	}
-	w.focused = true
-	w.Refresh()
-}
-
-// FocusLost is called when the Check has had focus removed.
-func (w *FilterChipSelect) FocusLost() {
-	w.focused = false
-	w.Refresh()
-}
-
-// TypedRune receives text input events when the Check is focused.
-func (w *FilterChipSelect) TypedRune(r rune) {
-	if w.Disabled() {
-		return
-	}
-	if r == ' ' {
-		w.showInteraction()
-	}
-}
-
-// TypedKey receives key input events when the Check is focused.
-func (w *FilterChipSelect) TypedKey(key *fyne.KeyEvent) {}
-
-func (w *FilterChipSelect) CreateRenderer() fyne.WidgetRenderer {
-	w.updateState()
-	p := theme.Padding()
-	c := container.NewStack(
-		w.bg,
-		container.NewCenter(container.New(layout.NewCustomPaddedHBoxLayout(0),
-			w.iconOnPadded,
-			container.New(layout.NewCustomPaddedLayout(0, 0, 0, -p), w.label),
-			container.New(layout.NewCustomPaddedLayout(0, 0, 0, p), w.iconTrailing),
-		),
-		))
-	return widget.NewSimpleRenderer(c)
+func cleanOptions(options []string) []string {
+	options = slices.DeleteFunc(options, func(s string) bool {
+		return s == ""
+	})
+	return xslices.Deduplicate(options)
 }

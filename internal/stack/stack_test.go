@@ -84,7 +84,7 @@ func TestStack_Concurrent(t *testing.T) {
 		for i := range goroutines {
 			go func(base int) {
 				defer wg.Done()
-				for j := 0; j < itemsPerGoroutine; j++ {
+				for j := range itemsPerGoroutine {
 					st.Push(base + j)
 				}
 			}(i * itemsPerGoroutine)
@@ -108,7 +108,7 @@ func TestStack_Concurrent(t *testing.T) {
 		popped := make(chan int, goroutines*itemsPerGoroutine)
 		wg.Add(goroutines)
 
-		for i := 0; i < goroutines; i++ {
+		for range goroutines {
 			go func() {
 				defer wg.Done()
 				for range itemsPerGoroutine {

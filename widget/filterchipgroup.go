@@ -42,7 +42,6 @@ func NewFilterChipGroup(options []string, changed func([]string)) *FilterChipGro
 	}
 	w.ExtendBaseWidget(w)
 	for _, v := range w.options {
-		v := v
 		w.chips = append(w.chips, NewFilterChip(v, func(on bool) {
 			isSelected := make(map[string]bool)
 			for _, x := range w.selected {
@@ -54,6 +53,7 @@ func NewFilterChipGroup(options []string, changed func([]string)) *FilterChipGro
 				isSelected[v] = false
 			}
 			w.updateSelected(isSelected)
+			w.Refresh()
 			if w.OnChanged != nil {
 				w.OnChanged(w.Selected)
 			}
