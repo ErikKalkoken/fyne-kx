@@ -40,11 +40,6 @@ type FilterChipSelect struct {
 
 	// Whether to disable sorting of options.
 	SortDisabled bool
-
-	// The window for showing the search modal.
-	// Will show the search modal when not nil and the drop down otherwise.
-	// This can only be set initially.
-	Window fyne.Window
 }
 
 // NewFilterChipSelect returns a new [FilterChipSelect] widget with a drop down menu.
@@ -65,26 +60,20 @@ func newFilterChipSelect(placeholder string, options []string, changed func(sele
 	w := &FilterChipSelect{
 		OnChanged:   changed,
 		Placeholder: placeholder,
-		Window:      window,
 		Options:     cleanOptions(options),
 	}
 	w.ExtendBaseWidget(w)
-	return w
-}
-
-func (w *FilterChipSelect) CreateRenderer() fyne.WidgetRenderer {
-	w.updateState()
 	w.trailingIcon = theme.MenuDropDownIcon()
-	if w.Window == nil {
+	if window == nil {
 		// show drop down
 		w.onTapped = w.showDropDownMenu
 	} else {
 		// show search dialog
 		w.onTapped = func() {
-			w.showSearchDialog(w.Window)
+			w.showSearchDialog(window)
 		}
 	}
-	return w.chip.CreateRenderer()
+	return w
 }
 
 // ClearSelected clears any selection.
@@ -116,21 +105,6 @@ func (w *FilterChipSelect) SetSelected(v string) {
 func (w *FilterChipSelect) Refresh() {
 	w.updateState()
 	w.chip.Refresh()
-}
-
-func (w *FilterChipSelect) updateState() {
-	if w.ClearLabel == "" {
-		w.ClearLabel = "Clear"
-	}
-	if w.Selected == "" {
-		w.text = w.Placeholder
-		w.on = false
-		w.leadingIcon = nil
-	} else {
-		w.text = w.Selected
-		w.on = true
-		w.leadingIcon = theme.ConfirmIcon()
-	}
 }
 
 // SetOptions sets the options.
@@ -319,4 +293,24 @@ func cleanOptions(options []string) []string {
 		return s == ""
 	})
 	return sliceDeduplicate(options)
+}
+
+func (w *FilterChipSelect) CreateRenderer() fyne.WidgetRenderer {
+	w.updateState()
+	return w.chip.CreateRenderer()
+}
+
+func (w *FilterChipSelect) updateState() {
+	if w.ClearLabel == "" {
+		w.ClearLabel = "Clear"
+	}
+	if w.Selected == "" {
+		w.text = w.Placeholder
+		w.on = false
+		w.leadingIcon = nil
+	} else {
+		w.text = w.Selected
+		w.on = true
+		w.leadingIcon = theme.ConfirmIcon()
+	}
 }

@@ -23,17 +23,14 @@ func NewFilterChip(text string, changed func(on bool)) *FilterChip {
 		Text:      text,
 	}
 	w.ExtendBaseWidget(w)
+	w.onTapped = func() {
+		w.SetState(!w.On)
+	}
 	return w
 }
 
 func (w *FilterChip) Refresh() {
-	w.on = w.On
-	w.text = w.Text
-	if w.On {
-		w.leadingIcon = theme.ConfirmIcon()
-	} else {
-		w.leadingIcon = nil
-	}
+	w.updateState()
 	w.chip.Refresh()
 }
 
@@ -56,10 +53,16 @@ func (w *FilterChip) SetText(text string) {
 }
 
 func (w *FilterChip) CreateRenderer() fyne.WidgetRenderer {
+	w.updateState()
+	return w.chip.CreateRenderer()
+}
+
+func (w *FilterChip) updateState() {
 	w.on = w.On
 	w.text = w.Text
-	w.onTapped = func() {
-		w.SetState(!w.On)
+	if w.On {
+		w.leadingIcon = theme.ConfirmIcon()
+	} else {
+		w.leadingIcon = nil
 	}
-	return w.chip.CreateRenderer()
 }
