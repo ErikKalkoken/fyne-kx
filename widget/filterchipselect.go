@@ -10,8 +10,6 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-
-	"github.com/ErikKalkoken/fyne-kx/internal/xslices"
 )
 
 // FilterChipSelect represents a filter chip widget that allows the user to select
@@ -26,7 +24,7 @@ type FilterChipSelect struct {
 	OnChanged func(selected string)
 
 	// Options is the list of options that can be selected
-	// They are deduplicated and sorted alphabetically by default.
+	// They are deduplicated and sorted alphabetically when shown to the user.
 	// Empty option strings will be ignored.
 	Options []string
 
@@ -34,7 +32,6 @@ type FilterChipSelect struct {
 	//
 	// To create a filter which is always selected leave placeholder empty
 	// and set an initial option.
-	// Option are not sorted when in always selected state.
 	Placeholder string
 
 	// The currently selected option or empty when nothing is selected.
@@ -321,5 +318,5 @@ func cleanOptions(options []string) []string {
 	options = slices.DeleteFunc(options, func(s string) bool {
 		return s == ""
 	})
-	return xslices.Deduplicate(options)
+	return sliceDeduplicate(options)
 }

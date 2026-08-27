@@ -8,7 +8,6 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"github.com/ErikKalkoken/fyne-kx/internal/xslices"
 )
 
 // FilterChipGroup allows the user to toggle multiple filters with filter chips.
@@ -30,7 +29,7 @@ type FilterChipGroup struct {
 
 // NewFilterChipGroup returns a new [FilterChipGroup].
 func NewFilterChipGroup(options []string, changed func([]string)) *FilterChipGroup {
-	optionsCleaned := slices.DeleteFunc(xslices.Deduplicate(options), func(v string) bool {
+	optionsCleaned := slices.DeleteFunc(sliceDeduplicate(options), func(v string) bool {
 		return v == ""
 	})
 	w := &FilterChipGroup{
