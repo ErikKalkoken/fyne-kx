@@ -73,6 +73,7 @@ Further, additional custom themes are provided:
 This library contains several Fyne widgets:
 
 - [Badge](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Badge) is a variant of the Fyne label widget that renders a rounded box around the text.
+- [FilterChip](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChip) an interactive chip for filtering content. It has a label and can be turned on or off.
 - [FilterChipGroup](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChipGroup) allows the user to toggle multiple filters with filter chips.
 - [FilterChipSelect](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChipSelect) is a filter chip that allows the user to select and de-select one option from a list of options.
 - [Slider](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Slider) is a variation of the Slider widget that also displays the current value.

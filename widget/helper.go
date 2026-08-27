@@ -1,11 +1,10 @@
-// Package xslices contains helper functions for slices.
-package xslices
+package widget
 
 import "slices"
 
-// Deduplicate returns a new slice where all duplicate elements have been removed.
+// sliceDeduplicate returns a new slice where all duplicate elements have been removed.
 // The order of the elements is not changed, but the new slice can be shorter.
-func Deduplicate[S ~[]E, E comparable](s S) []E {
+func sliceDeduplicate[S ~[]E, E comparable](s S) []E {
 	seen := make(map[E]bool, len(s))
 	s2 := make([]E, 0, len(s))
 	for _, v := range s {
