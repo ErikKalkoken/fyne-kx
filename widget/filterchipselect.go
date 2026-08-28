@@ -145,7 +145,7 @@ func (w *FilterChipSelect) showDropDownMenu() {
 				if o == w.Selected {
 					it.Icon = theme.ConfirmIcon()
 				} else {
-					it.Icon = IconBlankSvg
+					it.Icon = iconBlankSvg
 				}
 			}
 			items = append(items, it)
@@ -174,7 +174,7 @@ func (w *FilterChipSelect) showSearchDialog(window fyne.Window) {
 			return len(itemsFiltered)
 		},
 		func() fyne.CanvasObject {
-			icon := widget.NewIcon(IconBlankSvg)
+			icon := widget.NewIcon(iconBlankSvg)
 			if w.Selected == "" {
 				icon.Hide()
 			} else {
@@ -202,7 +202,7 @@ func (w *FilterChipSelect) showSearchDialog(window fyne.Window) {
 			if s == w.Selected {
 				icon.SetResource(theme.ConfirmIcon())
 			} else {
-				icon.SetResource(IconBlankSvg)
+				icon.SetResource(iconBlankSvg)
 			}
 		},
 	)
