@@ -138,7 +138,7 @@ func (w *FilterChipSelect) showDropDownMenu() {
 			})
 		}
 		for _, o := range options {
-			it := fyne.NewMenuItem(" "+o+" ", func() {
+			it := fyne.NewMenuItem(o, func() {
 				w.SetSelected(o)
 			})
 			if w.Selected != "" {
@@ -287,7 +287,6 @@ func (w *FilterChipSelect) showSearchDialog(window fyne.Window) {
 	d.Show()
 	window.Canvas().Focus(entry)
 }
-
 
 func (w *FilterChipSelect) CreateRenderer() fyne.WidgetRenderer {
 	w.updateState()

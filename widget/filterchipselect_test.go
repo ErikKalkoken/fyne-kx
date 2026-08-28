@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/test"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/ErikKalkoken/fyne-kx/internal/testutil"
 	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
 
@@ -327,4 +328,30 @@ func TestFilterChipSelect_SearchBoxContainsSelectedWhenNoOptions(t *testing.T) {
 	test.Tap(c)
 
 	test.AssertImageMatches(t, "filterchipselect/search_roque_option_2.png", w.Canvas().Capture())
+}
+
+func TestFilterChipSelect_CanSelectItem(t *testing.T) {
+	// given
+	test.NewTempApp(t)
+
+	var callCount int
+	var gotOption string
+
+	c := kxwidget.NewFilterChipSelect("Test", []string{"Bravo", "Alpha"}, func(selected string) {
+		callCount++
+		gotOption = selected
+	})
+	w := test.NewWindow(container.NewVBox(c))
+	defer w.Close()
+	w.Resize(fyne.NewSize(300, 400))
+
+	// when
+	test.Tap(c)
+	testutil.TapMenuItem(t, w, "Bravo")
+
+	// then
+	assert.Equal(t, 1, callCount)
+	assert.Equal(t, "Bravo", gotOption)
+	assert.Equal(t, "Bravo", c.Selected)
+
 }
