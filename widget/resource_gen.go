@@ -9,43 +9,43 @@ import (
 )
 
 //go:embed resources/blank.svg
-var IconBlankSvgData []byte
-var IconBlankSvg = &fyne.StaticResource{
+var iconBlankSvgData []byte
+var iconBlankSvg = &fyne.StaticResource{
 	StaticName:    "resources/blank.svg",
-	StaticContent: IconBlankSvgData,
+	StaticContent: iconBlankSvgData,
 }
 
 //go:embed resources/question_mark_32.png
-var IconQuestionmark32PngData []byte
-var IconQuestionmark32Png = &fyne.StaticResource{
+var iconQuestionmark32PngData []byte
+var iconQuestionmark32Png = &fyne.StaticResource{
 	StaticName:    "resources/question_mark_32.png",
-	StaticContent: IconQuestionmark32PngData,
+	StaticContent: iconQuestionmark32PngData,
 }
 
 //go:embed resources/restore.svg
-var IconRestoreSvgData []byte
-var IconRestoreSvg = &fyne.StaticResource{
+var iconRestoreSvgData []byte
+var iconRestoreSvg = &fyne.StaticResource{
 	StaticName:    "resources/restore.svg",
-	StaticContent: IconRestoreSvgData,
+	StaticContent: iconRestoreSvgData,
 }
 
 //go:embed resources/sort-ascending.svg
-var IconSortAscendingSvgData []byte
-var IconSortAscendingSvg = &fyne.StaticResource{
+var iconSortAscendingSvgData []byte
+var iconSortAscendingSvg = &fyne.StaticResource{
 	StaticName:    "resources/sort-ascending.svg",
-	StaticContent: IconSortAscendingSvgData,
+	StaticContent: iconSortAscendingSvgData,
 }
 
 //go:embed resources/sort-descending.svg
-var IconSortDescendingSvgData []byte
-var IconSortDescendingSvg = &fyne.StaticResource{
+var iconSortDescendingSvgData []byte
+var iconSortDescendingSvg = &fyne.StaticResource{
 	StaticName:    "resources/sort-descending.svg",
-	StaticContent: IconSortDescendingSvgData,
+	StaticContent: iconSortDescendingSvgData,
 }
 
 //go:embed resources/sort.svg
-var IconSortSvgData []byte
-var IconSortSvg = &fyne.StaticResource{
+var iconSortSvgData []byte
+var iconSortSvg = &fyne.StaticResource{
 	StaticName:    "resources/sort.svg",
-	StaticContent: IconSortSvgData,
+	StaticContent: iconSortSvgData,
 }

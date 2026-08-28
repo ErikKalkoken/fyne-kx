@@ -123,7 +123,7 @@ func (w *SortChip) showMenu() {
 		if c == w.Column {
 			it.Icon = theme.ConfirmIcon()
 		} else {
-			it.Icon = IconBlankSvg
+			it.Icon = iconBlankSvg
 		}
 		items = append(items, it)
 	}
@@ -139,7 +139,7 @@ func (w *SortChip) showMenu() {
 		if o == w.Order {
 			it.Icon = theme.ConfirmIcon()
 		} else {
-			it.Icon = IconBlankSvg
+			it.Icon = iconBlankSvg
 		}
 		items = append(items, it)
 	}
@@ -148,7 +148,7 @@ func (w *SortChip) showMenu() {
 	reset := fyne.NewMenuItem("Reset", func() {
 		onChanged(w.DefaultColumn, w.DefaultOrder)
 	})
-	reset.Icon = theme.NewThemedResource(IconRestoreSvg)
+	reset.Icon = theme.NewThemedResource(iconRestoreSvg)
 	reset.Disabled = w.Column == w.DefaultColumn && w.Order == w.DefaultOrder
 	items = append(items, reset)
 
@@ -163,7 +163,7 @@ func (w *SortChip) CreateRenderer() fyne.WidgetRenderer {
 func (w *SortChip) updateState() {
 	if len(w.columns) == 0 {
 		w.text = "(empty)"
-		w.leadingIcon = theme.NewThemedResource(IconSortSvg)
+		w.leadingIcon = theme.NewThemedResource(iconSortSvg)
 		return
 	}
 
@@ -178,11 +178,11 @@ func (w *SortChip) updateState() {
 	w.text = w.Column
 	switch w.Order {
 	case SortOrderAscending:
-		w.leadingIcon = theme.NewThemedResource(IconSortAscendingSvg)
+		w.leadingIcon = theme.NewThemedResource(iconSortAscendingSvg)
 	case SortOrderDescending:
-		w.leadingIcon = theme.NewThemedResource(IconSortDescendingSvg)
+		w.leadingIcon = theme.NewThemedResource(iconSortDescendingSvg)
 	default:
-		w.leadingIcon = theme.NewThemedResource(IconSortSvg)
+		w.leadingIcon = theme.NewThemedResource(iconSortSvg)
 	}
 
 	isDefault := w.Order == w.DefaultOrder && w.Column == w.DefaultColumn
