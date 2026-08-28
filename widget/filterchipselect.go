@@ -60,7 +60,7 @@ func newFilterChipSelect(placeholder string, options []string, changed func(sele
 	w := &FilterChipSelect{
 		OnChanged:   changed,
 		Placeholder: placeholder,
-		Options:     cleanOptions(options),
+		Options:     sliceUniqueNonEmpty(options),
 	}
 	w.ExtendBaseWidget(w)
 	w.trailingIcon = theme.MenuDropDownIcon()
@@ -109,7 +109,7 @@ func (w *FilterChipSelect) Refresh() {
 
 // SetOptions sets the options.
 func (w *FilterChipSelect) SetOptions(options []string) {
-	w.Options = cleanOptions(options)
+	w.Options = sliceUniqueNonEmpty(options)
 	w.Refresh()
 }
 
@@ -123,7 +123,7 @@ func (w *FilterChipSelect) showDropDownMenu() {
 		items = append(items, it)
 		items = append(items, fyne.NewMenuItemSeparator())
 	}
-	options := cleanOptions(w.Options)
+	options := sliceUniqueNonEmpty(w.Options)
 	if w.Selected != "" && !slices.Contains(options, w.Selected) {
 		options = append(options, w.Selected)
 	}
@@ -138,7 +138,7 @@ func (w *FilterChipSelect) showDropDownMenu() {
 			})
 		}
 		for _, o := range options {
-			it := fyne.NewMenuItem(" "+o+" ", func() {
+			it := fyne.NewMenuItem(o, func() {
 				w.SetSelected(o)
 			})
 			if w.Selected != "" {
@@ -151,13 +151,11 @@ func (w *FilterChipSelect) showDropDownMenu() {
 			items = append(items, it)
 		}
 	}
-	m := fyne.NewMenu("", items...)
-	pos := fyne.NewPos(0, w.Size().Height)
-	widget.ShowPopUpMenuAtRelativePosition(m, fyne.CurrentApp().Driver().CanvasForObject(w), pos, w)
+	showPopUpMenuBelowLeading(w, fyne.NewMenu("", items...))
 }
 
 func (w *FilterChipSelect) showSearchDialog(window fyne.Window) {
-	options := cleanOptions(w.Options)
+	options := sliceUniqueNonEmpty(w.Options)
 	baseItems := slices.Clone(options)
 	if w.Selected != "" && !slices.Contains(baseItems, w.Selected) {
 		baseItems = append(baseItems, w.Selected)
@@ -286,13 +284,6 @@ func (w *FilterChipSelect) showSearchDialog(window fyne.Window) {
 	}
 	d.Show()
 	window.Canvas().Focus(entry)
-}
-
-func cleanOptions(options []string) []string {
-	options = slices.DeleteFunc(options, func(s string) bool {
-		return s == ""
-	})
-	return sliceDeduplicate(options)
 }
 
 func (w *FilterChipSelect) CreateRenderer() fyne.WidgetRenderer {
