@@ -152,8 +152,7 @@ func (w *SortChip) showMenu() {
 	reset.Disabled = w.Column == w.DefaultColumn && w.Order == w.DefaultOrder
 	items = append(items, reset)
 
-	menu := fyne.NewMenu("", items...)
-	showPopUpMenuBelowLeading(w, menu)
+	showPopUpMenuBelowLeading(w, fyne.NewMenu("", items...))
 }
 
 func (w *SortChip) CreateRenderer() fyne.WidgetRenderer {

@@ -151,9 +151,7 @@ func (w *FilterChipSelect) showDropDownMenu() {
 			items = append(items, it)
 		}
 	}
-	m := fyne.NewMenu("", items...)
-	pos := fyne.NewPos(0, w.Size().Height)
-	widget.ShowPopUpMenuAtRelativePosition(m, fyne.CurrentApp().Driver().CanvasForObject(w), pos, w)
+	showPopUpMenuBelowLeading(w, fyne.NewMenu("", items...))
 }
 
 func (w *FilterChipSelect) showSearchDialog(window fyne.Window) {
