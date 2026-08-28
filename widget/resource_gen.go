@@ -21,3 +21,31 @@ var IconQuestionmark32Png = &fyne.StaticResource{
 	StaticName:    "resources/question_mark_32.png",
 	StaticContent: IconQuestionmark32PngData,
 }
+
+//go:embed resources/restore.svg
+var IconRestoreSvgData []byte
+var IconRestoreSvg = &fyne.StaticResource{
+	StaticName:    "resources/restore.svg",
+	StaticContent: IconRestoreSvgData,
+}
+
+//go:embed resources/sort-ascending.svg
+var IconSortAscendingSvgData []byte
+var IconSortAscendingSvg = &fyne.StaticResource{
+	StaticName:    "resources/sort-ascending.svg",
+	StaticContent: IconSortAscendingSvgData,
+}
+
+//go:embed resources/sort-descending.svg
+var IconSortDescendingSvgData []byte
+var IconSortDescendingSvg = &fyne.StaticResource{
+	StaticName:    "resources/sort-descending.svg",
+	StaticContent: IconSortDescendingSvgData,
+}
+
+//go:embed resources/sort.svg
+var IconSortSvgData []byte
+var IconSortSvg = &fyne.StaticResource{
+	StaticName:    "resources/sort.svg",
+	StaticContent: IconSortSvgData,
+}

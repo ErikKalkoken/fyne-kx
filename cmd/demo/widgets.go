@@ -308,3 +308,29 @@ func makeIconButton() fyne.CanvasObject {
 	)
 	return c
 }
+
+func makeSortChip() fyne.CanvasObject {
+	cols := []string{"Name", "Title", "Age", "Location"}
+	s1 := kxwidget.NewSortChip(cols, func(c string, o kxwidget.SortOrder) {
+		log.Printf("Sort 1: column %s, descending %s\n", c, o)
+	})
+	s2 := kxwidget.NewSortChip(cols, func(c string, o kxwidget.SortOrder) {
+		log.Printf("Sort 2: column %s, descending %s\n", c, o)
+	})
+	s2.DefaultColumn = "Title"
+	s2.DefaultOrder = kxwidget.SortOrderDescending
+	b1 := widget.NewButton("Disable", nil)
+	b1.OnTapped = func() {
+		if s1.Disabled() {
+			s1.Enable()
+			s2.Enable()
+			b1.SetText("Disable")
+		} else {
+			s1.Disable()
+			s2.Disable()
+			b1.SetText("Enable")
+		}
+	}
+	c := container.NewVBox(s1, s2, container.NewPadded(), b1)
+	return c
+}

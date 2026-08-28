@@ -33,7 +33,7 @@ var _ fyne.Disableable = (*FilterChipGroup)(nil)
 
 // NewFilterChipGroup returns a new [FilterChipGroup].
 func NewFilterChipGroup(options []string, changed func([]string)) *FilterChipGroup {
-	optionsCleaned := cleanOptions(options)
+	optionsCleaned := sliceUniqueNonEmpty(options)
 	w := &FilterChipGroup{
 		chips:     make([]*FilterChip, 0),
 		OnChanged: changed,
