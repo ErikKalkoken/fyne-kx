@@ -2,8 +2,10 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"image/color"
+	"slices"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -15,6 +17,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	kxtheme "github.com/ErikKalkoken/fyne-kx/theme"
+	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
 
 const (
@@ -80,10 +83,12 @@ func makeColors() fyne.CanvasObject {
 			hasTransparencyLight[col.name] = true
 		}
 	}
-	colorsFiltered := cloneSlice(colors)
+
+	var rowsFiltered []colorRow
+
 	list := widget.NewList(
 		func() int {
-			return len(colorsFiltered)
+			return len(rowsFiltered)
 		},
 		func() fyne.CanvasObject {
 			check1 := widget.NewCheck("", nil)
@@ -100,10 +105,10 @@ func makeColors() fyne.CanvasObject {
 			)
 		},
 		func(id widget.ListItemID, co fyne.CanvasObject) {
-			if id >= len(colorsFiltered) {
+			if id >= len(rowsFiltered) {
 				return
 			}
-			myColor := colorsFiltered[id]
+			myColor := rowsFiltered[id]
 			row := co.(*fyne.Container).Objects
 
 			label := row[0].(*widget.Label)
@@ -130,37 +135,72 @@ func makeColors() fyne.CanvasObject {
 			check2.SetChecked(hasTransparencyDark[myColor.name])
 		},
 	)
-	var currentSearch string
-	var currentSelection string
-	updateColorsFiltered := func() {
-		colorsFiltered = make([]colorRow, 0)
-		s2 := strings.ToLower(currentSearch)
-		for _, col := range colors {
-			if strings.Contains(strings.ToLower(col.label), s2) {
-				if currentSelection == "Transparent" && !hasTransparencyLight[col.name] {
-					continue
-				}
-				if currentSelection == "Opaque" && hasTransparencyLight[col.name] {
-					continue
-				}
-				colorsFiltered = append(colorsFiltered, col)
-			}
+
+	searchEntry := widget.NewEntry()
+	searchEntry.SetPlaceHolder("Search...")
+	transparencyFilter := kxwidget.NewFilterChipSelect("Transparency", []string{"Transparent", "Opaque"}, nil)
+	sortChip := kxwidget.NewSortChip([]string{"Name"}, nil)
+	footerLabel := widget.NewLabel("")
+
+	filterRows := func() {
+		rows := slices.Clone(colors)
+
+		if x := searchEntry.Text; x != "" {
+			x = strings.ToLower(x)
+			rows = slices.DeleteFunc(rows, func(r colorRow) bool {
+				return !strings.Contains(strings.ToLower(r.label), x)
+			})
 		}
+
+		if x := transparencyFilter.Selected; x != "" {
+			rows = slices.DeleteFunc(rows, func(r colorRow) bool {
+				switch x {
+				case "Transparent":
+					return !hasTransparencyLight[r.name]
+				case "Opaque":
+					return hasTransparencyLight[r.name]
+				}
+				return false
+			})
+		}
+
+		slices.SortFunc(rows, func(a, b colorRow) int {
+			c := sortChip.Column
+			o := sortChip.Order
+			switch {
+			case c == "Name" && o == kxwidget.SortOrderAscending:
+				return strings.Compare(a.label, b.label)
+			case c == "Name" && o == kxwidget.SortOrderDescending:
+				return strings.Compare(b.label, a.label)
+			}
+			return 0
+		})
+
+		rowsFiltered = rows
 		list.Refresh()
+		footerLabel.SetText(fmt.Sprintf("Showing %d / %d entries", len(rows), len(colors)))
 	}
-	search := widget.NewEntry()
-	search.SetPlaceHolder("Search...")
-	search.OnChanged = func(s string) {
-		currentSearch = s
-		updateColorsFiltered()
+
+	searchEntry.OnChanged = func(s string) {
+		filterRows()
 	}
-	transparency := widget.NewSelect([]string{"All", "Transparent", "Opaque"}, func(s string) {
-		currentSelection = s
-		updateColorsFiltered()
-	})
+	sortChip.OnChanged = func(column string, order kxwidget.SortOrder) {
+		filterRows()
+	}
+	transparencyFilter.OnChanged = func(s string) {
+		filterRows()
+	}
+	filterRows()
+
 	return container.NewBorder(
-		container.NewBorder(nil, nil, nil, transparency, search),
-		nil,
+		container.NewBorder(
+			nil,
+			nil,
+			nil,
+			container.NewHBox(transparencyFilter, sortChip),
+			searchEntry,
+		),
+		footerLabel,
 		nil,
 		nil,
 		list,
@@ -168,10 +208,11 @@ func makeColors() fyne.CanvasObject {
 }
 
 func makeSizes() fyne.CanvasObject {
-	sizesFiltered := cloneSlice(sizes)
+	var rowsFiltered []sizeRow
+
 	list := widget.NewList(
 		func() int {
-			return len(sizesFiltered)
+			return len(rowsFiltered)
 		},
 		func() fyne.CanvasObject {
 			size := widget.NewLabel("999")
@@ -183,10 +224,10 @@ func makeSizes() fyne.CanvasObject {
 			)
 		},
 		func(id widget.ListItemID, co fyne.CanvasObject) {
-			if id >= len(sizesFiltered) {
+			if id >= len(rowsFiltered) {
 				return
 			}
-			s := sizesFiltered[id]
+			s := rowsFiltered[id]
 			row := co.(*fyne.Container).Objects
 			label := row[0].(*widget.Label)
 			label.SetText(s.label)
@@ -195,21 +236,54 @@ func makeSizes() fyne.CanvasObject {
 			size.SetText(fmt.Sprint(v))
 		},
 	)
-	entry := widget.NewEntry()
-	entry.SetPlaceHolder("Search...")
-	entry.OnChanged = func(s string) {
-		sizesFiltered = make([]sizeRow, 0)
-		s2 := strings.ToLower(s)
-		for _, c := range sizes {
-			if strings.Contains(strings.ToLower(c.label), s2) {
-				sizesFiltered = append(sizesFiltered, c)
-			}
+
+	searchEntry := widget.NewEntry()
+	searchEntry.SetPlaceHolder("Search...")
+	sortChip := kxwidget.NewSortChip([]string{"Name", "Size"}, nil)
+	footerLabel := widget.NewLabel("")
+
+	filterRows := func() {
+		rows := slices.Clone(sizes)
+
+		if x := searchEntry.Text; x != "" {
+			x = strings.ToLower(x)
+			rows = slices.DeleteFunc(rows, func(r sizeRow) bool {
+				return !strings.Contains(strings.ToLower(r.label), x)
+			})
 		}
+
+		slices.SortFunc(rows, func(a, b sizeRow) int {
+			c := sortChip.Column
+			o := sortChip.Order
+			switch {
+			case c == "Name" && o == kxwidget.SortOrderAscending:
+				return strings.Compare(a.label, b.label)
+			case c == "Name" && o == kxwidget.SortOrderDescending:
+				return strings.Compare(b.label, a.label)
+			case c == "Size" && o == kxwidget.SortOrderAscending:
+				return cmp.Compare(theme.Size(a.name), theme.Size(b.name))
+			case c == "Size" && o == kxwidget.SortOrderDescending:
+				return cmp.Compare(theme.Size(b.name), theme.Size(a.name))
+			}
+			return 0
+		})
+
+		rowsFiltered = rows
 		list.Refresh()
+		footerLabel.SetText(fmt.Sprintf("Showing %d / %d entries", len(rows), len(sizes)))
 	}
+
+	searchEntry.OnChanged = func(s string) {
+		filterRows()
+	}
+	sortChip.OnChanged = func(col string, order kxwidget.SortOrder) {
+		filterRows()
+	}
+	filterRows()
+
 	return container.NewBorder(
-		entry,
-		nil,
+		container.NewBorder(nil, nil, nil, sortChip, searchEntry),
+		footerLabel,
 		nil,
 		nil,
 		list,
@@ -217,13 +291,15 @@ func makeSizes() fyne.CanvasObject {
 }
 
 func makeIcons() fyne.CanvasObject {
-	iconsFiltered := cloneSlice(icons)
+	var rowsFiltered []iconRow
+
 	var iconSize float32 = iconSizeStart
 	iconColors := []string{"Default", "Disabled", "Error", "Primary", "Success", "Warning"}
 	var iconColor = "Default"
+
 	grid := widget.NewGridWrap(
 		func() int {
-			return len(iconsFiltered)
+			return len(rowsFiltered)
 		},
 		func() fyne.CanvasObject {
 			image := canvas.NewImageFromResource(theme.BrokenImageIcon())
@@ -240,10 +316,10 @@ func makeIcons() fyne.CanvasObject {
 			)
 		},
 		func(id widget.ListItemID, co fyne.CanvasObject) {
-			if id >= len(iconsFiltered) {
+			if id >= len(rowsFiltered) {
 				return
 			}
-			s := iconsFiltered[id]
+			s := rowsFiltered[id]
 			c := co.(*fyne.Container).Objects
 			image := c[0].(*canvas.Image)
 			r := theme.Icon(s.name)
@@ -266,18 +342,47 @@ func makeIcons() fyne.CanvasObject {
 			label.SetText(s.label)
 		},
 	)
-	search := widget.NewEntry()
-	search.SetPlaceHolder("Search...")
-	search.OnChanged = func(s string) {
-		iconsFiltered = make([]iconRow, 0)
-		s2 := strings.ToLower(s)
-		for _, c := range icons {
-			if strings.Contains(strings.ToLower(c.label), s2) {
-				iconsFiltered = append(iconsFiltered, c)
-			}
+
+	searchEntry := widget.NewEntry()
+	searchEntry.SetPlaceHolder("Search...")
+	footerLabel := widget.NewLabel("")
+	sortChip := kxwidget.NewSortChip([]string{"Name"}, nil)
+
+	filterRows := func() {
+		rows := slices.Clone(icons)
+
+		if x := searchEntry.Text; x != "" {
+			x = strings.ToLower(x)
+			rows = slices.DeleteFunc(rows, func(r iconRow) bool {
+				return !strings.Contains(strings.ToLower(r.label), x)
+			})
 		}
+
+		slices.SortFunc(rows, func(a, b iconRow) int {
+			c := sortChip.Column
+			o := sortChip.Order
+			switch {
+			case c == "Name" && o == kxwidget.SortOrderAscending:
+				return strings.Compare(a.label, b.label)
+			case c == "Name" && o == kxwidget.SortOrderDescending:
+				return strings.Compare(b.label, a.label)
+			}
+			return 0
+		})
+
+		rowsFiltered = rows
 		grid.Refresh()
+		footerLabel.SetText(fmt.Sprintf("Showing %d / %d entries", len(rows), len(icons)))
 	}
+
+	searchEntry.OnChanged = func(s string) {
+		filterRows()
+	}
+	sortChip.OnChanged = func(column string, order kxwidget.SortOrder) {
+		filterRows()
+	}
+	filterRows()
+
 	slider := widget.NewSlider(2, 128)
 	slider.Step = 4
 	slider.OnChanged = func(v float64) {
@@ -293,16 +398,13 @@ func makeIcons() fyne.CanvasObject {
 	themeSelect.SetSelected("Default")
 	themeBox := container.NewHBox(widget.NewLabel("Color"), themeSelect)
 	return container.NewBorder(
-		container.NewGridWithColumns(3, search, sliderBox, themeBox),
-		nil,
+		container.NewVBox(
+			container.NewBorder(nil, nil, nil, sortChip, searchEntry),
+			container.NewGridWithColumns(2, themeBox, sliderBox),
+		),
+		footerLabel,
 		nil,
 		nil,
 		grid,
 	)
-}
-
-func cloneSlice[S any](s []S) []S {
-	c := make([]S, len(s))
-	copy(c, s)
-	return c
 }
