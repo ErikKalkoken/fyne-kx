@@ -9,9 +9,6 @@ A library with extensions and tools for the Fyne GUI toolkit.
 [![Go Reference](https://pkg.go.dev/badge/github.com/ErikKalkoken/fyne-kx.svg)](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx)
 ![GitHub License](https://img.shields.io/github/license/ErikKalkoken/fyne-kx)
 
-> [!NOTE]
-> The library is in active development. Any feedback or suggestions are welcome.
-
 ## Contents
 
 - [Installation](#installation)
@@ -77,10 +74,11 @@ This library contains several Fyne widgets:
 - [FilterChipGroup](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChipGroup) allows the user to toggle multiple filters with filter chips.
 - [FilterChipSelect](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChipSelect) is a filter chip that allows the user to select and de-select one option from a list of options.
 - [Slider](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Slider) is a variation of the Slider widget that also displays the current value.
+- [SortChip](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#SortChip) is a chip widget that shows current sorting (column & order) and allows the user to change it by selecting from a drop down menu.
+- [Switch](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Switch) is a widget implementing a digital switch with two mutually exclusive states: on/off.
 - [TappableIcon](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableIcon) is an icon widget which runs a function when tapped.
 - [TappableImage](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableImage) is widget which shows an image and runs a function when tapped.
 - [TappableLabel](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableLabel) is a variant of the Fyne Label which runs a function when tapped.
-- [Switch](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Switch) is a widget implementing a digital switch with two mutually exclusive states: on/off.
 
 The widgets can be used just like any other widget from the Fyne standard library. All widgets are themeable and unit tested.
 
