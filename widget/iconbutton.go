@@ -3,7 +3,6 @@ package widget
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
-	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -19,7 +18,6 @@ type IconButton struct {
 	OnTapped func()
 
 	hovered          bool
-	icon             *canvas.Image
 	menu             *fyne.Menu
 	resource         fyne.Resource
 	resourceDisabled fyne.Resource
@@ -30,13 +28,8 @@ var _ desktop.Hoverable = (*IconButton)(nil)
 
 // NewIconButton returns a new instance of an [IconButton].
 func NewIconButton(icon fyne.Resource, tapped func()) *IconButton {
-	// i := NewImageFromResource(icon, fyne.NewSquareSize(theme.Size(theme.SizeNameInlineIcon)))
-	i := canvas.NewImageFromResource(icon)
-	i.FillMode = canvas.ImageFillContain
-	i.SetMinSize(fyne.NewSquareSize(theme.Size(theme.SizeNameInlineIcon)))
 	w := &IconButton{
 		OnTapped: tapped,
-		icon:     i,
 	}
 	w.ExtendBaseWidget(w)
 	w.setIconResource(icon)
@@ -88,8 +81,6 @@ func (w *IconButton) SetMenuItems(menuItems []*fyne.MenuItem) {
 }
 
 func (w *IconButton) Refresh() {
-	w.updateState()
-	w.icon.Refresh()
 	if w.menu != nil {
 		w.menu.Refresh()
 	}
@@ -114,14 +105,14 @@ func (w *IconButton) Cursor() desktop.Cursor {
 }
 
 // MouseIn is a hook that is called if the mouse pointer enters the element.
-func (w *IconButton) MouseIn(e *desktop.MouseEvent) {
+func (w *IconButton) MouseIn(_ *desktop.MouseEvent) {
 	if w.Disabled() {
 		return
 	}
 	w.hovered = true
 }
 
-func (w *IconButton) MouseMoved(*desktop.MouseEvent) {
+func (w *IconButton) MouseMoved(_ *desktop.MouseEvent) {
 	// needed to satisfy the interface only
 }
 
@@ -131,14 +122,65 @@ func (w *IconButton) MouseOut() {
 }
 
 func (w *IconButton) CreateRenderer() fyne.WidgetRenderer {
-	w.updateState()
-	return widget.NewSimpleRenderer(container.NewPadded(w.icon))
+	return newIconButtonRenderer(w)
 }
 
-func (w *IconButton) updateState() {
-	if w.Disabled() {
-		w.icon.Resource = w.resourceDisabled
+// iconButtonRenderer is a custom [fyne.WidgetRenderer] for [IconButton].
+//
+// It owns the rendered icon image and lays it out with a themed padding on
+// every side, replicating the behavior previously provided by wrapping the
+// icon in a [container.NewPadded].
+type iconButtonRenderer struct {
+	button *IconButton
+	icon   *canvas.Image
+}
+
+var _ fyne.WidgetRenderer = (*iconButtonRenderer)(nil)
+
+func newIconButtonRenderer(w *IconButton) *iconButtonRenderer {
+	i := canvas.NewImageFromResource(w.resource)
+	i.FillMode = canvas.ImageFillContain
+	i.SetMinSize(fyne.NewSquareSize(theme.Size(theme.SizeNameInlineIcon)))
+	r := &iconButtonRenderer{
+		button: w,
+		icon:   i,
+	}
+	r.updateState()
+	return r
+}
+
+func (r *iconButtonRenderer) Destroy() {
+}
+
+func (r *iconButtonRenderer) Objects() []fyne.CanvasObject {
+	return []fyne.CanvasObject{r.icon}
+}
+
+func (r *iconButtonRenderer) Layout(size fyne.Size) {
+	pad := theme.Padding()
+	innerSize := fyne.NewSize(size.Width-2*pad, size.Height-2*pad)
+	r.icon.Resize(innerSize)
+	r.icon.Move(fyne.NewPos(pad, pad))
+}
+
+func (r *iconButtonRenderer) MinSize() fyne.Size {
+	pad := theme.Padding()
+	iconMin := r.icon.MinSize()
+	return fyne.NewSize(iconMin.Width+2*pad, iconMin.Height+2*pad)
+}
+
+func (r *iconButtonRenderer) Refresh() {
+	r.updateState()
+	r.icon.Refresh()
+	canvas.Refresh(r.button)
+}
+
+// updateState sets the icon's resource depending on whether the button is
+// enabled or disabled.
+func (r *iconButtonRenderer) updateState() {
+	if r.button.Disabled() {
+		r.icon.Resource = r.button.resourceDisabled
 	} else {
-		w.icon.Resource = w.resource
+		r.icon.Resource = r.button.resource
 	}
 }
