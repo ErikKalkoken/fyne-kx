@@ -139,7 +139,7 @@ func makeColors() fyne.CanvasObject {
 	searchEntry := widget.NewEntry()
 	searchEntry.SetPlaceHolder("Search...")
 	transparencyFilter := kxwidget.NewFilterChipSelect("Transparency", []string{"Transparent", "Opaque"}, nil)
-	sortChip := kxwidget.NewSortChip([]string{"Name"}, nil)
+	sortChip := kxwidget.NewSortChip([]string{"Name"}, "Name", kxwidget.SortOrderAscending, nil)
 	footerLabel := widget.NewLabel("")
 
 	filterRows := func() {
@@ -239,7 +239,7 @@ func makeSizes() fyne.CanvasObject {
 
 	searchEntry := widget.NewEntry()
 	searchEntry.SetPlaceHolder("Search...")
-	sortChip := kxwidget.NewSortChip([]string{"Name", "Size"}, nil)
+	sortChip := kxwidget.NewSortChip([]string{"Name", "Size"}, "Name", kxwidget.SortOrderAscending, nil)
 	footerLabel := widget.NewLabel("")
 
 	filterRows := func() {
@@ -346,7 +346,7 @@ func makeIcons() fyne.CanvasObject {
 	searchEntry := widget.NewEntry()
 	searchEntry.SetPlaceHolder("Search...")
 	footerLabel := widget.NewLabel("")
-	sortChip := kxwidget.NewSortChip([]string{"Name"}, nil)
+	sortChip := kxwidget.NewSortChip([]string{"Name"}, "Name", kxwidget.SortOrderAscending, nil)
 
 	filterRows := func() {
 		rows := slices.Clone(icons)
