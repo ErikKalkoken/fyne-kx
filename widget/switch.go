@@ -11,13 +11,11 @@ import (
 )
 
 // Switch is a widget representing a digital switch with two mutually exclusive states: on/off.
-// It has an optional text label.
 type Switch struct {
 	widget.DisableableWidget
 
 	On        bool
 	OnChanged func(on bool)
-	Text      string
 
 	focused bool
 	hovered bool
@@ -36,20 +34,6 @@ func NewSwitch(changed func(on bool)) *Switch {
 	}
 	w.ExtendBaseWidget(w)
 	return w
-}
-
-// State return the state of a switch.
-//
-// Deprecated: Please use [Switch.On] instead.
-func (w *Switch) State() bool {
-	return w.On
-}
-
-// SetState sets the state for a switch.
-//
-// Deprecated: Please use [Switch.SetOn] instead.
-func (w *Switch) SetState(on bool) {
-	w.SetOn(on)
 }
 
 // SetOn sets the state for a switch.
@@ -115,11 +99,8 @@ func (w *Switch) MouseIn(me *desktop.MouseEvent) {
 	if w.Disabled() {
 		return
 	}
-	oldHovered := w.hovered
 	w.hovered = true
-	if oldHovered != w.hovered {
-		w.Refresh()
-	}
+	w.Refresh()
 }
 
 // MouseMoved is called when a desktop pointer hovers over the widget
@@ -138,19 +119,16 @@ func (w *Switch) MouseOut() {
 // CreateRenderer is a private method to Fyne which links this widget to its renderer.
 func (w *Switch) CreateRenderer() fyne.WidgetRenderer {
 	w.ExtendBaseWidget(w)
-	th := w.Theme()
-	v := fyne.CurrentApp().Settings().ThemeVariant()
 	track := canvas.NewRectangle(color.Transparent)
 	track.CornerRadius = 7
-	shadowColor := th.Color(theme.ColorNameShadow, v)
 	r := &switchRenderer{
 		focus:  canvas.NewCircle(color.Transparent),
-		shadow: canvas.NewCircle(shadowColor),
+		shadow: canvas.NewCircle(color.Transparent),
 		thumb:  canvas.NewCircle(color.Transparent),
 		track:  track,
 		widget: w,
 	}
-	r.Refresh()
+	r.updateState()
 	return r
 }
 
@@ -212,13 +190,17 @@ func (r *switchRenderer) updateThumbPosition() {
 
 // Refresh is called if the widget has updated and needs to be redrawn.
 func (r *switchRenderer) Refresh() {
-	r.updateColors()
-	r.updateThumbPosition()
+	r.updateState()
 
 	r.track.Refresh()
 	r.focus.Refresh()
 	r.shadow.Refresh()
 	r.thumb.Refresh()
+}
+
+func (r *switchRenderer) updateState() {
+	r.updateColors()
+	r.updateThumbPosition()
 }
 
 func (r *switchRenderer) updateColors() {
@@ -277,6 +259,8 @@ func (r *switchRenderer) updateColors() {
 			r.focus.FillColor = focusColor
 		}
 	}
+
+	r.shadow.FillColor = th.Color(theme.ColorNameShadow, v)
 }
 
 // Objects returns the objects that should be rendered.

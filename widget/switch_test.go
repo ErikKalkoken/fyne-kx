@@ -143,74 +143,104 @@ func TestSwitch_CanIgnoreCallbackWhenNotDefined(t *testing.T) {
 	assert.True(t, sw.On)
 }
 
-func TestSwitch_CanSetOn(t *testing.T) {
+func TestSwitch_SetOn(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
-	var tapped bool
-	sw := widget.NewSwitch(func(on bool) {
-		tapped = true
+
+	t.Run("can switch on", func(t *testing.T) {
+		var tapped bool
+		sw := widget.NewSwitch(func(on bool) {
+			tapped = true
+		})
+		w := test.NewWindow(sw)
+		defer w.Close()
+
+		sw.SetOn(true)
+
+		assert.True(t, tapped)
+		assert.True(t, sw.On)
+		test.AssertImageMatches(t, "switch/enabled_on.png", w.Canvas().Capture())
 	})
-	w := test.NewWindow(sw)
-	defer w.Close()
 
-	sw.SetOn(true)
+	t.Run("can switch off", func(t *testing.T) {
+		var tapped bool
+		sw := widget.NewSwitch(func(on bool) {
+			tapped = true
+		})
+		sw.On = true
+		w := test.NewWindow(sw)
+		defer w.Close()
 
-	assert.True(t, tapped)
-	assert.True(t, sw.On)
-	test.AssertImageMatches(t, "switch/enabled_on.png", w.Canvas().Capture())
-}
+		sw.SetOn(false)
 
-func TestSwitch_CanSetOff(t *testing.T) {
-	test.NewTempApp(t)
-	test.ApplyTheme(t, test.Theme())
-	var tapped bool
-	sw := widget.NewSwitch(func(on bool) {
-		tapped = true
+		assert.True(t, tapped)
+		assert.False(t, sw.On)
+		test.AssertImageMatches(t, "switch/enabled_off.png", w.Canvas().Capture())
 	})
-	sw.On = true
-	w := test.NewWindow(sw)
-	defer w.Close()
 
-	sw.SetOn(false)
+	t.Run("do nothing when same state 1", func(t *testing.T) {
+		var tapped bool
+		sw := widget.NewSwitch(func(on bool) {
+			tapped = true
+		})
+		w := test.NewWindow(sw)
+		defer w.Close()
 
-	assert.True(t, tapped)
-	assert.False(t, sw.On)
-	test.AssertImageMatches(t, "switch/enabled_off.png", w.Canvas().Capture())
-}
+		sw.SetOn(false)
 
-func TestSwitch_SetState_DoNothingWhenSameState_1(t *testing.T) {
-	test.NewTempApp(t)
-	test.ApplyTheme(t, test.Theme())
-	var tapped bool
-	sw := widget.NewSwitch(func(on bool) {
-		tapped = true
+		assert.False(t, tapped)
+		assert.False(t, sw.On)
+		test.AssertImageMatches(t, "switch/enabled_off.png", w.Canvas().Capture())
 	})
-	w := test.NewWindow(sw)
-	defer w.Close()
 
-	sw.SetOn(false)
+	t.Run("do nothing when same state 2", func(t *testing.T) {
+		var tapped bool
+		sw := widget.NewSwitch(func(on bool) {
+			tapped = true
+		})
+		sw.On = true
+		w := test.NewWindow(sw)
+		defer w.Close()
 
-	assert.False(t, tapped)
-	assert.False(t, sw.On)
-	test.AssertImageMatches(t, "switch/enabled_off.png", w.Canvas().Capture())
-}
+		sw.SetOn(true)
 
-func TestSwitch_SetState_DoNothingWhenSameState_2(t *testing.T) {
-	test.NewTempApp(t)
-	test.ApplyTheme(t, test.Theme())
-	var tapped bool
-	sw := widget.NewSwitch(func(on bool) {
-		tapped = true
+		assert.False(t, tapped)
+		assert.True(t, sw.On)
+		test.AssertImageMatches(t, "switch/enabled_on.png", w.Canvas().Capture())
 	})
-	sw.On = true
-	w := test.NewWindow(sw)
-	defer w.Close()
 
-	sw.SetOn(true)
+	t.Run("can switch on when disabled", func(t *testing.T) {
+		var tapped bool
+		sw := widget.NewSwitch(func(on bool) {
+			tapped = true
+		})
+		sw.Disable()
+		w := test.NewWindow(sw)
+		defer w.Close()
 
-	assert.False(t, tapped)
-	assert.True(t, sw.On)
-	test.AssertImageMatches(t, "switch/enabled_on.png", w.Canvas().Capture())
+		sw.SetOn(true)
+
+		assert.True(t, tapped)
+		assert.True(t, sw.On)
+		test.AssertImageMatches(t, "switch/disabled_on.png", w.Canvas().Capture())
+	})
+
+	t.Run("can switch off when disabled", func(t *testing.T) {
+		var tapped bool
+		sw := widget.NewSwitch(func(on bool) {
+			tapped = true
+		})
+		sw.On = true
+		sw.Disable()
+		w := test.NewWindow(sw)
+		defer w.Close()
+
+		sw.SetOn(false)
+
+		assert.True(t, tapped)
+		assert.False(t, sw.On)
+		test.AssertImageMatches(t, "switch/disabled_off.png", w.Canvas().Capture())
+	})
 }
 
 func TestSwitch_CanFocusWhenEnabledAndOff(t *testing.T) {
