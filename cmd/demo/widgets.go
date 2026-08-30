@@ -173,8 +173,12 @@ func makeIconButton() fyne.CanvasObject {
 		return r
 	}
 	i3 := kxwidget.NewIconButtonWithMenu(theme.FolderIcon(), fyne.NewMenu("",
-		fyne.NewMenuItem("first", nil),
-		fyne.NewMenuItem("second", nil),
+		fyne.NewMenuItem("First", func() {
+			log.Println("first selected")
+		}),
+		fyne.NewMenuItem("Second", func() {
+			log.Println("second selected")
+		}),
 	))
 	c := container.NewGridWithRows(
 		3,
