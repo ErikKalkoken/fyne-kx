@@ -15,20 +15,19 @@ func TestStack_Pop(t *testing.T) {
 		st.Push(99)
 		st.Push(42)
 
-		v, err := st.Pop()
-		if assert.NoError(t, err) {
-			assert.Equal(t, 42, v)
-		}
-		v, err = st.Pop()
-		if assert.NoError(t, err) {
-			assert.Equal(t, 99, v)
-		}
+		v, ok := st.Pop()
+		require.True(t, ok)
+		assert.Equal(t, 42, v)
+		v, ok = st.Pop()
+		require.True(t, ok)
+		assert.Equal(t, 99, v)
 	})
 
-	t.Run("should return specific error when trying to pop from empty stack", func(t *testing.T) {
+	t.Run("should return false and zero value when trying to pop from empty stack", func(t *testing.T) {
 		st := stack.New[int]()
-		_, err := st.Pop()
-		assert.ErrorIs(t, err, stack.ErrEmpty)
+		v, ok := st.Pop()
+		assert.False(t, ok)
+		assert.Zero(t, v)
 	})
 }
 
@@ -55,19 +54,19 @@ func TestStack_LifecycleAndMemoryReset(t *testing.T) {
 		st.Push("second")
 		require.Equal(t, 2, st.Size())
 
-		v1, err := st.Pop()
-		require.NoError(t, err)
+		v1, ok := st.Pop()
+		require.True(t, ok)
 		assert.Equal(t, "second", v1)
 		require.Equal(t, 1, st.Size())
 
-		v2, err := st.Pop()
-		require.NoError(t, err)
+		v2, ok := st.Pop()
+		require.True(t, ok)
 		assert.Equal(t, "first", v2)
 		require.Equal(t, 0, st.Size())
 
 		// Extra pop should fail
-		_, err = st.Pop()
-		require.ErrorIs(t, err, stack.ErrEmpty)
+		_, ok = st.Pop()
+		require.False(t, ok)
 	})
 }
 
@@ -112,8 +111,7 @@ func TestStack_Concurrent(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				for range itemsPerGoroutine {
-					v, err := st.Pop()
-					if assert.NoError(t, err) {
+					if v, ok := st.Pop(); ok {
 						popped <- v
 					}
 				}
@@ -128,7 +126,7 @@ func TestStack_Concurrent(t *testing.T) {
 		assert.Equal(t, goroutines*itemsPerGoroutine, len(popped))
 
 		// Ensure popping on empty stack yields ErrEmpty
-		_, err := st.Pop()
-		assert.ErrorIs(t, err, stack.ErrEmpty)
+		_, ok := st.Pop()
+		require.False(t, ok)
 	})
 }

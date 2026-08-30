@@ -2,11 +2,8 @@
 package stack
 
 import (
-	"errors"
 	"sync"
 )
-
-var ErrEmpty = errors.New("empty stack")
 
 // Stack represents a basic stack which can be used concurrently.
 type Stack[T any] struct {
@@ -26,19 +23,20 @@ func (st *Stack[T]) Push(v T) {
 	st.s = append(st.s, v)
 }
 
-// Pop returns the item from the top of the stack or an error when the stack is empty.
-func (st *Stack[T]) Pop() (T, error) {
+// Pop tries to return the item from the top of the stack
+// and reports whether an item was returned.
+func (st *Stack[T]) Pop() (T, bool) {
 	var v T
 	st.mu.Lock()
 	defer st.mu.Unlock()
 	if len(st.s) == 0 {
-		return v, ErrEmpty
+		return v, false
 	}
 	idx := len(st.s) - 1
 	v = st.s[idx]
 	clear(st.s[idx:]) // zeros out the element for GC
 	st.s = st.s[:idx]
-	return v, nil
+	return v, true
 }
 
 // Size returns the number of items in the stack.
