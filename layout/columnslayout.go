@@ -27,18 +27,23 @@ func NewColumns(widths ...float32) fyne.Layout {
 	return l
 }
 
+// widthFor returns the configured width for column i, reusing the last
+// defined width for any columns beyond len(l.widths).
+func (l columnsLayout) widthFor(i int) float32 {
+	if i < len(l.widths) {
+		return l.widths[i]
+	}
+	return l.widths[len(l.widths)-1]
+}
+
 func (l columnsLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 	wTotal, hTotal := float32(0), float32(0)
 	for _, o := range objects {
 		hTotal = fyne.Max(hTotal, o.MinSize().Height)
 	}
-	var w float32
 	for i := range objects {
-		if i < len(l.widths) {
-			w = l.widths[i]
-		}
-		wTotal += w
-		if i < len(l.widths) {
+		wTotal += l.widthFor(i)
+		if i < len(objects)-1 {
 			wTotal += theme.Padding()
 		}
 	}
@@ -46,15 +51,11 @@ func (l columnsLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 }
 
 func (l columnsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size) {
-	var lastX float32
 	pos := fyne.NewPos(0, 0)
 	padding := theme.Padding()
-	var w1 float32
 	for i, o := range objects {
 		size := o.MinSize()
-		if i < len(l.widths) {
-			w1 = l.widths[i]
-		}
+		w1 := l.widthFor(i)
 		var w2 float32
 		if i < len(objects)-1 || containerSize.Width < 0 {
 			w2 = w1
@@ -63,13 +64,6 @@ func (l columnsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 		}
 		o.Resize(fyne.Size{Width: w2, Height: size.Height})
 		o.Move(pos)
-		var x float32
-		if len(l.widths) > i {
-			x = w2
-			lastX = x
-		} else {
-			x = lastX
-		}
-		pos = pos.AddXY(x+padding, 0)
+		pos = pos.AddXY(w2+padding, 0)
 	}
 }
