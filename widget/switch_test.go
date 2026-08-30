@@ -3,6 +3,7 @@ package widget_test
 import (
 	"testing"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
 
 	"github.com/ErikKalkoken/fyne-kx/widget"
@@ -67,7 +68,7 @@ func TestSwitch_CanSwitchOnWhenEnabled(t *testing.T) {
 	w := test.NewWindow(sw)
 	defer w.Close()
 
-	test.Tap(sw)
+	test.TapAt(sw, centerOf(sw))
 
 	assert.True(t, tapped)
 	assert.True(t, sw.On)
@@ -85,7 +86,7 @@ func TestSwitch_CanSwitchOffWhenEnabled(t *testing.T) {
 	w := test.NewWindow(sw)
 	defer w.Close()
 
-	test.Tap(sw)
+	test.TapAt(sw, centerOf(sw))
 
 	assert.True(t, tapped)
 	assert.False(t, sw.On)
@@ -103,7 +104,7 @@ func TestSwitch_CanNotSwitchOnWhenDisabled(t *testing.T) {
 	w := test.NewWindow(sw)
 	defer w.Close()
 
-	test.Tap(sw)
+	test.TapAt(sw, centerOf(sw))
 
 	assert.False(t, tapped)
 	assert.False(t, sw.On)
@@ -122,7 +123,7 @@ func TestSwitch_CanNotSwitchOffWhenDisabled(t *testing.T) {
 	w := test.NewWindow(sw)
 	defer w.Close()
 
-	test.Tap(sw)
+	test.TapAt(sw, centerOf(sw))
 
 	assert.False(t, tapped)
 	assert.True(t, sw.On)
@@ -137,7 +138,7 @@ func TestSwitch_CanIgnoreCallbackWhenNotDefined(t *testing.T) {
 	w := test.NewWindow(sw)
 	defer w.Close()
 
-	test.Tap(sw)
+	test.TapAt(sw, centerOf(sw))
 
 	assert.False(t, tapped)
 	assert.True(t, sw.On)
@@ -345,4 +346,9 @@ func TestSwitch_CanNotSwitchWithKeyWhenDisabledAndOn(t *testing.T) {
 	test.Type(sw, " ")
 
 	test.AssertImageMatches(t, "switch/disabled_on.png", w.Canvas().Capture())
+}
+
+func centerOf(o fyne.CanvasObject) fyne.Position {
+	s := o.Size()
+	return fyne.NewPos(s.Width/2, s.Height/2)
 }

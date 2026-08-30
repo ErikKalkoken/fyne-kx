@@ -19,6 +19,10 @@ type Switch struct {
 
 	focused bool
 	hovered bool
+
+	// graphicPosition and graphicSize are the cached hitbox of the switch graphic
+	graphicPosition fyne.Position
+	graphicSize     fyne.Size
 }
 
 var _ desktop.Hoverable = (*Switch)(nil)
@@ -48,7 +52,6 @@ func (w *Switch) SetOn(on bool) {
 	w.Refresh()
 }
 
-// FocusGained is called when the switch has been given focus.
 func (w *Switch) FocusGained() {
 	if w.Disabled() {
 		return
@@ -57,13 +60,11 @@ func (w *Switch) FocusGained() {
 	w.Refresh()
 }
 
-// FocusLost is called when the switch has had focus removed.
 func (w *Switch) FocusLost() {
 	w.focused = false
 	w.Refresh()
 }
 
-// TypedRune receives text input events when the switch is focused.
 func (w *Switch) TypedRune(r rune) {
 	if w.Disabled() {
 		return
@@ -73,12 +74,13 @@ func (w *Switch) TypedRune(r rune) {
 	}
 }
 
-// TypedKey receives key input events when the switch is focused.
 func (w *Switch) TypedKey(key *fyne.KeyEvent) {}
 
-// Tapped is called when a pointer tapped event is captured and triggers any change handler
 func (w *Switch) Tapped(pe *fyne.PointEvent) {
 	if w.Disabled() {
+		return
+	}
+	if !w.graphicContains(pe.Position) {
 		return
 	}
 	w.SetOn(!w.On)
@@ -86,7 +88,6 @@ func (w *Switch) Tapped(pe *fyne.PointEvent) {
 
 func (w *Switch) TappedSecondary(_ *fyne.PointEvent) {}
 
-// Cursor returns the cursor type of this widget
 func (w *Switch) Cursor() desktop.Cursor {
 	if w.hovered {
 		return desktop.PointerCursor
@@ -94,29 +95,42 @@ func (w *Switch) Cursor() desktop.Cursor {
 	return desktop.DefaultCursor
 }
 
-// MouseIn is a hook that is called if the mouse pointer enters the element.
 func (w *Switch) MouseIn(me *desktop.MouseEvent) {
+	w.MouseMoved(me)
+}
+
+func (w *Switch) MouseMoved(me *desktop.MouseEvent) {
 	if w.Disabled() {
 		return
 	}
-	w.hovered = true
-	w.Refresh()
-}
-
-// MouseMoved is called when a desktop pointer hovers over the widget
-func (w *Switch) MouseMoved(me *desktop.MouseEvent) {
-	// needed to satisfy the interface only
+	w.updateHover(&me.Position)
 }
 
 func (w *Switch) MouseOut() {
+	w.updateHover(nil)
+}
+
+// updateHover sets hover based on pos; nil (from MouseOut) always clears it.
+func (w *Switch) updateHover(pos *fyne.Position) {
 	oldHovered := w.hovered
-	w.hovered = false
+	w.hovered = pos != nil && w.graphicContains(*pos)
 	if oldHovered != w.hovered {
 		w.Refresh()
 	}
 }
 
-// CreateRenderer is a private method to Fyne which links this widget to its renderer.
+// graphicContains reports whether pos falls within the switch graphic's hitbox.
+func (w *Switch) graphicContains(pos fyne.Position) bool {
+	orig := w.graphicPosition
+	size := w.graphicSize
+	if size.IsZero() {
+		size = w.Size() // renderer hasn't laid out yet; fall back to full widget
+	}
+
+	return pos.X >= orig.X && pos.X <= orig.X+size.Width &&
+		pos.Y >= orig.Y && pos.Y <= orig.Y+size.Height
+}
+
 func (w *Switch) CreateRenderer() fyne.WidgetRenderer {
 	w.ExtendBaseWidget(w)
 	track := canvas.NewRectangle(color.Transparent)
@@ -152,17 +166,18 @@ type switchRenderer struct {
 	widget *Switch
 }
 
-func (r *switchRenderer) Destroy() {
+func (r *switchRenderer) Objects() []fyne.CanvasObject {
+	return []fyne.CanvasObject{r.track, r.focus, r.shadow, r.thumb}
 }
 
-// MinSize returns the minimum size of the widget that is rendered by this renderer.
+func (r *switchRenderer) Destroy() {}
+
 func (r *switchRenderer) MinSize() fyne.Size {
 	th := r.widget.Theme()
 	p := th.Size(theme.SizeNameInnerPadding)
 	return fyne.NewSize(switchWidth+2*p, switchHeight+2*p)
 }
 
-// Layout lays out the objects of this widget.
 func (r *switchRenderer) Layout(size fyne.Size) {
 	th := r.widget.Theme()
 	p := th.Size(theme.SizeNameInnerPadding)
@@ -170,6 +185,10 @@ func (r *switchRenderer) Layout(size fyne.Size) {
 	r.track.Move(r.orig.AddXY(0, (switchHeight-switchInnerHeight)/2))
 	r.track.Resize(fyne.NewSize(switchWidth, switchInnerHeight))
 	r.updateThumbPosition()
+
+	// cache the graphic's hitbox for Tapped/MouseIn/MouseMoved
+	r.widget.graphicPosition = r.orig
+	r.widget.graphicSize = fyne.NewSize(switchWidth, switchHeight)
 }
 
 func (r *switchRenderer) updateThumbPosition() {
@@ -188,7 +207,6 @@ func (r *switchRenderer) updateThumbPosition() {
 	r.focus.Position2 = r.focus.Position1.AddXY(switchFocusHeight, switchFocusHeight)
 }
 
-// Refresh is called if the widget has updated and needs to be redrawn.
 func (r *switchRenderer) Refresh() {
 	r.updateState()
 
@@ -261,9 +279,4 @@ func (r *switchRenderer) updateColors() {
 	}
 
 	r.shadow.FillColor = th.Color(theme.ColorNameShadow, v)
-}
-
-// Objects returns the objects that should be rendered.
-func (r *switchRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.track, r.focus, r.shadow, r.thumb}
 }

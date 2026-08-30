@@ -3,6 +3,7 @@ package widget
 import (
 	"testing"
 
+	"fyne.io/fyne/v2/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,4 +26,26 @@ func TestFtoa(t *testing.T) {
 			assert.Equal(t, tc.want, got)
 		})
 	}
+}
+
+func TestSlider_DefaultStepMatchesFyneSliderDefault(t *testing.T) {
+	test.NewTempApp(t)
+
+	w := NewSlider(0, 10)
+	r := w.CreateRenderer().(*sliderRenderer)
+
+	assert.Equal(t, float64(1), r.slider.Step)
+}
+
+func TestSlider_QuantizesValueByDefaultStep(t *testing.T) {
+	test.NewTempApp(t)
+
+	w := NewSlider(0, 10)
+	r := w.CreateRenderer().(*sliderRenderer)
+
+	// Simulate the internal slider settling on an arbitrary, non-integer
+	// value, as could happen from a drag landing between pixel steps.
+	r.slider.SetValue(3.482759)
+
+	assert.Equal(t, "3", r.label.Text)
 }

@@ -5,10 +5,8 @@ import (
 	"strings"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-
-	"github.com/ErikKalkoken/fyne-kx/layout"
 )
 
 // Slider is a variant of the Fyne Slider widget that also displays the current value.
@@ -17,85 +15,132 @@ type Slider struct {
 
 	OnChangeEnded func(float64)
 
-	label  *widget.Label
-	layout fyne.Layout
-	slider *widget.Slider
+	min, max, step, value float64
 }
 
 // NewSlider returns a new instance of a [Slider] widget.
 func NewSlider(min, max float64) *Slider {
-	label := widget.NewLabel("")
-	label.Alignment = fyne.TextAlignTrailing
 	w := &Slider{
-		label:  label,
-		slider: widget.NewSlider(min, max),
+		min:   min,
+		max:   max,
+		value: min,
+		step:  1, // matches widget.Slider's own default
 	}
 	w.ExtendBaseWidget(w)
-	w.updateLayout()
-	w.slider.OnChangeEnded = func(v float64) {
-		if w.OnChangeEnded == nil {
-			return
-		}
-		w.OnChangeEnded(v)
-	}
-	updateLabel := func(f float64) {
-		w.label.SetText(ftoa(f))
-	}
-	w.slider.OnChanged = func(f float64) {
-		updateLabel(f)
-	}
-	updateLabel(w.slider.Value)
 	return w
 }
 
 // SetStep sets a custom step for a slider.
 func (w *Slider) SetStep(step float64) {
-	w.slider.Step = step
-	w.updateLayout()
-}
-
-func (w *Slider) updateLayout() {
-	x1 := widget.NewLabel(ftoa(w.slider.Max + w.slider.Step))
-	minW1 := x1.MinSize().Width
-	x2 := widget.NewLabel(ftoa(w.slider.Min - w.slider.Step))
-	minW2 := x2.MinSize().Width
-	w.layout = layout.NewColumns(minW1, fyne.Max(fyne.Max(minW1, minW2), w.slider.MinSize().Width))
+	w.step = step
+	w.Refresh()
 }
 
 // Value returns the current value of a slider.
 func (w *Slider) Value() float64 {
-	return w.slider.Value
+	return w.value
 }
 
 // SetValue set the value of a slider.
 func (w *Slider) SetValue(v float64) {
-	w.slider.SetValue(float64(v))
+	w.value = v
+	w.Refresh()
 }
 
 func (w *Slider) CreateRenderer() fyne.WidgetRenderer {
-	c := container.New(w.layout, w.label, w.slider)
-	return widget.NewSimpleRenderer(c)
+	label := widget.NewLabel(ftoa(w.value))
+	label.Alignment = fyne.TextAlignTrailing
+
+	slider := widget.NewSlider(w.min, w.max)
+	slider.Step = w.step
+	slider.Value = w.value
+
+	r := &sliderRenderer{
+		widget:  w,
+		label:   label,
+		slider:  slider,
+		objects: []fyne.CanvasObject{label, slider},
+	}
+
+	slider.OnChanged = func(v float64) {
+		w.value = v
+		label.SetText(ftoa(v))
+	}
+	slider.OnChangeEnded = func(v float64) {
+		w.value = v
+		if w.OnChangeEnded != nil {
+			w.OnChangeEnded(v)
+		}
+	}
+
+	return r
 }
+
+// sliderRenderer renders a [Slider]. It owns the child widgets and arranges
+// them in two columns: the value label at a fixed width, and the slider
+// filling the remaining space.
+type sliderRenderer struct {
+	widget  *Slider
+	label   *widget.Label
+	slider  *widget.Slider
+	objects []fyne.CanvasObject
+}
+
+// columnWidths returns the width reserved for the label and the minimum
+// width for the slider. The label width is sized to fit its value at both
+// the slider's minimum and maximum, so the slider doesn't shift
+// horizontally as the label's text changes.
+func (r *sliderRenderer) columnWidths() (labelW, sliderW float32) {
+	minW1 := labelWidth(ftoa(r.slider.Max + r.slider.Step))
+	minW2 := labelWidth(ftoa(r.slider.Min - r.slider.Step))
+	labelW = minW1
+	sliderW = max(minW1, minW2, r.slider.MinSize().Width)
+	return labelW, sliderW
+}
+
+func labelWidth(s string) float32 {
+	return widget.NewLabel(s).MinSize().Width
+}
+
+func (r *sliderRenderer) Layout(size fyne.Size) {
+	padding := theme.Padding()
+	labelW, sliderMinW := r.columnWidths()
+
+	r.label.Resize(fyne.NewSize(labelW, r.label.MinSize().Height))
+	r.label.Move(fyne.NewPos(0, 0))
+
+	sliderW := fyne.Max(size.Width-labelW-2*padding, sliderMinW)
+	r.slider.Resize(fyne.NewSize(sliderW, r.slider.MinSize().Height))
+	r.slider.Move(fyne.NewPos(labelW+padding, 0))
+}
+
+func (r *sliderRenderer) MinSize() fyne.Size {
+	padding := theme.Padding()
+	labelW, sliderMinW := r.columnWidths()
+	h := fyne.Max(r.label.MinSize().Height, r.slider.MinSize().Height)
+	return fyne.NewSize(labelW+sliderMinW+2*padding, h)
+}
+
+func (r *sliderRenderer) Refresh() {
+	r.slider.Step = r.widget.step
+	if r.slider.Value != r.widget.value {
+		r.slider.Value = r.widget.value
+		r.slider.Refresh()
+	}
+	r.label.SetText(ftoa(r.widget.value))
+	r.label.Refresh()
+	r.slider.Refresh()
+}
+
+func (r *sliderRenderer) Objects() []fyne.CanvasObject {
+	return r.objects
+}
+
+func (r *sliderRenderer) Destroy() {}
 
 // ftoa returns a string representation of a float without any unnecessary zeros.
 func ftoa(f float64) string {
-	return stripTrailingZeros(strconv.FormatFloat(f, 'f', 6, 64))
-}
-
-func stripTrailingZeros(s string) string {
-	if !strings.ContainsRune(s, '.') {
-		return s
-	}
-	offset := len(s) - 1
-	for offset > 0 {
-		if s[offset] == '.' {
-			offset--
-			break
-		}
-		if s[offset] != '0' {
-			break
-		}
-		offset--
-	}
-	return s[:offset+1]
+	s := strconv.FormatFloat(f, 'f', 6, 64)
+	s = strings.TrimRight(s, "0")
+	return strings.TrimSuffix(s, ".")
 }

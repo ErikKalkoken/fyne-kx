@@ -33,6 +33,8 @@ import (
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
+
+	kxdialog "github.com/ErikKalkoken/fyne-kx/dialog"
 	"github.com/ErikKalkoken/fyne-kx/internal/stack"
 )
 
@@ -53,10 +55,11 @@ type ProgressModal struct {
 	// Optional callback when the action succeeded.
 	OnSuccess func()
 
-	action func(binding.Float) error
-	d      *dialog.CustomDialog
-	pb     *widget.ProgressBar
-	pg     binding.Float
+	action  func(binding.Float) error
+	d       *dialog.CustomDialog
+	pb      *widget.ProgressBar
+	pg      binding.Float
+	started bool
 }
 
 // NewProgress returns a new [ProgressModal] instance.
@@ -74,27 +77,15 @@ func NewProgress(title, message string, action func(progress binding.Float) erro
 }
 
 // Start starts the action function and shows the modal while it is running.
+// A modal can be started once only.
 func (m *ProgressModal) Start() {
-	openDialogs.Push(m.d)
-	m.d.Show()
-	go func() {
-		err := m.action(m.pg)
-		d, err2 := openDialogs.Pop()
-		if err2 == nil {
-			fyne.Do(func() {
-				d.Hide()
-			})
-		}
-		if err != nil {
-			if m.OnError != nil {
-				m.OnError(err)
-			}
-		} else {
-			if m.OnSuccess != nil {
-				m.OnSuccess()
-			}
-		}
-	}()
+	if m.started {
+		return
+	}
+	m.started = true
+	startAction(m.d, m.OnSuccess, m.OnError, nil, func() error {
+		return m.action(m.pg)
+	})
 }
 
 // ProgressCancelModal is a modal that shows a progress indicator while a function is running.
@@ -111,9 +102,10 @@ type ProgressCancelModal struct {
 	d        *dialog.CustomDialog
 	pb       *widget.ProgressBar
 	pg       binding.Float
+	started  bool
 }
 
-// NewProgress returns a new [ProgressModal] instance.
+// NewProgressWithCancel returns a new [ProgressModal] instance.
 func NewProgressWithCancel(title, message string, action func(progress binding.Float, canceled chan struct{}) error, max float64, parent fyne.Window) *ProgressCancelModal {
 	m := &ProgressCancelModal{
 		action: action,
@@ -128,43 +120,24 @@ func NewProgressWithCancel(title, message string, action func(progress binding.F
 		container.NewPadded(),
 		container.NewCenter(widget.NewButton("Cancel", func() {
 			closeChannelIfOpen(m.canceled)
-		})))
+		})),
+	)
 	m.d = dialog.NewCustomWithoutButtons(title, content, parent)
+	kxdialog.AddDialogKeyHandler(m.d, parent)
 	return m
 }
 
 // Start starts the action function and shows the modal while it is running.
+// A modal can be started once only.
 func (m *ProgressCancelModal) Start() {
-	m.canceled = make(chan struct{})
-	openDialogs.Push(m.d)
-	m.d.Show()
-	go func() {
-		err := m.action(m.pg, m.canceled)
-		d, err2 := openDialogs.Pop()
-		if err2 == nil {
-			fyne.Do(func() {
-				d.Hide()
-			})
-		}
-		if err != nil {
-			if m.OnError != nil {
-				m.OnError(err)
-			}
-		} else {
-			closeChannelIfOpen(m.canceled)
-			if m.OnSuccess != nil {
-				m.OnSuccess()
-			}
-		}
-	}()
-}
-
-func closeChannelIfOpen(c chan struct{}) {
-	select {
-	case <-c:
-	default:
-		close(c)
+	if m.started {
+		return
 	}
+	m.started = true
+	m.canceled = make(chan struct{})
+	startAction(m.d, m.OnSuccess, m.OnError, m.canceled, func() error {
+		return m.action(m.pg, m.canceled)
+	})
 }
 
 // ProgressInfiniteModal is a modal that shows an infinite progress indicator while a function is running.
@@ -175,9 +148,10 @@ type ProgressInfiniteModal struct {
 	// Optional callback when the action succeeded.
 	OnSuccess func()
 
-	action func() error
-	d      *dialog.CustomDialog
-	pb     *widget.ProgressBarInfinite
+	action  func() error
+	d       *dialog.CustomDialog
+	pb      *widget.ProgressBarInfinite
+	started bool
 }
 
 // NewProgressInfinite returns a new [ProgressInfiniteModal] instance.
@@ -192,27 +166,13 @@ func NewProgressInfinite(title, message string, action func() error, parent fyne
 }
 
 // Start starts the action function and shows the modal while it is running.
+// A modal can be started once only.
 func (m *ProgressInfiniteModal) Start() {
-	openDialogs.Push(m.d)
-	m.d.Show()
-	go func() {
-		err := m.action()
-		d, err2 := openDialogs.Pop()
-		if err2 == nil {
-			fyne.Do(func() {
-				d.Hide()
-			})
-		}
-		if err != nil {
-			if m.OnError != nil {
-				m.OnError(err)
-			}
-		} else {
-			if m.OnSuccess != nil {
-				m.OnSuccess()
-			}
-		}
-	}()
+	if m.started {
+		return
+	}
+	m.started = true
+	startAction(m.d, m.OnSuccess, m.OnError, nil, m.action)
 }
 
 // ProgressInfiniteCancelModal is a modal that shows an infinite progress indicator while a function is running.
@@ -228,6 +188,7 @@ type ProgressInfiniteCancelModal struct {
 	canceled chan struct{}
 	d        *dialog.CustomDialog
 	pb       *widget.ProgressBarInfinite
+	started  bool
 }
 
 // NewProgressInfiniteWithCancel returns a new [ProgressInfiniteCancelModal] instance.
@@ -245,33 +206,59 @@ func NewProgressInfiniteWithCancel(
 		container.NewPadded(),
 		container.NewCenter(widget.NewButton("Cancel", func() {
 			closeChannelIfOpen(m.canceled)
-		})))
+		})),
+	)
 	m.d = dialog.NewCustomWithoutButtons(title, content, parent)
+	kxdialog.AddDialogKeyHandler(m.d, parent)
 	return m
 }
 
 // Start starts the action function and shows the modal while it is running.
+// A modal can be started once only.
 func (m *ProgressInfiniteCancelModal) Start() {
+	if m.started {
+		return
+	}
+	m.started = true
 	m.canceled = make(chan struct{})
-	openDialogs.Push(m.d)
-	m.d.Show()
+	startAction(m.d, m.OnSuccess, m.OnError, m.canceled, func() error {
+		return m.action(m.canceled)
+	})
+}
+
+func startAction(d *dialog.CustomDialog, onSuccess func(), onError func(error), canceled chan struct{}, run func() error) {
+	openDialogs.Push(d)
+	d.Show()
 	go func() {
-		err := m.action(m.canceled)
-		d, err2 := openDialogs.Pop()
-		if err2 == nil {
+		err := run()
+		if dd, ok := openDialogs.Pop(); ok {
 			fyne.Do(func() {
-				d.Hide()
+				dd.Hide()
 			})
+		} else {
+			fyne.LogError("Failed to hide dialog of progress modal", nil)
 		}
 		if err != nil {
-			if m.OnError != nil {
-				m.OnError(err)
+			if onError != nil {
+				onError(err)
 			}
 		} else {
-			closeChannelIfOpen(m.canceled)
-			if m.OnSuccess != nil {
-				m.OnSuccess()
+			if canceled != nil {
+				fyne.DoAndWait(func() {
+					closeChannelIfOpen(canceled)
+				})
+			}
+			if onSuccess != nil {
+				onSuccess()
 			}
 		}
 	}()
+}
+
+func closeChannelIfOpen(c chan struct{}) {
+	select {
+	case <-c:
+	default:
+		close(c)
+	}
 }
