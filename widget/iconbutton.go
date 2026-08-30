@@ -39,9 +39,13 @@ func NewIconButton(icon fyne.Resource, tapped func()) *IconButton {
 // NewIconButtonWithMenu returns an [IconButton] with a context menu.
 func NewIconButtonWithMenu(icon fyne.Resource, menu *fyne.Menu) *IconButton {
 	w := NewIconButton(icon, nil)
+	if menu == nil {
+		fyne.LogError("IconButton misconfigured: missing menu", nil)
+		return w
+	}
 	w.menu = menu
 	w.OnTapped = func() {
-		if len(w.menu.Items) == 0 {
+		if w.menu == nil || len(w.menu.Items) == 0 {
 			return
 		}
 		m := widget.NewPopUpMenu(menu, fyne.CurrentApp().Driver().CanvasForObject(w))
@@ -72,6 +76,7 @@ func (w *IconButton) setIconResource(icon fyne.Resource) {
 }
 
 // SetMenuItems replaces the menu items.
+// Does nothing when the widget has not bee created with [NewIconButtonWithMenu].
 func (w *IconButton) SetMenuItems(menuItems []*fyne.MenuItem) {
 	if w.menu == nil {
 		return

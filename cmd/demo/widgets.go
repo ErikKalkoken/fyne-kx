@@ -94,113 +94,6 @@ func makeBadge() fyne.CanvasObject {
 	return container.NewVBox(t1, t2, t3)
 }
 
-func makeSlider() fyne.CanvasObject {
-	slider := kxwidget.NewSlider(0, 100)
-	slider.SetValue(25)
-	return slider
-}
-
-func makeSwitch() fyne.CanvasObject {
-	textForBool := func(b bool) string {
-		if b {
-			return "on"
-		}
-		return "off"
-	}
-	switchLabel1 := widget.NewLabel("")
-	switch1 := kxwidget.NewSwitch(func(on bool) {
-		switchLabel1.SetText(textForBool(on))
-	})
-	switch1.On = true
-	switchLabel1.Text = textForBool(switch1.On)
-	switch1Box := container.NewHBox(switch1, switchLabel1)
-
-	switchLabel2 := widget.NewLabel("")
-	switch2 := kxwidget.NewSwitch(func(on bool) {
-		switchLabel2.SetText(textForBool(on))
-	})
-	switchLabel2.Text = textForBool(switch2.On)
-	switch2Box := container.NewHBox(switch2, switchLabel2)
-
-	switch3 := kxwidget.NewSwitch(nil)
-	switch3.On = true
-	switch3.Disable()
-	switch4 := kxwidget.NewSwitch(nil)
-	switch4.Disable()
-	addLabel := func(c fyne.CanvasObject, text string) fyne.CanvasObject {
-		return container.NewHBox(c, widget.NewLabel(text))
-	}
-
-	return container.NewVBox(
-		switch1Box,
-		switch2Box,
-		addLabel(switch3, "on disabled"),
-		addLabel(switch4, "off disabled"),
-	)
-}
-
-func makeTappableImage() fyne.CanvasObject {
-	size := fyne.NewSize(100, 100)
-	imgStandard := kxwidget.NewTappableImage(resourceIconPng, func() {
-		log.Println("TappableImage tapped")
-	})
-	imgStandard.SetFillMode(canvas.ImageFillContain)
-	imgStandard.SetMinSize(size)
-
-	menu := fyne.NewMenu(
-		"",
-		fyne.NewMenuItem("First", func() {
-			log.Println("first selected")
-		}),
-		fyne.NewMenuItem("Second", func() {
-			log.Println("second selected")
-		}),
-	)
-	im1 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
-	im1.SetFillMode(canvas.ImageFillContain)
-	im1.SetMinSize(size)
-	im2 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
-	im2.SetFillMode(canvas.ImageFillContain)
-	im2.SetMinSize(size)
-	im3 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
-	im3.SetFillMode(canvas.ImageFillContain)
-	im3.SetMinSize(size)
-	im4 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
-	im4.SetFillMode(canvas.ImageFillContain)
-	im4.SetMinSize(size)
-	return container.NewBorder(im1, im2, im3, im4, imgStandard)
-}
-
-func makeTappableIcon() fyne.CanvasObject {
-	icon := kxwidget.NewTappableIcon(theme.AccountIcon(), func() {
-		log.Println("TappableIcon tapped")
-	})
-	return container.NewVBox(icon)
-}
-
-func makeTappableLabel() fyne.CanvasObject {
-	label := kxwidget.NewTappableLabel("Tap me", func() {
-		log.Println("TappableLabel tapped")
-	})
-	return container.NewHBox(label, widget.NewLabel("<- tap"))
-}
-
-func makeToolbarActionMenu() fyne.CanvasObject {
-	menu := kxwidget.NewToolbarActionMenu(theme.MenuIcon(), fyne.NewMenu(
-		"",
-		fyne.NewMenuItem("First", func() {
-			log.Println("first selected")
-		}),
-		fyne.NewMenuItem("Second", func() {
-			log.Println("second selected")
-		}),
-	))
-	ntb := widget.NewToolbar(menu, widget.NewToolbarAction(theme.AccountIcon(), func() {
-		log.Println("Account tapped")
-	}))
-	return container.NewVBox(ntb)
-}
-
 func makeFilterChip() fyne.CanvasObject {
 	c1 := kxwidget.NewFilterChip("Charlie", nil)
 	c1.Disable()
@@ -334,4 +227,111 @@ func makeSortChip() fyne.CanvasObject {
 	}
 	c := container.NewVBox(s1, s2, container.NewPadded(), b1)
 	return c
+}
+
+func makeSlider() fyne.CanvasObject {
+	slider := kxwidget.NewSlider(0, 100)
+	slider.SetValue(25)
+	return slider
+}
+
+func makeSwitch() fyne.CanvasObject {
+	textForBool := func(b bool) string {
+		if b {
+			return "on"
+		}
+		return "off"
+	}
+
+	makeContainer := func(sw *kxwidget.Switch, label *widget.Label) *fyne.Container {
+		return container.NewBorder(nil, nil, nil, container.NewCenter(label), sw)
+	}
+
+	label1 := widget.NewLabel("")
+	switch1 := kxwidget.NewSwitch(func(on bool) {
+		label1.SetText(textForBool(on))
+	})
+	switch1.On = true
+	label1.Text = textForBool(switch1.On)
+	c1 := makeContainer(switch1, label1)
+
+	label2 := widget.NewLabel("")
+	switch2 := kxwidget.NewSwitch(func(on bool) {
+		label2.SetText(textForBool(on))
+	})
+	label2.Text = textForBool(switch2.On)
+	c2 := makeContainer(switch2, label2)
+
+	switch3 := kxwidget.NewSwitch(nil)
+	switch3.On = true
+	switch3.Disable()
+	c3 := makeContainer(switch3, widget.NewLabel("on disabled"))
+
+	switch4 := kxwidget.NewSwitch(nil)
+	switch4.Disable()
+	c4 := makeContainer(switch4, widget.NewLabel("off disabled"))
+
+	return container.NewGridWithRows(4, c1, c2, c3, c4)
+}
+
+func makeTappableIcon() fyne.CanvasObject {
+	icon := kxwidget.NewTappableIcon(theme.AccountIcon(), func() {
+		log.Println("TappableIcon tapped")
+	})
+	return container.NewVBox(icon)
+}
+
+func makeTappableImage() fyne.CanvasObject {
+	size := fyne.NewSize(100, 100)
+	imgStandard := kxwidget.NewTappableImage(resourceIconPng, func() {
+		log.Println("TappableImage tapped")
+	})
+	imgStandard.SetFillMode(canvas.ImageFillContain)
+	imgStandard.SetMinSize(size)
+
+	menu := fyne.NewMenu(
+		"",
+		fyne.NewMenuItem("First", func() {
+			log.Println("first selected")
+		}),
+		fyne.NewMenuItem("Second", func() {
+			log.Println("second selected")
+		}),
+	)
+	im1 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
+	im1.SetFillMode(canvas.ImageFillContain)
+	im1.SetMinSize(size)
+	im2 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
+	im2.SetFillMode(canvas.ImageFillContain)
+	im2.SetMinSize(size)
+	im3 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
+	im3.SetFillMode(canvas.ImageFillContain)
+	im3.SetMinSize(size)
+	im4 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
+	im4.SetFillMode(canvas.ImageFillContain)
+	im4.SetMinSize(size)
+	return container.NewBorder(im1, im2, im3, im4, imgStandard)
+}
+
+func makeTappableLabel() fyne.CanvasObject {
+	label := kxwidget.NewTappableLabel("Tap me", func() {
+		log.Println("TappableLabel tapped")
+	})
+	return container.NewHBox(label, widget.NewLabel("<- tap"))
+}
+
+func makeToolbarActionMenu() fyne.CanvasObject {
+	menu := kxwidget.NewToolbarActionMenu(theme.MenuIcon(), fyne.NewMenu(
+		"",
+		fyne.NewMenuItem("First", func() {
+			log.Println("first selected")
+		}),
+		fyne.NewMenuItem("Second", func() {
+			log.Println("second selected")
+		}),
+	))
+	ntb := widget.NewToolbar(menu, widget.NewToolbarAction(theme.AccountIcon(), func() {
+		log.Println("Account tapped")
+	}))
+	return container.NewVBox(ntb)
 }

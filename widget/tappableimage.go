@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// TappableImage is widget which shows an image and runs a function when tapped.
+// TappableImage is widget which shows an image and calls a callback when tapped.
 type TappableImage struct {
 	widget.BaseWidget
 
@@ -27,6 +27,10 @@ var _ desktop.Hoverable = (*TappableImage)(nil)
 // NewTappableImageWithMenu returns a new instance of a [TappableImage] widget with a context menu.
 func NewTappableImageWithMenu(res fyne.Resource, menu *fyne.Menu) *TappableImage {
 	w := newTappableImage(res, nil)
+	if menu == nil {
+		fyne.LogError("TappableImage misconfigured: missing menu", nil)
+		return w
+	}
 	w.menu = menu
 	w.OnTapped = func() {
 		if len(w.menu.Items) == 0 {
@@ -45,9 +49,9 @@ func NewTappableImage(res fyne.Resource, tapped func()) *TappableImage {
 }
 
 func newTappableImage(res fyne.Resource, tapped func()) *TappableImage {
-	ti := &TappableImage{OnTapped: tapped, image: canvas.NewImageFromResource(res)}
-	ti.ExtendBaseWidget(ti)
-	return ti
+	w := &TappableImage{OnTapped: tapped, image: canvas.NewImageFromResource(res)}
+	w.ExtendBaseWidget(w)
+	return w
 }
 
 // SetFillMode sets the fill mode of the image.
@@ -67,6 +71,7 @@ func (w *TappableImage) SetResource(r fyne.Resource) {
 }
 
 // SetMenuItems replaces the menu items.
+// Does nothing when the widget has not bee created with [NewTappableImageWithMenu].
 func (w *TappableImage) SetMenuItems(menuItems []*fyne.MenuItem) {
 	if w.menu == nil {
 		return
@@ -94,12 +99,14 @@ func (w *TappableImage) Cursor() desktop.Cursor {
 }
 
 // MouseIn is a hook that is called if the mouse pointer enters the element.
-func (w *TappableImage) MouseIn(e *desktop.MouseEvent) {
-	w.hovered = true
+func (w *TappableImage) MouseIn(me *desktop.MouseEvent) {
+	w.MouseMoved(me)
 }
 
 func (w *TappableImage) MouseMoved(me *desktop.MouseEvent) {
 	w.pos = me.AbsolutePosition
+	s := w.image.Size()
+	w.hovered = s.IsZero() || (me.Position.X <= s.Width && me.Position.Y <= s.Height)
 }
 
 // MouseOut is a hook that is called if the mouse pointer leaves the element.
