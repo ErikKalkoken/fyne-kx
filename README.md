@@ -126,7 +126,8 @@ To run the demo app directly use the following command:
 go run github.com/ErikKalkoken/fyne-kx/cmd/demo@latest
 ```
 
-![example](https://cdn.imgpile.com/f/UFSaUqd_xl.png)
+<img width="860" height="1017" alt="image" src="https://github.com/user-attachments/assets/baac28e7-9bd5-4320-b926-c5b2b5d7531f" />
+
 
 ### Fyne theme
 
