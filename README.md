@@ -18,9 +18,7 @@ A library with extensions and tools for the Fyne GUI toolkit.
   - [Modals](#modals)
   - [Themes](#themes)
   - [Widgets](#widgets)
-- [Apps](#apps)
-  - [demo](#demo)
-  - [fynetheme](#fyne-theme)
+- [Demo](#demo)
 
 ## Installation
 
@@ -108,41 +106,21 @@ func main() {
 }
 ```
 
-## Apps
+## Demo
 
-This library also contains two Fyne apps.
+Demo is a Fyne app for demonstrating the features provided by the fyne-kx library. It also serves as example on how to use each component of this library in code.
 
-> [!TIP]
+![example](https://cdn.imgpile.com/f/UFSaUqd_xl.png)
+
+> [!IMPORTANT]
 > To run any of the provided Fyne apps directly, you need to have Fyne installed and configured in your system.
 > For more information on how to configure your system for Fyne please see: [Getting Started](https://docs.fyne.io/started/).
 
-### Demo
-
-Demo is a Fyne app for demonstrating the features provided by the fyne-kx library. It can also show you how each component of this library can be used in code.
-
-To run the demo app directly use the following command:
+You can run the demo app directly from the repo with:
 
 ```sh
 go run github.com/ErikKalkoken/fyne-kx/cmd/demo@latest
 ```
 
-<img width="860" height="1017" alt="image" src="https://github.com/user-attachments/assets/baac28e7-9bd5-4320-b926-c5b2b5d7531f" />
-
-
-### Fyne theme
-
-Fynetheme is a Fyne app for showing details about the default Fyne theme like colors, icons and sizes and has a search functions to help find them more quickly. This app can be especially useful when creating your own widgets.
-
-You can install this tool directly with the following command:
-
-```sh
-go install github.com/ErikKalkoken/fyne-kx/cmd/fynetheme@latest
-```
-
-Once installed it will be available with:
-
-```sh
-fynetheme
-```
-
-![Example](https://cdn.imgpile.com/f/vCHVA6I_xl.png)
+> [!NOTE]
+> The `fynetheme` app has moved to its own repo: [fyne-theme-explorer](https://github.com/ErikKalkoken/fyne-theme-explorer).
