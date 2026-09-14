@@ -3,6 +3,7 @@ package widget_test
 import (
 	"testing"
 
+	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/test"
 	"fyne.io/fyne/v2/theme"
 	"github.com/stretchr/testify/assert"
@@ -42,4 +43,20 @@ func TestTappableIcon_IgnoreTapWhenNoCallback(t *testing.T) {
 	defer w.Close()
 
 	test.Tap(icon)
+}
+
+func TestTappableIcon_MouseInOutTogglesPointerCursor(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	icon := widget.NewTappableIcon(theme.HomeIcon(), nil)
+	w := test.NewWindow(icon)
+	defer w.Close()
+
+	assert.Equal(t, desktop.DefaultCursor, icon.Cursor())
+
+	icon.MouseIn(&desktop.MouseEvent{})
+	assert.Equal(t, desktop.PointerCursor, icon.Cursor())
+
+	icon.MouseOut()
+	assert.Equal(t, desktop.DefaultCursor, icon.Cursor())
 }
