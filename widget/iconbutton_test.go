@@ -5,6 +5,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/test"
 	"fyne.io/fyne/v2/theme"
 	"github.com/stretchr/testify/assert"
@@ -112,4 +113,59 @@ func TestIconButton_ShowNoMenuWhenTappedAndDisabled(t *testing.T) {
 	test.Tap(icon)
 
 	test.AssertImageMatches(t, "iconbutton/menu_disabled.png", w.Canvas().Capture())
+}
+
+func TestIconButton_MouseInOutTogglesPointerCursorWhenEnabled(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	icon := kxwidget.NewIconButton(theme.HomeIcon(), nil)
+	w := test.NewWindow(icon)
+	defer w.Close()
+
+	assert.Equal(t, desktop.DefaultCursor, icon.Cursor())
+
+	icon.MouseIn(&desktop.MouseEvent{})
+	assert.Equal(t, desktop.PointerCursor, icon.Cursor())
+
+	icon.MouseOut()
+	assert.Equal(t, desktop.DefaultCursor, icon.Cursor())
+}
+
+func TestIconButton_MouseInDoesNotHoverWhenDisabled(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	icon := kxwidget.NewIconButton(theme.HomeIcon(), nil)
+	icon.Disable()
+	w := test.NewWindow(icon)
+	defer w.Close()
+
+	icon.MouseIn(&desktop.MouseEvent{})
+
+	assert.Equal(t, desktop.DefaultCursor, icon.Cursor(), "a disabled button should never show a hover cursor")
+}
+
+func TestIconButton_SetMenuItemsDoesNothingWithoutMenu(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	icon := kxwidget.NewIconButton(theme.HomeIcon(), nil)
+	w := test.NewWindow(icon)
+	defer w.Close()
+
+	assert.NotPanics(t, func() {
+		icon.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("new", nil)})
+	})
+}
+
+func TestIconButton_SetMenuItemsReplacesItems(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	menu := fyne.NewMenu("", fyne.NewMenuItem("old", nil))
+	icon := kxwidget.NewIconButtonWithMenu(theme.HomeIcon(), menu)
+	w := test.NewWindow(icon)
+	defer w.Close()
+
+	newItems := []*fyne.MenuItem{fyne.NewMenuItem("new", nil)}
+	icon.SetMenuItems(newItems)
+
+	assert.Equal(t, newItems, menu.Items)
 }

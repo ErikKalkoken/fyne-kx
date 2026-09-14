@@ -43,7 +43,10 @@ func (w *Slider) Value() float64 {
 
 // SetValue set the value of a slider.
 func (w *Slider) SetValue(v float64) {
-	w.value = v
+	s := widget.NewSlider(w.min, w.max)
+	s.Step = w.step
+	s.SetValue(v)
+	w.value = s.Value
 	w.Refresh()
 }
 
@@ -61,6 +64,7 @@ func (w *Slider) CreateRenderer() fyne.WidgetRenderer {
 		slider:  slider,
 		objects: []fyne.CanvasObject{label, slider},
 	}
+	r.updateColumnWidths()
 
 	slider.OnChanged = func(v float64) {
 		w.value = v
@@ -84,18 +88,25 @@ type sliderRenderer struct {
 	label   *widget.Label
 	slider  *widget.Slider
 	objects []fyne.CanvasObject
+
+	// labelW and sliderMinW cache the result of updateColumnWidths, since
+	// they only change when the slider's min, max or step change.
+	labelW, sliderMinW float32
 }
 
-// columnWidths returns the width reserved for the label and the minimum
-// width for the slider. The label width is sized to fit its value at both
-// the slider's minimum and maximum, so the slider doesn't shift
-// horizontally as the label's text changes.
-func (r *sliderRenderer) columnWidths() (labelW, sliderW float32) {
+// updateColumnWidths recomputes labelW, the width reserved for the label,
+// and sliderMinW, the minimum width for the slider. The label width is
+// sized to fit its value at both the slider's minimum and maximum, so the
+// slider doesn't shift horizontally as the label's text changes.
+//
+// This is only called on construction and from Refresh (which runs on
+// SetStep and on theme changes), not from Layout/MinSize, since those are
+// called far more often but min/max/step don't change between calls.
+func (r *sliderRenderer) updateColumnWidths() {
 	minW1 := labelWidth(ftoa(r.slider.Max + r.slider.Step))
 	minW2 := labelWidth(ftoa(r.slider.Min - r.slider.Step))
-	labelW = minW1
-	sliderW = max(minW1, minW2, r.slider.MinSize().Width)
-	return labelW, sliderW
+	r.labelW = minW1
+	r.sliderMinW = max(minW1, minW2, r.slider.MinSize().Width)
 }
 
 func labelWidth(s string) float32 {
@@ -104,21 +115,19 @@ func labelWidth(s string) float32 {
 
 func (r *sliderRenderer) Layout(size fyne.Size) {
 	padding := theme.Padding()
-	labelW, sliderMinW := r.columnWidths()
 
-	r.label.Resize(fyne.NewSize(labelW, r.label.MinSize().Height))
+	r.label.Resize(fyne.NewSize(r.labelW, r.label.MinSize().Height))
 	r.label.Move(fyne.NewPos(0, 0))
 
-	sliderW := fyne.Max(size.Width-labelW-2*padding, sliderMinW)
+	sliderW := fyne.Max(size.Width-r.labelW-2*padding, r.sliderMinW)
 	r.slider.Resize(fyne.NewSize(sliderW, r.slider.MinSize().Height))
-	r.slider.Move(fyne.NewPos(labelW+padding, 0))
+	r.slider.Move(fyne.NewPos(r.labelW+padding, 0))
 }
 
 func (r *sliderRenderer) MinSize() fyne.Size {
 	padding := theme.Padding()
-	labelW, sliderMinW := r.columnWidths()
 	h := fyne.Max(r.label.MinSize().Height, r.slider.MinSize().Height)
-	return fyne.NewSize(labelW+sliderMinW+2*padding, h)
+	return fyne.NewSize(r.labelW+r.sliderMinW+2*padding, h)
 }
 
 func (r *sliderRenderer) Refresh() {
@@ -127,6 +136,7 @@ func (r *sliderRenderer) Refresh() {
 		r.slider.Value = r.widget.value
 		r.slider.Refresh()
 	}
+	r.updateColumnWidths()
 	r.label.SetText(ftoa(r.widget.value))
 	r.label.Refresh()
 	r.slider.Refresh()

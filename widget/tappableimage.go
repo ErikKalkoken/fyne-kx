@@ -105,8 +105,11 @@ func (w *TappableImage) MouseIn(me *desktop.MouseEvent) {
 
 func (w *TappableImage) MouseMoved(me *desktop.MouseEvent) {
 	w.pos = me.AbsolutePosition
+	pos := w.image.Position()
 	s := w.image.Size()
-	w.hovered = s.IsZero() || (me.Position.X <= s.Width && me.Position.Y <= s.Height)
+	w.hovered = s.IsZero() ||
+		(me.Position.X >= pos.X && me.Position.X <= pos.X+s.Width &&
+			me.Position.Y >= pos.Y && me.Position.Y <= pos.Y+s.Height)
 }
 
 // MouseOut is a hook that is called if the mouse pointer leaves the element.

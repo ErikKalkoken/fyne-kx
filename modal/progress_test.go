@@ -124,3 +124,141 @@ func TestProgressInfiniteModal_Success(t *testing.T) {
 		t.Fatal("Timeout waiting for OnSuccess callback")
 	}
 }
+
+func TestProgressCancelModal_Success(t *testing.T) {
+	testApp := test.NewApp()
+	defer testApp.Quit()
+	w := testApp.NewWindow("Test")
+
+	successCalled := make(chan struct{})
+	var canceled chan struct{}
+
+	m := modal.NewProgressWithCancel("Title", "Message", func(pg binding.Float, c chan struct{}) error {
+		canceled = c
+		return nil
+	}, 100.0, w)
+
+	m.OnSuccess = func() {
+		close(successCalled)
+	}
+
+	m.Start()
+
+	select {
+	case <-successCalled:
+		select {
+		case <-canceled:
+			// the canceled channel is closed automatically on success
+		default:
+			t.Error("canceled channel should be closed after successful completion")
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timeout waiting for OnSuccess callback")
+	}
+}
+
+func TestProgressCancelModal_ErrorHandling(t *testing.T) {
+	testApp := test.NewApp()
+	defer testApp.Quit()
+	w := testApp.NewWindow("Test")
+
+	expectedErr := errors.New("something went wrong")
+	errChan := make(chan error, 1)
+
+	m := modal.NewProgressWithCancel("Title", "Message", func(pg binding.Float, canceled chan struct{}) error {
+		return expectedErr
+	}, 100.0, w)
+
+	m.OnError = func(err error) {
+		errChan <- err
+	}
+
+	m.Start()
+
+	select {
+	case err := <-errChan:
+		assert.Equal(t, expectedErr, err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timeout waiting for OnError callback")
+	}
+}
+
+func TestProgressCancelModal_PreventsDoubleStart(t *testing.T) {
+	testApp := test.NewApp()
+	defer testApp.Quit()
+	w := testApp.NewWindow("Test")
+
+	executionCount := 0
+	done := make(chan struct{})
+
+	m := modal.NewProgressWithCancel("Title", "Message", func(pg binding.Float, canceled chan struct{}) error {
+		executionCount++
+		return nil
+	}, 100.0, w)
+
+	m.OnSuccess = func() {
+		close(done)
+	}
+
+	m.Start()
+	m.Start() // Second call should be ignored immediately
+
+	select {
+	case <-done:
+		time.Sleep(50 * time.Millisecond)
+		assert.Equal(t, 1, executionCount)
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timeout waiting for action completion")
+	}
+}
+
+func TestProgressInfiniteCancelModal_Success(t *testing.T) {
+	testApp := test.NewApp()
+	defer testApp.Quit()
+	w := testApp.NewWindow("Test")
+
+	successCalled := make(chan struct{})
+
+	m := modal.NewProgressInfiniteWithCancel("Title", "Message", func(canceled chan struct{}) error {
+		return nil
+	}, w)
+
+	m.OnSuccess = func() {
+		close(successCalled)
+	}
+
+	m.Start()
+
+	select {
+	case <-successCalled:
+		// Success case passed
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timeout waiting for OnSuccess callback")
+	}
+}
+
+func TestProgressInfiniteCancelModal_ErrorHandling(t *testing.T) {
+	testApp := test.NewApp()
+	defer testApp.Quit()
+	w := testApp.NewWindow("Test")
+
+	expectedErr := errors.New("something went wrong")
+	errChan := make(chan error, 1)
+
+	m := modal.NewProgressInfiniteWithCancel("Title", "Message", func(canceled chan struct{}) error {
+		return expectedErr
+	}, w)
+
+	m.OnError = func(err error) {
+		errChan <- err
+	}
+
+	m.Start()
+
+	select {
+	case err := <-errChan:
+		assert.Equal(t, expectedErr, err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timeout waiting for OnError callback")
+	}
+}

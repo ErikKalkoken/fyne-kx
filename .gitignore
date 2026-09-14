@@ -27,3 +27,5 @@ go.work.sum
 # other
 .temp
 **/testdata/failed
+.claude/
+.mcp.json
