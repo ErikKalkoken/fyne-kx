@@ -43,7 +43,10 @@ func (w *Slider) Value() float64 {
 
 // SetValue set the value of a slider.
 func (w *Slider) SetValue(v float64) {
-	w.value = v
+	s := widget.NewSlider(w.min, w.max)
+	s.Step = w.step
+	s.SetValue(v)
+	w.value = s.Value
 	w.Refresh()
 }
 
