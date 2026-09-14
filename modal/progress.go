@@ -4,7 +4,7 @@ Package modal defines modals for the Fyne GUI toolkit.
 # Modals
 
 Modals are similar to Fyne dialogs, but do not require user interaction.
-They are useful when you have a longer running process that the user needs to wait for before he can continue. e.g. opening a large file.
+They are useful when you have a longer running process that the user needs to wait for before they can continue. e.g. opening a large file.
 
 # Progress modals
 
