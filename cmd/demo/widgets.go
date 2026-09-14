@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -231,6 +232,24 @@ func makeSortChip() fyne.CanvasObject {
 	}
 	c := container.NewVBox(s1, s2, container.NewPadded(), b1)
 	return c
+}
+
+func makeProgressButton() fyne.CanvasObject {
+	b1 := kxwidget.NewProgressButton("Run action", nil, func() {
+		time.Sleep(2 * time.Second)
+	})
+
+	b2 := kxwidget.NewProgressButton("With icon", theme.ConfirmIcon(), func() {
+		time.Sleep(2 * time.Second)
+	})
+	b2.SetImportance(widget.HighImportance)
+
+	b3 := kxwidget.NewProgressButton("Disabled", nil, func() {
+		time.Sleep(2 * time.Second)
+	})
+	b3.Disable()
+
+	return container.NewVBox(b1, b2, b3)
 }
 
 func makeSlider() fyne.CanvasObject {
