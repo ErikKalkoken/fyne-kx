@@ -30,6 +30,7 @@ func main() {
 	w := app.NewWindow("KX Demo")
 
 	pages := []treeItem{
+		{"All", makeAll()},
 		{"Badge", makeBadge()},
 		{"Columns", makeColumns()},
 		{"Dialogs", makeDialogs(w)},
@@ -83,6 +84,7 @@ func main() {
 				return s
 			case "Widgets":
 				s := []widget.TreeNodeID{
+					"All",
 					"Badge",
 					"FilterChip",
 					"FilterChipGroup",
@@ -159,6 +161,7 @@ func main() {
 		main,
 	))
 	w.Resize(fyne.NewSize(600, 500))
+	nav.Select("All")
 	w.ShowAndRun()
 }
 
