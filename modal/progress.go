@@ -105,7 +105,7 @@ type ProgressCancelModal struct {
 	started  bool
 }
 
-// NewProgressWithCancel returns a new [ProgressModal] instance.
+// NewProgressWithCancel returns a new [ProgressCancelModal] instance.
 func NewProgressWithCancel(title, message string, action func(progress binding.Float, canceled chan struct{}) error, max float64, parent fyne.Window) *ProgressCancelModal {
 	m := &ProgressCancelModal{
 		action: action,
