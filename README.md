@@ -82,9 +82,15 @@ This library contains several Fyne widgets:
 
 The widgets can be used just like any other widget from the Fyne standard library. All widgets are themeable and unit tested. Please also see the [demo](#demo) that shows all widgets in action.
 
+### Widgets demo
+
+Please see below for a demo of all widgets.
+
+<img width="860" height="1017" alt="Screenshot from 2026-09-14 18-21-18" src="https://github.com/user-attachments/assets/08bac000-fe8b-47f1-bd33-78d77a82c3b3" />
+
 ### ProgressButton demo
 
-The following is a demonstration of ProgressButtons with different styling.
+The following is a video demonstration of different ProgressButtons in action.
 
 [ProgressButton demo](https://github.com/user-attachments/assets/475f38c0-a024-4c3b-9d25-fe8b91ff0d9e)
 
@@ -117,8 +123,6 @@ func main() {
 ## Demo
 
 Demo is a Fyne app for demonstrating the features provided by the fyne-kx library. It also serves as example on how to use each component of this library in code.
-
-![example](https://cdn.imgpile.com/f/UFSaUqd_xl.png)
 
 > [!IMPORTANT]
 > To run any of the provided Fyne apps directly, you need to have Fyne installed and configured in your system.
