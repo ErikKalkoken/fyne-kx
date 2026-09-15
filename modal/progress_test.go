@@ -21,13 +21,13 @@ func TestProgressModal_Success(t *testing.T) {
 	successCalled := make(chan struct{})
 	var finalProgress float64
 
-	m := modal.NewProgress("Title", "Message", func(pg binding.Float) error {
+	m := modal.NewProgress("Title", "Message", func(pg binding.Float, done func(error)) {
 		err := pg.Set(50.0)
 		require.NoError(t, err)
 		val, err := pg.Get()
 		require.NoError(t, err)
 		finalProgress = val
-		return nil
+		done(nil)
 	}, 100.0, w)
 
 	m.OnSuccess = func() {
@@ -52,8 +52,8 @@ func TestProgressModal_ErrorHandling(t *testing.T) {
 	expectedErr := errors.New("something went wrong")
 	errChan := make(chan error, 1)
 
-	m := modal.NewProgress("Title", "Message", func(pg binding.Float) error {
-		return expectedErr
+	m := modal.NewProgress("Title", "Message", func(pg binding.Float, done func(error)) {
+		done(expectedErr)
 	}, 100.0, w)
 
 	m.OnError = func(err error) {
@@ -78,9 +78,9 @@ func TestProgressModal_PreventsDoubleStart(t *testing.T) {
 	executionCount := 0
 	done := make(chan struct{})
 
-	m := modal.NewProgressInfinite("Title", "Message", func() error {
+	m := modal.NewProgressInfinite("Title", "Message", func(cb func(error)) {
 		executionCount++
-		return nil
+		cb(nil)
 	}, w)
 
 	m.OnSuccess = func() {
@@ -107,8 +107,8 @@ func TestProgressInfiniteModal_Success(t *testing.T) {
 
 	successCalled := make(chan struct{})
 
-	m := modal.NewProgressInfinite("Title", "Message", func() error {
-		return nil
+	m := modal.NewProgressInfinite("Title", "Message", func(done func(error)) {
+		done(nil)
 	}, w)
 
 	m.OnSuccess = func() {
@@ -131,11 +131,12 @@ func TestProgressCancelModal_Success(t *testing.T) {
 	w := testApp.NewWindow("Test")
 
 	successCalled := make(chan struct{})
-	var canceled chan struct{}
+	cancelRegistered := make(chan struct{})
 
-	m := modal.NewProgressWithCancel("Title", "Message", func(pg binding.Float, c chan struct{}) error {
-		canceled = c
-		return nil
+	m := modal.NewProgressWithCancel("Title", "Message", func(pg binding.Float, onCancel func(func()), done func(error)) {
+		onCancel(func() {})
+		close(cancelRegistered)
+		done(nil)
 	}, 100.0, w)
 
 	m.OnSuccess = func() {
@@ -147,10 +148,10 @@ func TestProgressCancelModal_Success(t *testing.T) {
 	select {
 	case <-successCalled:
 		select {
-		case <-canceled:
-			// the canceled channel is closed automatically on success
+		case <-cancelRegistered:
+			// onCancel was called, as expected
 		default:
-			t.Error("canceled channel should be closed after successful completion")
+			t.Error("onCancel should have been called by the action")
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("Timeout waiting for OnSuccess callback")
@@ -165,8 +166,8 @@ func TestProgressCancelModal_ErrorHandling(t *testing.T) {
 	expectedErr := errors.New("something went wrong")
 	errChan := make(chan error, 1)
 
-	m := modal.NewProgressWithCancel("Title", "Message", func(pg binding.Float, canceled chan struct{}) error {
-		return expectedErr
+	m := modal.NewProgressWithCancel("Title", "Message", func(pg binding.Float, onCancel func(func()), done func(error)) {
+		done(expectedErr)
 	}, 100.0, w)
 
 	m.OnError = func(err error) {
@@ -191,9 +192,9 @@ func TestProgressCancelModal_PreventsDoubleStart(t *testing.T) {
 	executionCount := 0
 	done := make(chan struct{})
 
-	m := modal.NewProgressWithCancel("Title", "Message", func(pg binding.Float, canceled chan struct{}) error {
+	m := modal.NewProgressWithCancel("Title", "Message", func(pg binding.Float, onCancel func(func()), cb func(error)) {
 		executionCount++
-		return nil
+		cb(nil)
 	}, 100.0, w)
 
 	m.OnSuccess = func() {
@@ -219,8 +220,8 @@ func TestProgressInfiniteCancelModal_Success(t *testing.T) {
 
 	successCalled := make(chan struct{})
 
-	m := modal.NewProgressInfiniteWithCancel("Title", "Message", func(canceled chan struct{}) error {
-		return nil
+	m := modal.NewProgressInfiniteWithCancel("Title", "Message", func(onCancel func(func()), done func(error)) {
+		done(nil)
 	}, w)
 
 	m.OnSuccess = func() {
@@ -245,8 +246,8 @@ func TestProgressInfiniteCancelModal_ErrorHandling(t *testing.T) {
 	expectedErr := errors.New("something went wrong")
 	errChan := make(chan error, 1)
 
-	m := modal.NewProgressInfiniteWithCancel("Title", "Message", func(canceled chan struct{}) error {
-		return expectedErr
+	m := modal.NewProgressInfiniteWithCancel("Title", "Message", func(onCancel func(func()), done func(error)) {
+		done(expectedErr)
 	}, w)
 
 	m.OnError = func(err error) {

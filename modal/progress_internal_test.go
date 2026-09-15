@@ -2,28 +2,63 @@ package modal
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCloseChannelIfOpen_ClosesOpenChannel(t *testing.T) {
-	c := make(chan struct{})
+func TestCancelRegistry_RegisterThenCancel(t *testing.T) {
+	c := &cancelRegistry{}
+	called := make(chan struct{})
 
-	closeChannelIfOpen(c)
+	c.register(func() {
+		close(called)
+	})
+	c.requestCancel()
 
 	select {
-	case <-c:
-		// channel is closed, as expected
-	default:
-		t.Fatal("channel should be closed")
+	case <-called:
+	case <-time.After(2 * time.Second):
+		t.Fatal("handler was not called")
 	}
 }
 
-func TestCloseChannelIfOpen_IsSafeOnAlreadyClosedChannel(t *testing.T) {
-	c := make(chan struct{})
-	close(c)
+func TestCancelRegistry_CancelThenRegister(t *testing.T) {
+	c := &cancelRegistry{}
+	called := make(chan struct{})
 
-	assert.NotPanics(t, func() {
-		closeChannelIfOpen(c)
+	c.requestCancel()
+	c.register(func() {
+		close(called)
 	})
+
+	select {
+	case <-called:
+	case <-time.After(2 * time.Second):
+		t.Fatal("handler registered after cancel should run immediately")
+	}
+}
+
+func TestCancelRegistry_RequestCancelIsIdempotent(t *testing.T) {
+	c := &cancelRegistry{}
+	callCount := 0
+
+	c.register(func() {
+		callCount++
+	})
+	c.requestCancel()
+	c.requestCancel()
+
+	assert.Equal(t, 1, callCount)
+}
+
+func TestCancelRegistry_RegisterWithoutCancelDoesNothing(t *testing.T) {
+	c := &cancelRegistry{}
+	called := false
+
+	c.register(func() {
+		called = true
+	})
+
+	assert.False(t, called)
 }
