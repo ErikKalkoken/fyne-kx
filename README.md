@@ -80,9 +80,17 @@ This library contains several Fyne widgets:
 - [TappableImage](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableImage) is widget which shows an image and runs a function when tapped.
 - [TappableLabel](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableLabel) is a variant of the Fyne Label which runs a function when tapped.
 
-The widgets can be used just like any other widget from the Fyne standard library. All widgets are themeable and unit tested.
+The widgets can be used just like any other widget from the Fyne standard library. All widgets are themeable and unit tested. Please also see the [demo](#demo) that shows all widgets in action.
 
-Here is an example for the Switch widget:
+### ProgressButton demo
+
+The following is a demonstration of ProgressButtons with different styling.
+
+[ProgressButton demo](https://github.com/user-attachments/assets/475f38c0-a024-4c3b-9d25-fe8b91ff0d9e)
+
+### Example
+
+Here is an example on how to use the Switch widget in code:
 
 ```go
 package main
