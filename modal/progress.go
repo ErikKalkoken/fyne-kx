@@ -28,15 +28,9 @@ once, as early as convenient, with a function that aborts the running work (e.g.
 a context.Context). onCancel is safe to call from any goroutine, and works no matter
 whether it is called before or after the user presses the Cancel button.
 
-A progress modal can be used similar to Fyne dialogs:
-
-	m := kxmodal.NewProgressInfinite("Loading file", "Loading file XX. Please wait.", func(done func(error)) {
-		go func() {
-			time.Sleep(3 * time.Second) // simulate a long running process
-			done(nil)
-		}()
-	}, w)
-	m.Start()
+A progress modal can be used similar to Fyne dialogs. See the examples for [NewProgress],
+[NewProgressWithCancel], [NewProgressInfinite] and [NewProgressInfiniteWithCancel] for
+basic usage.
 */
 package modal
 
