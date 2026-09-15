@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -22,12 +23,14 @@ type ProgressButton struct {
 	// done is safe to call from any goroutine and more than once.
 	OnAction func(done func())
 
-	button       *lockableButton
-	disabledTemp bool
-	icon         fyne.Resource
-	label        string
-	progress     *widget.Activity
-	spacer       *canvas.Rectangle
+	button        *lockableButton
+	disabledTemp  bool
+	icon          fyne.Resource
+	label         string
+	progress      *widget.Activity
+	progressTheme *activityColorTheme
+	progressWrap  *container.ThemeOverride
+	spacer        *canvas.Rectangle
 }
 
 var _ fyne.Accessible = (*ProgressButton)(nil)
@@ -90,17 +93,72 @@ func (w *ProgressButton) restore() {
 }
 
 func (w *ProgressButton) CreateRenderer() fyne.WidgetRenderer {
-	c := container.NewStack(w.spacer, w.button, w.progress)
+	if w.progressWrap == nil {
+		w.progressTheme = &activityColorTheme{
+			Theme:     w.Theme(),
+			colorName: progressButtonForegroundColor(w.button.Importance),
+		}
+		w.progressWrap = container.NewThemeOverride(w.progress, w.progressTheme)
+	}
+	c := container.NewStack(w.spacer, w.button, w.progressWrap)
 	return widget.NewSimpleRenderer(c)
+}
+
+// Refresh resyncs the progress indicator's theme override with the current
+// theme (e.g. after an app-wide theme change) before delegating to the
+// default widget refresh.
+func (w *ProgressButton) Refresh() {
+	if w.progressTheme != nil {
+		w.progressTheme.Theme = w.Theme()
+		w.progressWrap.Refresh()
+	}
+	w.BaseWidget.Refresh()
 }
 
 // SetImportance sets the importance of the button.
 func (w *ProgressButton) SetImportance(v widget.Importance) {
 	w.button.Importance = v
+	if w.progressTheme != nil {
+		w.progressTheme.colorName = progressButtonForegroundColor(v)
+		w.progressWrap.Refresh()
+	}
 	if w.button.locked {
 		return
 	}
 	w.button.Refresh()
+}
+
+// progressButtonForegroundColor returns the same foreground color name a
+// Fyne button uses for its label and icon at the given importance, so the
+// progress indicator's dots can be made to match it.
+func progressButtonForegroundColor(importance widget.Importance) fyne.ThemeColorName {
+	switch importance {
+	case widget.DangerImportance:
+		return theme.ColorNameForegroundOnError
+	case widget.HighImportance:
+		return theme.ColorNameForegroundOnPrimary
+	case widget.SuccessImportance:
+		return theme.ColorNameForegroundOnSuccess
+	case widget.WarningImportance:
+		return theme.ColorNameForegroundOnWarning
+	default: // MediumImportance, LowImportance
+		return theme.ColorNameForeground
+	}
+}
+
+// activityColorTheme redirects theme.ColorNameForeground to colorName, so a
+// [widget.Activity] wrapped in a [container.ThemeOverride] using this theme
+// draws its dots in colorName instead of the plain foreground color.
+type activityColorTheme struct {
+	fyne.Theme
+	colorName fyne.ThemeColorName
+}
+
+func (t *activityColorTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
+	if name == theme.ColorNameForeground {
+		return t.Theme.Color(t.colorName, variant)
+	}
+	return t.Theme.Color(name, variant)
 }
 
 // SetText sets the text of the button.
