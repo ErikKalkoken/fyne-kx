@@ -5,10 +5,12 @@ import (
 	"testing"
 	"time"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProgressButton_InitialState(t *testing.T) {
@@ -147,6 +149,60 @@ func TestProgressButton_SetTextIconWhileRunningIsDeferredUntilCompletion(t *test
 	assert.Eventually(t, func() bool { return !pb.button.locked }, time.Second, 5*time.Millisecond)
 	assert.Equal(t, "Later", pb.button.Text)
 	assert.Equal(t, theme.CancelIcon(), pb.button.Icon)
+}
+
+func TestProgressButton_ActivityColorMatchesImportance(t *testing.T) {
+	test.NewTempApp(t)
+	th := test.Theme()
+	test.ApplyTheme(t, th)
+
+	pb := NewProgressButton("Click", theme.HomeIcon(), nil)
+	w := test.NewWindow(pb)
+	defer w.Close()
+
+	variant := fyne.CurrentApp().Settings().ThemeVariant()
+
+	cases := []struct {
+		importance widget.Importance
+		colorName  fyne.ThemeColorName
+	}{
+		{widget.MediumImportance, theme.ColorNameForeground},
+		{widget.LowImportance, theme.ColorNameForeground},
+		{widget.HighImportance, theme.ColorNameForegroundOnPrimary},
+		{widget.DangerImportance, theme.ColorNameForegroundOnError},
+		{widget.WarningImportance, theme.ColorNameForegroundOnWarning},
+		{widget.SuccessImportance, theme.ColorNameForegroundOnSuccess},
+	}
+	for _, c := range cases {
+		pb.SetImportance(c.importance)
+		got := pb.progressWrap.Theme.Color(theme.ColorNameForeground, variant)
+		want := th.Color(c.colorName, variant)
+		assert.Equal(t, want, got, "importance %v", c.importance)
+	}
+}
+
+func TestProgressButton_ActivityColorTracksAppThemeChange(t *testing.T) {
+	test.NewTempApp(t)
+	th1 := test.Theme()
+	test.ApplyTheme(t, th1)
+
+	pb := NewProgressButton("Click", theme.HomeIcon(), nil)
+	pb.SetImportance(widget.DangerImportance)
+	w := test.NewWindow(pb)
+	defer w.Close()
+
+	variant := fyne.CurrentApp().Settings().ThemeVariant()
+	got := pb.progressWrap.Theme.Color(theme.ColorNameForeground, variant)
+	want := th1.Color(theme.ColorNameForegroundOnError, variant)
+	assert.Equal(t, want, got)
+
+	th2 := test.NewTheme()
+	require.NotEqual(t, th1.Color(theme.ColorNameForegroundOnError, variant), th2.Color(theme.ColorNameForegroundOnError, variant))
+	test.ApplyTheme(t, th2)
+
+	got = pb.progressWrap.Theme.Color(theme.ColorNameForeground, variant)
+	want = th2.Color(theme.ColorNameForegroundOnError, variant)
+	assert.Equal(t, want, got)
 }
 
 func TestProgressButton_DisableWhileRunningAppliesAfterCompletion(t *testing.T) {
