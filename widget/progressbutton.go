@@ -2,6 +2,7 @@ package widget
 
 import (
 	"image/color"
+	"sync"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -14,14 +15,12 @@ import (
 type ProgressButton struct {
 	widget.BaseWidget
 
-	// OnAction is called when the button is tapped, and runs in a goroutine.
-	//
-	// Because it does not run on the main goroutine, any interaction with
-	// the Fyne API from within OnAction must be wrapped in fyne.Do or
-	// fyne.DoAndWait. While OnAction is running, the button is locked
-	// (disabled and non-interactive) and is restored automatically once
-	// OnAction returns.
-	OnAction func()
+	// OnAction is called when the button is tapped and runs on the main
+	// goroutine, consistent with other Fyne widget callbacks. The button is
+	// locked and shows a progress indicator until the received done function
+	// is called; for long-running work, call it from your own goroutine.
+	// done is safe to call from any goroutine and more than once.
+	OnAction func(done func())
 
 	button       *lockableButton
 	disabledTemp bool
@@ -37,7 +36,7 @@ var _ fyne.Widget = (*ProgressButton)(nil)
 
 // NewProgressButton creates a new button that shows a progress indicator
 // while OnAction is running. See OnAction for details on its execution.
-func NewProgressButton(label string, icon fyne.Resource, action func()) *ProgressButton {
+func NewProgressButton(label string, icon fyne.Resource, action func(done func())) *ProgressButton {
 	w := &ProgressButton{
 		button:   newLockableButton(label, icon, nil),
 		progress: widget.NewActivity(),
@@ -62,29 +61,32 @@ func NewProgressButton(label string, icon fyne.Resource, action func()) *Progres
 		// show progress
 		w.progress.Show()
 		w.progress.Start()
-		action := w.OnAction
-		go func() {
-			defer func() {
-				fyne.Do(func() {
-					// restore button
-					w.button.Text = w.label
-					w.button.Icon = w.icon
-					w.button.Refresh()
-					if w.disabledTemp {
-						w.button.Disable()
-						w.disabledTemp = false
-					}
-					w.spacer.SetMinSize(fyne.Size{})
-					// hide progress
-					w.progress.Stop()
-					w.progress.Hide()
-					w.button.unlock()
-				})
-			}()
-			action()
-		}()
+
+		var once sync.Once
+		done := func() {
+			once.Do(func() {
+				fyne.Do(w.restore)
+			})
+		}
+		w.OnAction(done)
 	}
 	return w
+}
+
+// restore returns the button to its normal state and hides the progress
+// indicator. Must run on the main goroutine.
+func (w *ProgressButton) restore() {
+	w.button.Text = w.label
+	w.button.Icon = w.icon
+	w.button.Refresh()
+	if w.disabledTemp {
+		w.button.Disable()
+		w.disabledTemp = false
+	}
+	w.spacer.SetMinSize(fyne.Size{})
+	w.progress.Stop()
+	w.progress.Hide()
+	w.button.unlock()
 }
 
 func (w *ProgressButton) CreateRenderer() fyne.WidgetRenderer {

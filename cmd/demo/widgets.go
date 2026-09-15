@@ -235,17 +235,26 @@ func makeSortChip() fyne.CanvasObject {
 }
 
 func makeProgressButton() fyne.CanvasObject {
-	b1 := kxwidget.NewProgressButton("Run action", nil, func() {
-		time.Sleep(2 * time.Second)
+	b1 := kxwidget.NewProgressButton("Run action", nil, func(done func()) {
+		go func() {
+			defer done()
+			time.Sleep(2 * time.Second)
+		}()
 	})
 
-	b2 := kxwidget.NewProgressButton("With icon", theme.ConfirmIcon(), func() {
-		time.Sleep(2 * time.Second)
+	b2 := kxwidget.NewProgressButton("With icon", theme.ConfirmIcon(), func(done func()) {
+		go func() {
+			defer done()
+			time.Sleep(2 * time.Second)
+		}()
 	})
 	b2.SetImportance(widget.HighImportance)
 
-	b3 := kxwidget.NewProgressButton("Disabled", nil, func() {
-		time.Sleep(2 * time.Second)
+	b3 := kxwidget.NewProgressButton("Disabled", nil, func(done func()) {
+		go func() {
+			defer done()
+			time.Sleep(2 * time.Second)
+		}()
 	})
 	b3.Disable()
 
