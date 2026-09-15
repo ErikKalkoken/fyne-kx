@@ -38,8 +38,11 @@ func makeAll() fyne.CanvasObject {
 		makeRow("FilterChipGroup", group),
 		makeRow("FilterChipSelect", kxwidget.NewFilterChipSelect("Select", []string{"Alpha", "Bravo", "Charlie"}, func(s string) {})),
 		makeRow("IconButton", kxwidget.NewIconButton(theme.AccountIcon(), func() {})),
-		makeRow("ProgressButton", kxwidget.NewProgressButton("Run action", nil, func() {
-			time.Sleep(2 * time.Second)
+		makeRow("ProgressButton", kxwidget.NewProgressButton("Run action", nil, func(done func()) {
+			go func() {
+				defer done()
+				time.Sleep(2 * time.Second)
+			}()
 		})),
 		makeRow("Slider", func() fyne.CanvasObject {
 			s := kxwidget.NewSlider(0, 100)

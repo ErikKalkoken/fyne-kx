@@ -31,10 +31,13 @@ func TestProgressButton_TapRunsActionAndRestoresState(t *testing.T) {
 	proceed := make(chan struct{})
 	var ran atomic.Bool
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), func() {
-		ran.Store(true)
-		close(started)
-		<-proceed
+	pb := NewProgressButton("Click", theme.HomeIcon(), func(done func()) {
+		go func() {
+			defer done()
+			ran.Store(true)
+			close(started)
+			<-proceed
+		}()
 	})
 	w := test.NewWindow(pb)
 	defer w.Close()
@@ -76,10 +79,13 @@ func TestProgressButton_SecondTapWhileRunningIsIgnored(t *testing.T) {
 	proceed := make(chan struct{})
 	var runCount atomic.Int32
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), func() {
-		runCount.Add(1)
-		close(started)
-		<-proceed
+	pb := NewProgressButton("Click", theme.HomeIcon(), func(done func()) {
+		go func() {
+			defer done()
+			runCount.Add(1)
+			close(started)
+			<-proceed
+		}()
 	})
 	w := test.NewWindow(pb)
 	defer w.Close()
@@ -118,9 +124,12 @@ func TestProgressButton_SetTextIconWhileRunningIsDeferredUntilCompletion(t *test
 	started := make(chan struct{})
 	proceed := make(chan struct{})
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), func() {
-		close(started)
-		<-proceed
+	pb := NewProgressButton("Click", theme.HomeIcon(), func(done func()) {
+		go func() {
+			defer done()
+			close(started)
+			<-proceed
+		}()
 	})
 	w := test.NewWindow(pb)
 	defer w.Close()
@@ -147,9 +156,12 @@ func TestProgressButton_DisableWhileRunningAppliesAfterCompletion(t *testing.T) 
 	started := make(chan struct{})
 	proceed := make(chan struct{})
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), func() {
-		close(started)
-		<-proceed
+	pb := NewProgressButton("Click", theme.HomeIcon(), func(done func()) {
+		go func() {
+			defer done()
+			close(started)
+			<-proceed
+		}()
 	})
 	w := test.NewWindow(pb)
 	defer w.Close()
