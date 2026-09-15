@@ -41,7 +41,7 @@ func makeAll() fyne.CanvasObject {
 		makeRow("ProgressButton", kxwidget.NewProgressButton("Run action", nil, func(done func()) {
 			go func() {
 				defer done()
-				time.Sleep(2 * time.Second)
+				time.Sleep(simulatedWorkDuration)
 			}()
 		})),
 		makeRow("Slider", func() fyne.CanvasObject {

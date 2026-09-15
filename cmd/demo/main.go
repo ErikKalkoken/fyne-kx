@@ -20,6 +20,9 @@ import (
 	kxtheme "github.com/ErikKalkoken/fyne-kx/theme"
 )
 
+// simulatedWorkDuration is how long demo actions pretend to take.
+const simulatedWorkDuration = 3 * time.Second
+
 type treeItem struct {
 	name    string
 	content fyne.CanvasObject
@@ -230,7 +233,7 @@ func makeModals(w fyne.Window) *fyne.Container {
 	b3 := widget.NewButton("ProgressInfiniteModal", func() {
 		m := kxmodal.NewProgressInfinite("ProgressInfiniteModal", "Please wait...", func(done func(error)) {
 			go func() {
-				time.Sleep(3 * time.Second)
+				time.Sleep(simulatedWorkDuration)
 				done(nil)
 			}()
 		}, w)
