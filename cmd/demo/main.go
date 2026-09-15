@@ -188,55 +188,73 @@ func makeModals(w fyne.Window) *fyne.Container {
 		m := kxmodal.NewProgress(
 			"ProgressModal",
 			"Please wait...",
-			func(progress binding.Float) error {
-				for i := float64(1); i < 50; i++ {
-					fyne.Do(func() {
-						progress.Set(float64(i))
-					})
-					time.Sleep(100 * time.Millisecond)
-				}
-				return nil
+			func(progress binding.Float, done func(error)) {
+				go func() {
+					for i := float64(1); i < 50; i++ {
+						fyne.Do(func() {
+							progress.Set(float64(i))
+						})
+						time.Sleep(100 * time.Millisecond)
+					}
+					done(nil)
+				}()
 			}, 50, w)
 		m.Start()
 	})
 
 	b2 := widget.NewButton("ProgressCancelModal", func() {
-		m := kxmodal.NewProgressWithCancel("ProgressCancelModal", "Please wait...", func(progress binding.Float, canceled chan struct{}) error {
-			ticker := time.NewTicker(100 * time.Millisecond)
-			for i := 1; i < 50; i++ {
-				fyne.Do(func() {
-					progress.Set(float64(i))
-				})
-				select {
-				case <-canceled:
-					return nil
-				case <-ticker.C:
+		m := kxmodal.NewProgressWithCancel("ProgressCancelModal", "Please wait...", func(progress binding.Float, onCancel func(func()), done func(error)) {
+			canceled := make(chan struct{})
+			onCancel(func() {
+				close(canceled)
+			})
+			go func() {
+				ticker := time.NewTicker(100 * time.Millisecond)
+				for i := 1; i < 50; i++ {
+					fyne.Do(func() {
+						progress.Set(float64(i))
+					})
+					select {
+					case <-canceled:
+						done(nil)
+						return
+					case <-ticker.C:
+					}
 				}
-			}
-			return nil
+				done(nil)
+			}()
 		}, 50, w)
 		m.Start()
 	})
 
 	b3 := widget.NewButton("ProgressInfiniteModal", func() {
-		m := kxmodal.NewProgressInfinite("ProgressInfiniteModal", "Please wait...", func() error {
-			time.Sleep(3 * time.Second)
-			return nil
+		m := kxmodal.NewProgressInfinite("ProgressInfiniteModal", "Please wait...", func(done func(error)) {
+			go func() {
+				time.Sleep(3 * time.Second)
+				done(nil)
+			}()
 		}, w)
 		m.Start()
 	})
 
 	b4 := widget.NewButton("ProgressInfiniteCancelModal", func() {
-		m := kxmodal.NewProgressInfiniteWithCancel("ProgressInfiniteCancelModal", "Please wait...", func(canceled chan struct{}) error {
-			ticker := time.NewTicker(100 * time.Millisecond)
-			for i := 1; i < 50; i++ {
-				select {
-				case <-canceled:
-					return nil
-				case <-ticker.C:
+		m := kxmodal.NewProgressInfiniteWithCancel("ProgressInfiniteCancelModal", "Please wait...", func(onCancel func(func()), done func(error)) {
+			canceled := make(chan struct{})
+			onCancel(func() {
+				close(canceled)
+			})
+			go func() {
+				ticker := time.NewTicker(100 * time.Millisecond)
+				for i := 1; i < 50; i++ {
+					select {
+					case <-canceled:
+						done(nil)
+						return
+					case <-ticker.C:
+					}
 				}
-			}
-			return nil
+				done(nil)
+			}()
 		}, w)
 		m.Start()
 	})
