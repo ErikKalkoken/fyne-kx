@@ -81,10 +81,11 @@ func NewProgressButton(label string, icon fyne.Resource, action func(done func()
 func (w *ProgressButton) restore() {
 	w.button.Text = w.label
 	w.button.Icon = w.icon
-	w.button.Refresh()
 	if w.disabledTemp {
 		w.button.Disable()
 		w.disabledTemp = false
+	} else {
+		w.button.Refresh()
 	}
 	w.spacer.SetMinSize(fyne.Size{})
 	w.progress.Stop()
@@ -116,14 +117,12 @@ func (w *ProgressButton) Refresh() {
 }
 
 // SetImportance sets the importance of the button.
+// Unlike SetText/SetIcon, this applies immediately even while locked.
 func (w *ProgressButton) SetImportance(v widget.Importance) {
 	w.button.Importance = v
 	if w.progressTheme != nil {
 		w.progressTheme.colorName = progressButtonForegroundColor(v)
 		w.progressWrap.Refresh()
-	}
-	if w.button.locked {
-		return
 	}
 	w.button.Refresh()
 }
@@ -161,7 +160,8 @@ func (t *activityColorTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeV
 	return t.Theme.Color(name, variant)
 }
 
-// SetText sets the text of the button.
+// SetText sets the text of the button. While locked, the new text is
+// stored and applied on unlock.
 func (w *ProgressButton) SetText(label string) {
 	w.label = label
 	if w.button.locked {
@@ -170,7 +170,8 @@ func (w *ProgressButton) SetText(label string) {
 	w.button.SetText(label)
 }
 
-// SetIcon sets the icon of the button.
+// SetIcon sets the icon of the button. While locked, the new icon is
+// stored and applied on unlock.
 func (w *ProgressButton) SetIcon(icon fyne.Resource) {
 	w.icon = icon
 	if w.button.locked {
@@ -263,6 +264,7 @@ func (w *lockableButton) MouseIn(me *desktop.MouseEvent) {
 }
 
 func (w *lockableButton) MouseOut() {
+	// Always forward, unlike MouseIn: guarding this would leave hover stuck.
 	w.Button.MouseOut()
 }
 
@@ -288,8 +290,8 @@ func (w *lockableButton) FocusGained() {
 }
 
 func (w *lockableButton) FocusLost() {
-	if w.locked {
-		return
-	}
+	// Always forward, unlike FocusGained: Fyne's FocusManager calls this only
+	// once when focus moves away and never retries, so swallowing it while
+	// locked would leave the button's focused state stuck permanently.
 	w.Button.FocusLost()
 }
