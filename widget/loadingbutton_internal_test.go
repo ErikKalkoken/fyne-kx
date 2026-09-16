@@ -13,11 +13,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestProgressButton_InitialState(t *testing.T) {
+func TestLoadingButton_InitialState(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), nil)
+	pb := NewLoadingButton("Click", theme.HomeIcon(), nil)
 	w := test.NewWindow(pb)
 	defer w.Close()
 
@@ -25,7 +25,7 @@ func TestProgressButton_InitialState(t *testing.T) {
 	assert.False(t, pb.button.locked)
 }
 
-func TestProgressButton_TapRunsActionAndRestoresState(t *testing.T) {
+func TestLoadingButton_TapRunsActionAndRestoresState(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
@@ -33,7 +33,7 @@ func TestProgressButton_TapRunsActionAndRestoresState(t *testing.T) {
 	proceed := make(chan struct{})
 	var ran atomic.Bool
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), func(done func()) {
+	pb := NewLoadingButton("Click", theme.HomeIcon(), func(done func()) {
 		go func() {
 			defer done()
 			ran.Store(true)
@@ -61,11 +61,11 @@ func TestProgressButton_TapRunsActionAndRestoresState(t *testing.T) {
 	assert.Equal(t, "Click", pb.button.Text)
 }
 
-func TestProgressButton_TapIgnoredWhenNoAction(t *testing.T) {
+func TestLoadingButton_TapIgnoredWhenNoAction(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), nil)
+	pb := NewLoadingButton("Click", theme.HomeIcon(), nil)
 	w := test.NewWindow(pb)
 	defer w.Close()
 
@@ -73,7 +73,7 @@ func TestProgressButton_TapIgnoredWhenNoAction(t *testing.T) {
 	assert.False(t, pb.button.locked)
 }
 
-func TestProgressButton_SecondTapWhileRunningIsIgnored(t *testing.T) {
+func TestLoadingButton_SecondTapWhileRunningIsIgnored(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
@@ -81,7 +81,7 @@ func TestProgressButton_SecondTapWhileRunningIsIgnored(t *testing.T) {
 	proceed := make(chan struct{})
 	var runCount atomic.Int32
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), func(done func()) {
+	pb := NewLoadingButton("Click", theme.HomeIcon(), func(done func()) {
 		go func() {
 			defer done()
 			runCount.Add(1)
@@ -101,11 +101,11 @@ func TestProgressButton_SecondTapWhileRunningIsIgnored(t *testing.T) {
 	assert.EqualValues(t, 1, runCount.Load())
 }
 
-func TestProgressButton_SetTextIconImportanceWhileIdle(t *testing.T) {
+func TestLoadingButton_SetTextIconImportanceWhileIdle(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), nil)
+	pb := NewLoadingButton("Click", theme.HomeIcon(), nil)
 	w := test.NewWindow(pb)
 	defer w.Close()
 
@@ -119,14 +119,14 @@ func TestProgressButton_SetTextIconImportanceWhileIdle(t *testing.T) {
 	assert.Equal(t, widget.HighImportance, pb.button.Importance)
 }
 
-func TestProgressButton_SetTextIconWhileRunningIsDeferredUntilCompletion(t *testing.T) {
+func TestLoadingButton_SetTextIconWhileRunningIsDeferredUntilCompletion(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
 	started := make(chan struct{})
 	proceed := make(chan struct{})
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), func(done func()) {
+	pb := NewLoadingButton("Click", theme.HomeIcon(), func(done func()) {
 		go func() {
 			defer done()
 			close(started)
@@ -151,12 +151,12 @@ func TestProgressButton_SetTextIconWhileRunningIsDeferredUntilCompletion(t *test
 	assert.Equal(t, theme.CancelIcon(), pb.button.Icon)
 }
 
-func TestProgressButton_ActivityColorMatchesImportance(t *testing.T) {
+func TestLoadingButton_ActivityColorMatchesImportance(t *testing.T) {
 	test.NewTempApp(t)
 	th := test.Theme()
 	test.ApplyTheme(t, th)
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), nil)
+	pb := NewLoadingButton("Click", theme.HomeIcon(), nil)
 	w := test.NewWindow(pb)
 	defer w.Close()
 
@@ -181,12 +181,12 @@ func TestProgressButton_ActivityColorMatchesImportance(t *testing.T) {
 	}
 }
 
-func TestProgressButton_ActivityColorTracksAppThemeChange(t *testing.T) {
+func TestLoadingButton_ActivityColorTracksAppThemeChange(t *testing.T) {
 	test.NewTempApp(t)
 	th1 := test.Theme()
 	test.ApplyTheme(t, th1)
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), nil)
+	pb := NewLoadingButton("Click", theme.HomeIcon(), nil)
 	pb.SetImportance(widget.DangerImportance)
 	w := test.NewWindow(pb)
 	defer w.Close()
@@ -205,14 +205,14 @@ func TestProgressButton_ActivityColorTracksAppThemeChange(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func TestProgressButton_DisableWhileRunningAppliesAfterCompletion(t *testing.T) {
+func TestLoadingButton_DisableWhileRunningAppliesAfterCompletion(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
 	started := make(chan struct{})
 	proceed := make(chan struct{})
 
-	pb := NewProgressButton("Click", theme.HomeIcon(), func(done func()) {
+	pb := NewLoadingButton("Click", theme.HomeIcon(), func(done func()) {
 		go func() {
 			defer done()
 			close(started)

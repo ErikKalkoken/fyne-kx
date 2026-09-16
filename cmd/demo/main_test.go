@@ -29,7 +29,7 @@ func TestMakeFunctions(t *testing.T) {
 		{"FilterChipSelect", func() fyne.CanvasObject { return makeFilterChipSelect(w) }},
 		{"IconButton", makeIconButton},
 		{"Modals", func() fyne.CanvasObject { return makeModals(w) }},
-		{"ProgressButton", makeProgressButton},
+		{"LoadingButton", makeLoadingButton},
 		{"Slider", makeSlider},
 		{"SortChip", makeSortChip},
 		{"Switch", makeSwitch},

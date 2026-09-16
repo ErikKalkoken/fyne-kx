@@ -12,8 +12,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// ProgressButton represents a button widget which shows a progress indicator.
-type ProgressButton struct {
+// LoadingButton represents a button widget which shows a progress indicator.
+type LoadingButton struct {
 	widget.BaseWidget
 
 	// OnAction is called when the button is tapped and runs on the main
@@ -33,14 +33,14 @@ type ProgressButton struct {
 	spacer        *canvas.Rectangle
 }
 
-var _ fyne.Accessible = (*ProgressButton)(nil)
-var _ fyne.Disableable = (*ProgressButton)(nil)
-var _ fyne.Widget = (*ProgressButton)(nil)
+var _ fyne.Accessible = (*LoadingButton)(nil)
+var _ fyne.Disableable = (*LoadingButton)(nil)
+var _ fyne.Widget = (*LoadingButton)(nil)
 
-// NewProgressButton creates a new button that shows a progress indicator
+// NewLoadingButton creates a new button that shows a progress indicator
 // while OnAction is running. See OnAction for details on its execution.
-func NewProgressButton(label string, icon fyne.Resource, action func(done func())) *ProgressButton {
-	w := &ProgressButton{
+func NewLoadingButton(label string, icon fyne.Resource, action func(done func())) *LoadingButton {
+	w := &LoadingButton{
 		button:   newLockableButton(label, icon, nil),
 		progress: widget.NewActivity(),
 		spacer:   canvas.NewRectangle(color.Transparent),
@@ -78,7 +78,7 @@ func NewProgressButton(label string, icon fyne.Resource, action func(done func()
 
 // restore returns the button to its normal state and hides the progress
 // indicator. Must run on the main goroutine.
-func (w *ProgressButton) restore() {
+func (w *LoadingButton) restore() {
 	w.button.Text = w.label
 	w.button.Icon = w.icon
 	if w.disabledTemp {
@@ -93,11 +93,11 @@ func (w *ProgressButton) restore() {
 	w.button.unlock()
 }
 
-func (w *ProgressButton) CreateRenderer() fyne.WidgetRenderer {
+func (w *LoadingButton) CreateRenderer() fyne.WidgetRenderer {
 	if w.progressWrap == nil {
 		w.progressTheme = &activityColorTheme{
 			Theme:     w.Theme(),
-			colorName: progressButtonForegroundColor(w.button.Importance),
+			colorName: loadingButtonForegroundColor(w.button.Importance),
 		}
 		w.progressWrap = container.NewThemeOverride(w.progress, w.progressTheme)
 	}
@@ -108,7 +108,7 @@ func (w *ProgressButton) CreateRenderer() fyne.WidgetRenderer {
 // Refresh resyncs the progress indicator's theme override with the current
 // theme (e.g. after an app-wide theme change) before delegating to the
 // default widget refresh.
-func (w *ProgressButton) Refresh() {
+func (w *LoadingButton) Refresh() {
 	if w.progressTheme != nil {
 		w.progressTheme.Theme = w.Theme()
 		w.progressWrap.Refresh()
@@ -118,19 +118,19 @@ func (w *ProgressButton) Refresh() {
 
 // SetImportance sets the importance of the button.
 // Unlike SetText/SetIcon, this applies immediately even while locked.
-func (w *ProgressButton) SetImportance(v widget.Importance) {
+func (w *LoadingButton) SetImportance(v widget.Importance) {
 	w.button.Importance = v
 	if w.progressTheme != nil {
-		w.progressTheme.colorName = progressButtonForegroundColor(v)
+		w.progressTheme.colorName = loadingButtonForegroundColor(v)
 		w.progressWrap.Refresh()
 	}
 	w.button.Refresh()
 }
 
-// progressButtonForegroundColor returns the same foreground color name a
+// loadingButtonForegroundColor returns the same foreground color name a
 // Fyne button uses for its label and icon at the given importance, so the
 // progress indicator's dots can be made to match it.
-func progressButtonForegroundColor(importance widget.Importance) fyne.ThemeColorName {
+func loadingButtonForegroundColor(importance widget.Importance) fyne.ThemeColorName {
 	switch importance {
 	case widget.DangerImportance:
 		return theme.ColorNameForegroundOnError
@@ -162,7 +162,7 @@ func (t *activityColorTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeV
 
 // SetText sets the text of the button. While locked, the new text is
 // stored and applied on unlock.
-func (w *ProgressButton) SetText(label string) {
+func (w *LoadingButton) SetText(label string) {
 	w.label = label
 	if w.button.locked {
 		return
@@ -172,7 +172,7 @@ func (w *ProgressButton) SetText(label string) {
 
 // SetIcon sets the icon of the button. While locked, the new icon is
 // stored and applied on unlock.
-func (w *ProgressButton) SetIcon(icon fyne.Resource) {
+func (w *LoadingButton) SetIcon(icon fyne.Resource) {
 	w.icon = icon
 	if w.button.locked {
 		return
@@ -181,12 +181,12 @@ func (w *ProgressButton) SetIcon(icon fyne.Resource) {
 }
 
 // Disabled reports whether this widget is disabled.
-func (w *ProgressButton) Disabled() bool {
+func (w *LoadingButton) Disabled() bool {
 	return w.disabledTemp || w.button.Disabled()
 }
 
 // Disable disables this widget.
-func (w *ProgressButton) Disable() {
+func (w *LoadingButton) Disable() {
 	if w.button.locked {
 		w.disabledTemp = true
 		return
@@ -195,7 +195,7 @@ func (w *ProgressButton) Disable() {
 }
 
 // Enable enables this widget.
-func (w *ProgressButton) Enable() {
+func (w *LoadingButton) Enable() {
 	if w.button.locked {
 		w.disabledTemp = false
 		return
@@ -205,7 +205,7 @@ func (w *ProgressButton) Enable() {
 
 // AccessibilityLabel returns the label, or if there is none the name of the
 // icon, that assistive technology should announce for this widget.
-func (w *ProgressButton) AccessibilityLabel() string {
+func (w *LoadingButton) AccessibilityLabel() string {
 	if w.label != "" {
 		return w.label
 	}
@@ -216,14 +216,14 @@ func (w *ProgressButton) AccessibilityLabel() string {
 }
 
 // AccessibilityRole returns the accessibility role for this widget.
-func (w *ProgressButton) AccessibilityRole() fyne.AccessibleRole {
+func (w *LoadingButton) AccessibilityRole() fyne.AccessibleRole {
 	return fyne.AccessibleRoleButton
 }
 
 // lockableButton is an extension of the Fyne button which can be
 // disabled / locked without changing it's appearance.
 //
-// This feature is used by the ProgressButton.
+// This feature is used by the LoadingButton.
 type lockableButton struct {
 	widget.Button
 	locked bool
