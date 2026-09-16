@@ -21,7 +21,7 @@ func TestLoadingButton_InitialState(t *testing.T) {
 	w := test.NewWindow(pb)
 	defer w.Close()
 
-	assert.False(t, pb.progress.Visible())
+	assert.False(t, pb.activity.Visible())
 	assert.False(t, pb.button.locked)
 }
 
@@ -49,7 +49,7 @@ func TestLoadingButton_TapRunsActionAndRestoresState(t *testing.T) {
 
 	assert.True(t, pb.button.locked)
 	assert.Equal(t, "", pb.button.Text)
-	assert.True(t, pb.progress.Visible())
+	assert.True(t, pb.activity.Visible())
 
 	close(proceed)
 
@@ -57,7 +57,7 @@ func TestLoadingButton_TapRunsActionAndRestoresState(t *testing.T) {
 		return !pb.button.locked
 	}, time.Second, 5*time.Millisecond)
 	assert.True(t, ran.Load())
-	assert.False(t, pb.progress.Visible())
+	assert.False(t, pb.activity.Visible())
 	assert.Equal(t, "Click", pb.button.Text)
 }
 
@@ -175,7 +175,7 @@ func TestLoadingButton_ActivityColorMatchesImportance(t *testing.T) {
 	}
 	for _, c := range cases {
 		pb.SetImportance(c.importance)
-		got := pb.progressWrap.Theme.Color(theme.ColorNameForeground, variant)
+		got := pb.activityWrap.Theme.Color(theme.ColorNameForeground, variant)
 		want := th.Color(c.colorName, variant)
 		assert.Equal(t, want, got, "importance %v", c.importance)
 	}
@@ -192,7 +192,7 @@ func TestLoadingButton_ActivityColorTracksAppThemeChange(t *testing.T) {
 	defer w.Close()
 
 	variant := fyne.CurrentApp().Settings().ThemeVariant()
-	got := pb.progressWrap.Theme.Color(theme.ColorNameForeground, variant)
+	got := pb.activityWrap.Theme.Color(theme.ColorNameForeground, variant)
 	want := th1.Color(theme.ColorNameForegroundOnError, variant)
 	assert.Equal(t, want, got)
 
@@ -200,7 +200,7 @@ func TestLoadingButton_ActivityColorTracksAppThemeChange(t *testing.T) {
 	require.NotEqual(t, th1.Color(theme.ColorNameForegroundOnError, variant), th2.Color(theme.ColorNameForegroundOnError, variant))
 	test.ApplyTheme(t, th2)
 
-	got = pb.progressWrap.Theme.Color(theme.ColorNameForeground, variant)
+	got = pb.activityWrap.Theme.Color(theme.ColorNameForeground, variant)
 	want = th2.Color(theme.ColorNameForegroundOnError, variant)
 	assert.Equal(t, want, got)
 }

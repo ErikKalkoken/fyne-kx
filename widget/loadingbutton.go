@@ -12,13 +12,14 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// LoadingButton represents a button widget which shows a progress indicator.
+// LoadingButton represents a button widget which shows a loading indicator
+// while its action is running.
 type LoadingButton struct {
 	widget.BaseWidget
 
 	// OnAction is called when the button is tapped and runs on the main
 	// goroutine, consistent with other Fyne widget callbacks. The button is
-	// locked and shows a progress indicator until the received done function
+	// locked and shows a loading indicator until the received done function
 	// is called; for long-running work, call it from your own goroutine.
 	// done is safe to call from any goroutine and more than once.
 	OnAction func(done func())
@@ -27,9 +28,9 @@ type LoadingButton struct {
 	disabledTemp  bool
 	icon          fyne.Resource
 	label         string
-	progress      *widget.Activity
-	progressTheme *activityColorTheme
-	progressWrap  *container.ThemeOverride
+	activity      *widget.Activity
+	activityTheme *activityColorTheme
+	activityWrap  *container.ThemeOverride
 	spacer        *canvas.Rectangle
 }
 
@@ -37,20 +38,19 @@ var _ fyne.Accessible = (*LoadingButton)(nil)
 var _ fyne.Disableable = (*LoadingButton)(nil)
 var _ fyne.Widget = (*LoadingButton)(nil)
 
-// NewLoadingButton creates a new button that shows a progress indicator
-// while OnAction is running. See OnAction for details on its execution.
+// NewLoadingButton creates and returns a new [LoadingButton].
 func NewLoadingButton(label string, icon fyne.Resource, action func(done func())) *LoadingButton {
 	w := &LoadingButton{
 		button:   newLockableButton(label, icon, nil),
-		progress: widget.NewActivity(),
+		activity: widget.NewActivity(),
 		spacer:   canvas.NewRectangle(color.Transparent),
 		label:    label,
 		icon:     icon,
 		OnAction: action,
 	}
 	w.ExtendBaseWidget(w)
-	w.progress.Hide()
-	w.progress.Stop()
+	w.activity.Hide()
+	w.activity.Stop()
 	w.button.OnTapped = func() {
 		if w.OnAction == nil {
 			return
@@ -62,8 +62,8 @@ func NewLoadingButton(label string, icon fyne.Resource, action func(done func())
 		w.button.Icon = nil
 		w.button.Refresh()
 		// show progress
-		w.progress.Show()
-		w.progress.Start()
+		w.activity.Show()
+		w.activity.Start()
 
 		var once sync.Once
 		done := func() {
@@ -88,30 +88,30 @@ func (w *LoadingButton) restore() {
 		w.button.Refresh()
 	}
 	w.spacer.SetMinSize(fyne.Size{})
-	w.progress.Stop()
-	w.progress.Hide()
+	w.activity.Stop()
+	w.activity.Hide()
 	w.button.unlock()
 }
 
 func (w *LoadingButton) CreateRenderer() fyne.WidgetRenderer {
-	if w.progressWrap == nil {
-		w.progressTheme = &activityColorTheme{
+	if w.activityWrap == nil {
+		w.activityTheme = &activityColorTheme{
 			Theme:     w.Theme(),
 			colorName: loadingButtonForegroundColor(w.button.Importance),
 		}
-		w.progressWrap = container.NewThemeOverride(w.progress, w.progressTheme)
+		w.activityWrap = container.NewThemeOverride(w.activity, w.activityTheme)
 	}
-	c := container.NewStack(w.spacer, w.button, w.progressWrap)
+	c := container.NewStack(w.spacer, w.button, w.activityWrap)
 	return widget.NewSimpleRenderer(c)
 }
 
-// Refresh resyncs the progress indicator's theme override with the current
+// Refresh resyncs the loading indicator's theme override with the current
 // theme (e.g. after an app-wide theme change) before delegating to the
 // default widget refresh.
 func (w *LoadingButton) Refresh() {
-	if w.progressTheme != nil {
-		w.progressTheme.Theme = w.Theme()
-		w.progressWrap.Refresh()
+	if w.activityTheme != nil {
+		w.activityTheme.Theme = w.Theme()
+		w.activityWrap.Refresh()
 	}
 	w.BaseWidget.Refresh()
 }
@@ -120,16 +120,16 @@ func (w *LoadingButton) Refresh() {
 // Unlike SetText/SetIcon, this applies immediately even while locked.
 func (w *LoadingButton) SetImportance(v widget.Importance) {
 	w.button.Importance = v
-	if w.progressTheme != nil {
-		w.progressTheme.colorName = loadingButtonForegroundColor(v)
-		w.progressWrap.Refresh()
+	if w.activityTheme != nil {
+		w.activityTheme.colorName = loadingButtonForegroundColor(v)
+		w.activityWrap.Refresh()
 	}
 	w.button.Refresh()
 }
 
 // loadingButtonForegroundColor returns the same foreground color name a
 // Fyne button uses for its label and icon at the given importance, so the
-// progress indicator's dots can be made to match it.
+// loading indicator's dots can be made to match it.
 func loadingButtonForegroundColor(importance widget.Importance) fyne.ThemeColorName {
 	switch importance {
 	case widget.DangerImportance:

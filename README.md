@@ -72,7 +72,7 @@ This library contains several Fyne widgets:
 - [FilterChipGroup](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChipGroup) allows the user to toggle multiple filters with filter chips.
 - [FilterChipSelect](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChipSelect) is a filter chip that allows the user to select and de-select one option from a list of options.
 - [IconButton](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#IconButton) is a widget which helps users take minor actions with one tap.
-- [LoadingButton](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#LoadingButton) is a button that shows a progress indicator while its action is running.
+- [LoadingButton](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#LoadingButton) is a button that shows a loading indicator while its action is running.
 - [Slider](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Slider) is a variation of the Slider widget that also displays the current value.
 - [SortChip](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#SortChip) is a chip widget that shows current sorting (column & order) and allows the user to change it by selecting from a drop down menu.
 - [Switch](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Switch) is a widget implementing a digital switch with two mutually exclusive states: on/off.
@@ -93,7 +93,6 @@ Please see below for a demo of all widgets.
 The following is a video demonstration of different LoadingButtons in action.
 
 [Screencast from 16.09.2026 21:09:02.webm](https://github.com/user-attachments/assets/98af052f-4643-4058-84db-e0c8748692dd)
-
 
 ### Example
 
