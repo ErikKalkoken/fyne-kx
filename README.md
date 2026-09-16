@@ -86,13 +86,14 @@ The widgets can be used just like any other widget from the Fyne standard librar
 
 Please see below for a demo of all widgets.
 
-<img width="860" height="1017" alt="Screenshot from 2026-09-14 18-21-18" src="https://github.com/user-attachments/assets/08bac000-fe8b-47f1-bd33-78d77a82c3b3" />
+<img width="1199" height="1023" alt="Screenshot from 2026-09-16 21-15-25" src="https://github.com/user-attachments/assets/b3cc3bf0-5fbd-436e-bfd7-df437a34a98d" />
 
 ### LoadingButton demo
 
 The following is a video demonstration of different LoadingButtons in action.
 
-[LoadingButton demo](https://github.com/user-attachments/assets/475f38c0-a024-4c3b-9d25-fe8b91ff0d9e)
+[Screencast from 16.09.2026 21:09:02.webm](https://github.com/user-attachments/assets/98af052f-4643-4058-84db-e0c8748692dd)
+
 
 ### Example
 
