@@ -44,6 +44,11 @@ func makeAll() fyne.CanvasObject {
 				time.Sleep(simulatedWorkDuration)
 			}()
 		})),
+		makeRow("RingActivity", func() fyne.CanvasObject {
+			r := kxwidget.NewRingActivity()
+			r.Start()
+			return r
+		}()),
 		makeRow("Slider", func() fyne.CanvasObject {
 			s := kxwidget.NewSlider(0, 100)
 			s.SetValue(25)
