@@ -10,22 +10,22 @@ import (
 	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
 
-func TestProgressButton_CanCreate(t *testing.T) {
+func TestLoadingButton_CanCreate(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	pb := kxwidget.NewProgressButton("Click", theme.HomeIcon(), nil)
+	pb := kxwidget.NewLoadingButton("Click", theme.HomeIcon(), nil)
 	w := test.NewWindow(pb)
 	defer w.Close()
 
 	assert.False(t, pb.Disabled())
 }
 
-func TestProgressButton_EnableDisable(t *testing.T) {
+func TestLoadingButton_EnableDisable(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	pb := kxwidget.NewProgressButton("Click", theme.HomeIcon(), nil)
+	pb := kxwidget.NewLoadingButton("Click", theme.HomeIcon(), nil)
 	w := test.NewWindow(pb)
 	defer w.Close()
 

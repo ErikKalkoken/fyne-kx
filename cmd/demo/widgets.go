@@ -234,9 +234,9 @@ func makeSortChip() fyne.CanvasObject {
 	return c
 }
 
-func makeProgressButton() fyne.CanvasObject {
-	newProgressButton := func(label string, icon fyne.Resource) *kxwidget.ProgressButton {
-		return kxwidget.NewProgressButton(label, icon, func(done func()) {
+func makeLoadingButton() fyne.CanvasObject {
+	newLoadingButton := func(label string, icon fyne.Resource) *kxwidget.LoadingButton {
+		return kxwidget.NewLoadingButton(label, icon, func(done func()) {
 			go func() {
 				defer done()
 				time.Sleep(simulatedWorkDuration)
@@ -244,29 +244,29 @@ func makeProgressButton() fyne.CanvasObject {
 		})
 	}
 
-	b1 := newProgressButton("Run action", nil)
+	b1 := newLoadingButton("Run action", nil)
 
-	b2 := newProgressButton("With icon", theme.ConfirmIcon())
+	b2 := newLoadingButton("With icon", theme.ConfirmIcon())
 
-	b3 := newProgressButton("Disabled", nil)
+	b3 := newLoadingButton("Disabled", nil)
 	b3.Disable()
 
-	medium := newProgressButton("Medium importance", nil)
+	medium := newLoadingButton("Medium importance", nil)
 	medium.SetImportance(widget.MediumImportance)
 
-	high := newProgressButton("High importance", nil)
+	high := newLoadingButton("High importance", nil)
 	high.SetImportance(widget.HighImportance)
 
-	low := newProgressButton("Low importance", nil)
+	low := newLoadingButton("Low importance", nil)
 	low.SetImportance(widget.LowImportance)
 
-	danger := newProgressButton("Danger importance", nil)
+	danger := newLoadingButton("Danger importance", nil)
 	danger.SetImportance(widget.DangerImportance)
 
-	warning := newProgressButton("Warning importance", nil)
+	warning := newLoadingButton("Warning importance", nil)
 	warning.SetImportance(widget.WarningImportance)
 
-	success := newProgressButton("Success importance", nil)
+	success := newLoadingButton("Success importance", nil)
 	success.SetImportance(widget.SuccessImportance)
 
 	return container.NewVBox(b1, b2, b3, medium, high, low, danger, warning, success)

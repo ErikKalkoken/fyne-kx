@@ -10,11 +10,11 @@ import (
 	kxwidget "github.com/ErikKalkoken/fyne-kx/widget"
 )
 
-func ExampleNewProgressButton() {
+func ExampleNewLoadingButton() {
 	a := app.New()
-	w := a.NewWindow("Progress Button")
+	w := a.NewWindow("Loading Button")
 
-	button := kxwidget.NewProgressButton("Load file", nil, func(done func()) {
+	button := kxwidget.NewLoadingButton("Load file", nil, func(done func()) {
 		go func() {
 			time.Sleep(3 * time.Second) // simulate a long running process
 			done()
