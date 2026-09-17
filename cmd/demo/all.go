@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
@@ -77,5 +78,7 @@ func makeAll() fyne.CanvasObject {
 		rows.Add(it)
 	}
 
-	return container.NewVScroll(rows)
+	margin := theme.Size(theme.SizeNameScrollBar)
+	padded := container.New(layout.NewCustomPaddedLayout(0, 0, 0, margin), rows)
+	return container.NewVScroll(padded)
 }
