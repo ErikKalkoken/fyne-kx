@@ -20,6 +20,7 @@ func TestMakeFunctions(t *testing.T) {
 		name string
 		make func() fyne.CanvasObject
 	}{
+		{"Welcome", makeWelcome},
 		{"All", makeAll},
 		{"Badge", makeBadge},
 		{"Columns", makeColumns},

@@ -307,7 +307,10 @@ func makeSpinner() fyne.CanvasObject {
 	})
 
 	return container.NewVBox(
-		container.NewHBox(ring, bigWrap, primary, success),
+		container.NewCenter(ring),
+		container.NewCenter(bigWrap),
+		container.NewCenter(primary),
+		container.NewCenter(success),
 		toggle,
 	)
 }
@@ -327,7 +330,7 @@ func makeSwitch() fyne.CanvasObject {
 	}
 
 	makeContainer := func(sw *kxwidget.Switch, label *widget.Label) *fyne.Container {
-		return container.NewBorder(nil, nil, nil, container.NewCenter(label), sw)
+		return container.NewHBox(sw, container.NewCenter(label))
 	}
 
 	label1 := widget.NewLabel("")
