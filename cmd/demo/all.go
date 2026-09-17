@@ -44,17 +44,17 @@ func makeAll() fyne.CanvasObject {
 				time.Sleep(simulatedWorkDuration)
 			}()
 		})),
-		makeRow("RingActivity", func() fyne.CanvasObject {
-			r := kxwidget.NewRingActivity()
-			r.Start()
-			return r
-		}()),
 		makeRow("Slider", func() fyne.CanvasObject {
 			s := kxwidget.NewSlider(0, 100)
 			s.SetValue(25)
 			return s
 		}()),
 		makeRow("SortChip", kxwidget.NewSortChip([]string{"Name", "Age"}, "Name", kxwidget.SortOrderAscending, func(c string, o kxwidget.SortOrder) {})),
+		makeRow("Spinner", func() fyne.CanvasObject {
+			r := kxwidget.NewSpinner()
+			r.Start()
+			return r
+		}()),
 		makeRow("Switch", kxwidget.NewSwitch(func(on bool) {})),
 		makeRow("TappableIcon", kxwidget.NewTappableIcon(theme.AccountIcon(), func() {})),
 		makeRow("TappableImage", func() fyne.CanvasObject {

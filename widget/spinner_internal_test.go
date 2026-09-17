@@ -8,58 +8,58 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newTestRingActivity(t *testing.T) (*RingActivity, *ringActivityRenderer) {
+func newTestSpinner(t *testing.T) (*Spinner, *spinnerRenderer) {
 	t.Helper()
 	test.NewApp()
-	a := NewRingActivity()
-	return a, a.CreateRenderer().(*ringActivityRenderer)
+	a := NewSpinner()
+	return a, a.CreateRenderer().(*spinnerRenderer)
 }
 
-func TestRingActivity_SetColorName_UpdatesField(t *testing.T) {
-	a, _ := newTestRingActivity(t)
+func TestSpinner_SetColorName_UpdatesField(t *testing.T) {
+	a, _ := newTestSpinner(t)
 
 	a.SetColorName(theme.ColorNameError)
 
 	assert.Equal(t, theme.ColorNameError, a.ColorName)
 }
 
-func TestRingActivityRenderer_Animate_AtCycleStart(t *testing.T) {
-	_, r := newTestRingActivity(t)
+func TestSpinnerRenderer_Animate_AtCycleStart(t *testing.T) {
+	_, r := newTestSpinner(t)
 
 	r.animate(0)
 
 	assert.Equal(t, float32(0), r.arc.StartAngle)
-	assert.Equal(t, ringActivityMinSweep, r.arc.EndAngle)
+	assert.Equal(t, spinnerMinSweep, r.arc.EndAngle)
 }
 
-func TestRingActivityRenderer_Animate_TailTracksOnlySpinDuringFirstHalf(t *testing.T) {
-	_, r := newTestRingActivity(t)
+func TestSpinnerRenderer_Animate_TailTracksOnlySpinDuringFirstHalf(t *testing.T) {
+	_, r := newTestSpinner(t)
 
 	r.animate(0.1)
 	tailBefore, headBefore := r.arc.StartAngle, r.arc.EndAngle
 	r.animate(0.4)
 
-	wantTailDelta := float64((0.4 - 0.1) * ringActivityRotationPerCycle)
+	wantTailDelta := float64((0.4 - 0.1) * spinnerRotationPerCycle)
 	assert.InDelta(t, wantTailDelta, float64(r.arc.StartAngle-tailBefore), 0.01,
 		"tail should advance by exactly the background spin during the first half")
 	assert.Greater(t, r.arc.EndAngle-headBefore, r.arc.StartAngle-tailBefore, "head should advance faster than the tail")
 }
 
-func TestRingActivityRenderer_Animate_HeadTracksOnlySpinDuringSecondHalf(t *testing.T) {
-	_, r := newTestRingActivity(t)
+func TestSpinnerRenderer_Animate_HeadTracksOnlySpinDuringSecondHalf(t *testing.T) {
+	_, r := newTestSpinner(t)
 
 	r.animate(0.6)
 	tailBefore, headBefore := r.arc.StartAngle, r.arc.EndAngle
 	r.animate(0.9)
 
-	wantHeadDelta := float64((0.9 - 0.6) * ringActivityRotationPerCycle)
+	wantHeadDelta := float64((0.9 - 0.6) * spinnerRotationPerCycle)
 	assert.InDelta(t, wantHeadDelta, float64(r.arc.EndAngle-headBefore), 0.01,
 		"head should advance by exactly the background spin during the second half")
 	assert.Greater(t, r.arc.StartAngle-tailBefore, r.arc.EndAngle-headBefore, "tail should advance faster than the head")
 }
 
-func TestRingActivityRenderer_Animate_SweepIsPeriodic(t *testing.T) {
-	_, r := newTestRingActivity(t)
+func TestSpinnerRenderer_Animate_SweepIsPeriodic(t *testing.T) {
+	_, r := newTestSpinner(t)
 
 	r.animate(0)
 	gapAtStart := r.arc.EndAngle - r.arc.StartAngle
@@ -69,8 +69,8 @@ func TestRingActivityRenderer_Animate_SweepIsPeriodic(t *testing.T) {
 	assert.InDelta(t, gapAtStart, gapAtEnd, 0.01, "sweep length should be equal at done==0 and done==1")
 }
 
-func TestRingActivityRenderer_Animate_TailNeverOvertakesHead(t *testing.T) {
-	_, r := newTestRingActivity(t)
+func TestSpinnerRenderer_Animate_TailNeverOvertakesHead(t *testing.T) {
+	_, r := newTestSpinner(t)
 
 	for i := 0; i <= 100; i++ {
 		r.animate(float32(i) / 100)
@@ -78,8 +78,8 @@ func TestRingActivityRenderer_Animate_TailNeverOvertakesHead(t *testing.T) {
 	}
 }
 
-func TestRingActivityRenderer_Animate_ContinuousAcrossCycleWrap(t *testing.T) {
-	_, r := newTestRingActivity(t)
+func TestSpinnerRenderer_Animate_ContinuousAcrossCycleWrap(t *testing.T) {
+	_, r := newTestSpinner(t)
 
 	// A tiny epsilon on each side of the seam: some drift is expected since
 	// real "done" time still passes between the two samples (the spin term
@@ -96,8 +96,8 @@ func TestRingActivityRenderer_Animate_ContinuousAcrossCycleWrap(t *testing.T) {
 	assert.Equal(t, float32(1), r.completedCycles)
 }
 
-func TestRingActivityRenderer_StartStop_ToggleWasStarted(t *testing.T) {
-	a, r := newTestRingActivity(t)
+func TestSpinnerRenderer_StartStop_ToggleWasStarted(t *testing.T) {
+	a, r := newTestSpinner(t)
 	a.started = true
 
 	r.start()
@@ -107,8 +107,8 @@ func TestRingActivityRenderer_StartStop_ToggleWasStarted(t *testing.T) {
 	assert.False(t, r.wasStarted)
 }
 
-func TestRingActivityRenderer_Start_ResetsCycleState(t *testing.T) {
-	_, r := newTestRingActivity(t)
+func TestSpinnerRenderer_Start_ResetsCycleState(t *testing.T) {
+	_, r := newTestSpinner(t)
 	r.animate(0.5)
 	r.completedCycles = 3
 
@@ -120,17 +120,17 @@ func TestRingActivityRenderer_Start_ResetsCycleState(t *testing.T) {
 	assert.Equal(t, float32(0), r.completedCycles, "start should reset the cycle counter")
 }
 
-func TestRingActivityRenderer_DrawStaticArc(t *testing.T) {
-	_, r := newTestRingActivity(t)
+func TestSpinnerRenderer_DrawStaticArc(t *testing.T) {
+	_, r := newTestSpinner(t)
 
 	r.drawStaticArc()
 
 	assert.Equal(t, float32(0), r.arc.StartAngle)
-	assert.Equal(t, ringActivityMaxSweep, r.arc.EndAngle)
+	assert.Equal(t, spinnerMaxSweep, r.arc.EndAngle)
 }
 
-func TestRingActivityRenderer_HideArc(t *testing.T) {
-	_, r := newTestRingActivity(t)
+func TestSpinnerRenderer_HideArc(t *testing.T) {
+	_, r := newTestSpinner(t)
 
 	r.hideArc()
 

@@ -29,7 +29,7 @@ type LoadingButton struct {
 	disabledTemp bool
 	icon         fyne.Resource
 	label        string
-	activity     *RingActivity
+	activity     *Spinner
 	spacer       *canvas.Rectangle
 }
 
@@ -41,7 +41,7 @@ var _ fyne.Widget = (*LoadingButton)(nil)
 func NewLoadingButton(label string, icon fyne.Resource, action func(done func())) *LoadingButton {
 	w := &LoadingButton{
 		button:   newLockableButton(label, icon, nil),
-		activity: NewRingActivity(),
+		activity: NewSpinner(),
 		spacer:   canvas.NewRectangle(color.Transparent),
 		label:    label,
 		icon:     icon,

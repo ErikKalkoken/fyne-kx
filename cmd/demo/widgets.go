@@ -272,23 +272,23 @@ func makeLoadingButton() fyne.CanvasObject {
 	return container.NewVBox(b1, b2, b3, medium, high, low, danger, warning, success)
 }
 
-func makeRingActivity() fyne.CanvasObject {
-	ring := kxwidget.NewRingActivity()
+func makeSpinner() fyne.CanvasObject {
+	ring := kxwidget.NewSpinner()
 	ring.Start()
 
-	big := kxwidget.NewRingActivity()
+	big := kxwidget.NewSpinner()
 	big.Start()
 	bigWrap := container.NewGridWrap(fyne.NewSquareSize(64), big)
 
-	primary := kxwidget.NewRingActivity()
+	primary := kxwidget.NewSpinner()
 	primary.ColorName = theme.ColorNamePrimary
 	primary.Start()
 
-	success := kxwidget.NewRingActivity()
+	success := kxwidget.NewSpinner()
 	success.SetColorName(theme.ColorNameSuccess)
 	success.Start()
 
-	rings := []*kxwidget.RingActivity{ring, big, primary, success}
+	rings := []*kxwidget.Spinner{ring, big, primary, success}
 	started := true
 	var toggle *widget.Button
 	toggle = widget.NewButton("Stop", func() {

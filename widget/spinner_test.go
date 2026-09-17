@@ -11,35 +11,35 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRingActivity_CanCreate(t *testing.T) {
+func TestSpinner_CanCreate(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	a := widget.NewRingActivity()
+	a := widget.NewSpinner()
 	w := test.NewWindow(a)
 	defer w.Close()
 
-	test.AssertImageMatches(t, "ringactivity/created.png", w.Canvas().Capture())
+	test.AssertImageMatches(t, "spinner/created.png", w.Canvas().Capture())
 }
 
-func TestRingActivity_CanStart(t *testing.T) {
+func TestSpinner_CanStart(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	a := widget.NewRingActivity()
+	a := widget.NewSpinner()
 	w := test.NewWindow(a)
 	defer w.Close()
 
 	a.Start()
 
-	test.AssertImageMatches(t, "ringactivity/started.png", w.Canvas().Capture())
+	test.AssertImageMatches(t, "spinner/started.png", w.Canvas().Capture())
 }
 
-func TestRingActivity_Start_TriggersRepaint(t *testing.T) {
+func TestSpinner_Start_TriggersRepaint(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	a := widget.NewRingActivity()
+	a := widget.NewSpinner()
 	w := test.NewWindow(a)
 	defer w.Close()
 
@@ -50,11 +50,11 @@ func TestRingActivity_Start_TriggersRepaint(t *testing.T) {
 	assert.NotEqual(t, before, after)
 }
 
-func TestRingActivity_Stop_NoFurtherChange(t *testing.T) {
+func TestSpinner_Stop_NoFurtherChange(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	a := widget.NewRingActivity()
+	a := widget.NewSpinner()
 	w := test.NewWindow(a)
 	defer w.Close()
 
@@ -67,30 +67,30 @@ func TestRingActivity_Stop_NoFurtherChange(t *testing.T) {
 	assert.Equal(t, before, after)
 }
 
-func TestRingActivity_WithColorName(t *testing.T) {
+func TestSpinner_WithColorName(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	a := widget.NewRingActivity()
+	a := widget.NewSpinner()
 	a.SetColorName(theme.ColorNamePrimary)
 	w := test.NewWindow(a)
 	defer w.Close()
 
 	a.Start()
 
-	test.AssertImageMatches(t, "ringactivity/started_primary.png", w.Canvas().Capture())
+	test.AssertImageMatches(t, "spinner/started_primary.png", w.Canvas().Capture())
 }
 
-func TestRingActivity_Resized(t *testing.T) {
+func TestSpinner_Resized(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 
-	a := widget.NewRingActivity()
+	a := widget.NewSpinner()
 	w := test.NewWindow(a)
 	defer w.Close()
 	w.Resize(fyne.NewSize(80, 80))
 
 	a.Start()
 
-	test.AssertImageMatches(t, "ringactivity/started_large.png", w.Canvas().Capture())
+	test.AssertImageMatches(t, "spinner/started_large.png", w.Canvas().Capture())
 }
