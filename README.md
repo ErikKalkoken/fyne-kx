@@ -11,6 +11,7 @@ A library with extensions and tools for the Fyne GUI toolkit.
 
 ## Contents
 
+- [Description](#description)
 - [Installation](#installation)
 - [Extensions](#extensions)
   - [Dialogs](#dialogs)
@@ -19,6 +20,15 @@ A library with extensions and tools for the Fyne GUI toolkit.
   - [Themes](#themes)
   - [Widgets](#widgets)
 - [Demo](#demo)
+
+## Description
+
+fyne-kx extends the [Fyne GUI toolkit](https://fyne.io/) with additional widgets, layouts, modals, themes and dialog helpers. All extensions are unit tested and designed to fit seamlessly into Fyne apps.
+
+Most extensions were originally developed for other Fyne apps, such as [EVE Buddy](https://github.com/ErikKalkoken/evebuddy) and [Janice](https://github.com/ErikKalkoken/janice/), and were later moved into this library to make them available to the Fyne community. Many are still used by those apps today.
+
+> [!NOTE]
+> This library is actively maintained. Feedback, bug reports and suggestions are always welcome, so please feel free to open an issue.
 
 ## Installation
 
@@ -30,7 +40,7 @@ go get github.com/ErikKalkoken/fyne-kx
 
 ## Extensions
 
-This library contains several extensions for the [Fyne GUI toolkit](https://fyne.io/).
+The following extensions are provided:
 
 > [!TIP]
 > For a live demo and example code please see the [demo app](#demo).
@@ -65,7 +75,9 @@ Further, additional custom themes are provided:
 
 ### Widgets
 
-This library contains several Fyne widgets:
+The widgets can be used just like any other widget from the Fyne standard library. All widgets are themeable. Please also see the included [demo](#demo) app that shows them all in action.
+
+![widgets](https://github.com/user-attachments/assets/d4acd8d0-bd6d-4c19-a134-e54fd0717b31)
 
 - [Badge](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Badge) is a variant of the Fyne label widget that renders a rounded box around the text.
 - [FilterChip](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChip) an interactive chip for filtering content. It has a label and can be turned on or off.
@@ -75,24 +87,17 @@ This library contains several Fyne widgets:
 - [LoadingButton](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#LoadingButton) is a button that shows a loading indicator while its action is running.
 - [Slider](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Slider) is a variation of the Slider widget that also displays the current value.
 - [SortChip](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#SortChip) is a chip widget that shows current sorting (column & order) and allows the user to change it by selecting from a drop down menu.
+- [Spinner](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Spinner) indicates that an operation is in progress with unknown duration. It shows an animated ring, similar to a Material Design circular progress indicator.
 - [Switch](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Switch) is a widget implementing a digital switch with two mutually exclusive states: on/off.
 - [TappableIcon](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableIcon) is an icon widget which runs a function when tapped.
 - [TappableImage](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableImage) is widget which shows an image and runs a function when tapped.
 - [TappableLabel](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableLabel) is a variant of the Fyne Label which runs a function when tapped.
 
-The widgets can be used just like any other widget from the Fyne standard library. All widgets are themeable and unit tested. Please also see the [demo](#demo) that shows all widgets in action.
-
-### Widgets demo
-
-Please see below for a demo of all widgets.
-
-<img width="1199" height="1023" alt="Screenshot from 2026-09-16 21-15-25" src="https://github.com/user-attachments/assets/b3cc3bf0-5fbd-436e-bfd7-df437a34a98d" />
-
 ### LoadingButton demo
 
 The following is a video demonstration of different LoadingButtons in action.
 
-[Screencast from 16.09.2026 21:09:02.webm](https://github.com/user-attachments/assets/98af052f-4643-4058-84db-e0c8748692dd)
+[Loading button](https://github.com/user-attachments/assets/a1439d7f-dd9e-47b3-bee3-fdf040950a13)
 
 ### Example
 
@@ -122,7 +127,7 @@ func main() {
 
 ## Demo
 
-Demo is a Fyne app for demonstrating the features provided by the fyne-kx library. It also serves as example on how to use each component of this library in code.
+Demo is a Fyne app that provides a live demonstration of the various fyne-kx extensions. Its code also serves as an example of how they can be used.
 
 > [!IMPORTANT]
 > To run any of the provided Fyne apps directly, you need to have Fyne installed and configured in your system.
@@ -135,4 +140,4 @@ go run github.com/ErikKalkoken/fyne-kx/cmd/demo@latest
 ```
 
 > [!NOTE]
-> The `fynetheme` app has moved to its own repo: [fyne-theme-explorer](https://github.com/ErikKalkoken/fyne-theme-explorer).
+> The previously included `fynetheme` app has moved to its own repo: [fyne-theme-explorer](https://github.com/ErikKalkoken/fyne-theme-explorer).

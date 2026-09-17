@@ -10,7 +10,6 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestLoadingButton_InitialState(t *testing.T) {
@@ -153,14 +152,11 @@ func TestLoadingButton_SetTextIconWhileRunningIsDeferredUntilCompletion(t *testi
 
 func TestLoadingButton_ActivityColorMatchesImportance(t *testing.T) {
 	test.NewTempApp(t)
-	th := test.Theme()
-	test.ApplyTheme(t, th)
+	test.ApplyTheme(t, test.Theme())
 
 	pb := NewLoadingButton("Click", theme.HomeIcon(), nil)
 	w := test.NewWindow(pb)
 	defer w.Close()
-
-	variant := fyne.CurrentApp().Settings().ThemeVariant()
 
 	cases := []struct {
 		importance widget.Importance
@@ -175,34 +171,8 @@ func TestLoadingButton_ActivityColorMatchesImportance(t *testing.T) {
 	}
 	for _, c := range cases {
 		pb.SetImportance(c.importance)
-		got := pb.activityWrap.Theme.Color(theme.ColorNameForeground, variant)
-		want := th.Color(c.colorName, variant)
-		assert.Equal(t, want, got, "importance %v", c.importance)
+		assert.Equal(t, c.colorName, pb.activity.ColorName, "importance %v", c.importance)
 	}
-}
-
-func TestLoadingButton_ActivityColorTracksAppThemeChange(t *testing.T) {
-	test.NewTempApp(t)
-	th1 := test.Theme()
-	test.ApplyTheme(t, th1)
-
-	pb := NewLoadingButton("Click", theme.HomeIcon(), nil)
-	pb.SetImportance(widget.DangerImportance)
-	w := test.NewWindow(pb)
-	defer w.Close()
-
-	variant := fyne.CurrentApp().Settings().ThemeVariant()
-	got := pb.activityWrap.Theme.Color(theme.ColorNameForeground, variant)
-	want := th1.Color(theme.ColorNameForegroundOnError, variant)
-	assert.Equal(t, want, got)
-
-	th2 := test.NewTheme()
-	require.NotEqual(t, th1.Color(theme.ColorNameForegroundOnError, variant), th2.Color(theme.ColorNameForegroundOnError, variant))
-	test.ApplyTheme(t, th2)
-
-	got = pb.activityWrap.Theme.Color(theme.ColorNameForeground, variant)
-	want = th2.Color(theme.ColorNameForegroundOnError, variant)
-	assert.Equal(t, want, got)
 }
 
 func TestLoadingButton_DisableWhileRunningAppliesAfterCompletion(t *testing.T) {

@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
@@ -24,14 +25,12 @@ type LoadingButton struct {
 	// done is safe to call from any goroutine and more than once.
 	OnAction func(done func())
 
-	button        *lockableButton
-	disabledTemp  bool
-	icon          fyne.Resource
-	label         string
-	activity      *widget.Activity
-	activityTheme *activityColorTheme
-	activityWrap  *container.ThemeOverride
-	spacer        *canvas.Rectangle
+	button       *lockableButton
+	disabledTemp bool
+	icon         fyne.Resource
+	label        string
+	activity     *Spinner
+	spacer       *canvas.Rectangle
 }
 
 var _ fyne.Accessible = (*LoadingButton)(nil)
@@ -42,13 +41,14 @@ var _ fyne.Widget = (*LoadingButton)(nil)
 func NewLoadingButton(label string, icon fyne.Resource, action func(done func())) *LoadingButton {
 	w := &LoadingButton{
 		button:   newLockableButton(label, icon, nil),
-		activity: widget.NewActivity(),
+		activity: NewSpinner(),
 		spacer:   canvas.NewRectangle(color.Transparent),
 		label:    label,
 		icon:     icon,
 		OnAction: action,
 	}
 	w.ExtendBaseWidget(w)
+	w.activity.ColorName = loadingButtonForegroundColor(w.button.Importance)
 	w.activity.Hide()
 	w.activity.Stop()
 	w.button.OnTapped = func() {
@@ -94,36 +94,16 @@ func (w *LoadingButton) restore() {
 }
 
 func (w *LoadingButton) CreateRenderer() fyne.WidgetRenderer {
-	if w.activityWrap == nil {
-		w.activityTheme = &activityColorTheme{
-			Theme:     w.Theme(),
-			colorName: loadingButtonForegroundColor(w.button.Importance),
-		}
-		w.activityWrap = container.NewThemeOverride(w.activity, w.activityTheme)
-	}
-	c := container.NewStack(w.spacer, w.button, w.activityWrap)
+	p := 2 * theme.Padding()
+	c := container.NewStack(w.spacer, w.button, container.New(layout.NewCustomPaddedLayout(p, p, p, p), w.activity))
 	return widget.NewSimpleRenderer(c)
-}
-
-// Refresh resyncs the loading indicator's theme override with the current
-// theme (e.g. after an app-wide theme change) before delegating to the
-// default widget refresh.
-func (w *LoadingButton) Refresh() {
-	if w.activityTheme != nil {
-		w.activityTheme.Theme = w.Theme()
-		w.activityWrap.Refresh()
-	}
-	w.BaseWidget.Refresh()
 }
 
 // SetImportance sets the importance of the button.
 // Unlike SetText/SetIcon, this applies immediately even while locked.
 func (w *LoadingButton) SetImportance(v widget.Importance) {
 	w.button.Importance = v
-	if w.activityTheme != nil {
-		w.activityTheme.colorName = loadingButtonForegroundColor(v)
-		w.activityWrap.Refresh()
-	}
+	w.activity.SetColorName(loadingButtonForegroundColor(v))
 	w.button.Refresh()
 }
 
@@ -143,21 +123,6 @@ func loadingButtonForegroundColor(importance widget.Importance) fyne.ThemeColorN
 	default: // MediumImportance, LowImportance
 		return theme.ColorNameForeground
 	}
-}
-
-// activityColorTheme redirects theme.ColorNameForeground to colorName, so a
-// [widget.Activity] wrapped in a [container.ThemeOverride] using this theme
-// draws its dots in colorName instead of the plain foreground color.
-type activityColorTheme struct {
-	fyne.Theme
-	colorName fyne.ThemeColorName
-}
-
-func (t *activityColorTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
-	if name == theme.ColorNameForeground {
-		return t.Theme.Color(t.colorName, variant)
-	}
-	return t.Theme.Color(name, variant)
 }
 
 // SetText sets the text of the button. While locked, the new text is

@@ -272,6 +272,49 @@ func makeLoadingButton() fyne.CanvasObject {
 	return container.NewVBox(b1, b2, b3, medium, high, low, danger, warning, success)
 }
 
+func makeSpinner() fyne.CanvasObject {
+	ring := kxwidget.NewSpinner()
+	ring.Start()
+
+	big := kxwidget.NewSpinner()
+	big.Start()
+	bigWrap := container.NewGridWrap(fyne.NewSquareSize(64), big)
+
+	primary := kxwidget.NewSpinner()
+	primary.ColorName = theme.ColorNamePrimary
+	primary.Start()
+
+	success := kxwidget.NewSpinner()
+	success.SetColorName(theme.ColorNameSuccess)
+	success.Start()
+
+	rings := []*kxwidget.Spinner{ring, big, primary, success}
+	started := true
+	var toggle *widget.Button
+	toggle = widget.NewButton("Stop", func() {
+		started = !started
+		if started {
+			for _, r := range rings {
+				r.Start()
+			}
+			toggle.SetText("Stop")
+		} else {
+			for _, r := range rings {
+				r.Stop()
+			}
+			toggle.SetText("Start")
+		}
+	})
+
+	return container.NewVBox(
+		container.NewCenter(ring),
+		container.NewCenter(bigWrap),
+		container.NewCenter(primary),
+		container.NewCenter(success),
+		toggle,
+	)
+}
+
 func makeSlider() fyne.CanvasObject {
 	slider := kxwidget.NewSlider(0, 100)
 	slider.SetValue(25)
@@ -287,7 +330,7 @@ func makeSwitch() fyne.CanvasObject {
 	}
 
 	makeContainer := func(sw *kxwidget.Switch, label *widget.Label) *fyne.Container {
-		return container.NewBorder(nil, nil, nil, container.NewCenter(label), sw)
+		return container.NewHBox(sw, container.NewCenter(label))
 	}
 
 	label1 := widget.NewLabel("")
