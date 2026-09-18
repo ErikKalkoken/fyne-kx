@@ -319,11 +319,18 @@ func makeSlider() fyne.CanvasObject {
 	slider := kxwidget.NewSlider(0, 100)
 	slider.SetValue(25)
 
-	disabled := kxwidget.NewSlider(0, 100)
-	disabled.SetValue(60)
-	disabled.Disable()
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if slider.Disabled() {
+			slider.Enable()
+			b.SetText("Disable")
+		} else {
+			slider.Disable()
+			b.SetText("Enable")
+		}
+	}
 
-	return container.NewVBox(slider, disabled)
+	return container.NewVBox(slider, container.NewPadded(), b)
 }
 
 func makeSwitch() fyne.CanvasObject {
@@ -401,7 +408,25 @@ func makeTappableImage() fyne.CanvasObject {
 	im4 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
 	im4.SetFillMode(canvas.ImageFillContain)
 	im4.SetMinSize(size)
-	return container.NewBorder(im1, im2, im3, im4, imgStandard)
+
+	images := []*kxwidget.TappableImage{imgStandard, im1, im2, im3, im4}
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if imgStandard.Disabled() {
+			for _, im := range images {
+				im.Enable()
+			}
+			b.SetText("Disable")
+		} else {
+			for _, im := range images {
+				im.Disable()
+			}
+			b.SetText("Enable")
+		}
+	}
+
+	grid := container.NewBorder(im1, im2, im3, im4, imgStandard)
+	return container.NewBorder(nil, container.NewVBox(container.NewPadded(), b), nil, nil, grid)
 }
 
 func makeTappableLabel() fyne.CanvasObject {
