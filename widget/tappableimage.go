@@ -8,11 +8,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// disabledImageTranslucency is how much a disabled [TappableImage] fades its
-// image. Translucency is applied to the rendered image, not the resource
-// content, so it works the same regardless of whether the resource is a
-// bitmap or a vector image, unlike [theme.NewDisabledResource] which only
-// recolors SVG content.
+// disabledImageTranslucency is how much a disabled [TappableImage] fades its image.
 const disabledImageTranslucency = 0.5
 
 // TappableImage is widget which shows an image and calls a callback when tapped.
@@ -22,7 +18,14 @@ type TappableImage struct {
 	// The function that is called when the label is tapped.
 	OnTapped func()
 
-	image   *canvas.Image
+	// Resource is the resource shown by this image.
+	Resource fyne.Resource
+
+	// FillMode is the fill mode of the image.
+	FillMode canvas.ImageFill
+
+	image   *canvas.Image // image is created lazily in CreateRenderer
+	minSize fyne.Size
 	hovered bool
 	menu    *fyne.Menu
 	pos     fyne.Position // current mouse position
@@ -57,35 +60,30 @@ func NewTappableImage(res fyne.Resource, tapped func()) *TappableImage {
 }
 
 func newTappableImage(res fyne.Resource, tapped func()) *TappableImage {
-	w := &TappableImage{OnTapped: tapped, image: canvas.NewImageFromResource(res)}
+	w := &TappableImage{OnTapped: tapped, Resource: res}
 	w.ExtendBaseWidget(w)
 	return w
 }
 
-// Refresh triggers a redraw of the image, applying the current disabled state.
-func (w *TappableImage) Refresh() {
-	if w.Disabled() {
-		w.image.Translucency = disabledImageTranslucency
-	} else {
-		w.image.Translucency = 0
-	}
-	w.DisableableWidget.Refresh()
-}
-
 // SetFillMode sets the fill mode of the image.
 func (w *TappableImage) SetFillMode(fillMode canvas.ImageFill) {
-	w.image.FillMode = fillMode
+	w.FillMode = fillMode
+	w.Refresh()
 }
 
 // SetMinSize sets the minimum size of the image.
 func (w *TappableImage) SetMinSize(size fyne.Size) {
-	w.image.SetMinSize(size)
+	w.minSize = size
+	if w.image != nil {
+		w.image.SetMinSize(size)
+		w.image.Refresh()
+	}
 }
 
 // SetResource sets the resource of the image.
 func (w *TappableImage) SetResource(r fyne.Resource) {
-	w.image.Resource = r
-	w.image.Refresh()
+	w.Resource = r
+	w.Refresh()
 }
 
 // SetMenuItems replaces the menu items.
@@ -142,14 +140,17 @@ func (w *TappableImage) MouseOut() {
 }
 
 func (w *TappableImage) CreateRenderer() fyne.WidgetRenderer {
+	if w.image == nil {
+		w.image = canvas.NewImageFromResource(w.Resource)
+		w.image.FillMode = w.FillMode
+		w.image.SetMinSize(w.minSize)
+		if w.Disabled() {
+			w.image.Translucency = disabledImageTranslucency
+		}
+	}
 	return newTappableImageRenderer(w)
 }
 
-// tappableImageRenderer is a custom [fyne.WidgetRenderer] for [TappableImage].
-//
-// It lays out the widget's image with a themed padding on every side,
-// replicating the behavior previously provided by wrapping the image in a
-// [container.NewPadded].
 type tappableImageRenderer struct {
 	widget *TappableImage
 }
@@ -180,6 +181,14 @@ func (r *tappableImageRenderer) MinSize() fyne.Size {
 }
 
 func (r *tappableImageRenderer) Refresh() {
-	r.widget.image.Refresh()
-	canvas.Refresh(r.widget)
+	w := r.widget
+	w.image.Resource = w.Resource
+	w.image.FillMode = w.FillMode
+	if w.Disabled() {
+		w.image.Translucency = disabledImageTranslucency
+	} else {
+		w.image.Translucency = 0
+	}
+	w.image.Refresh()
+	canvas.Refresh(w)
 }

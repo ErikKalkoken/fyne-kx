@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/test"
 	"fyne.io/fyne/v2/theme"
@@ -33,6 +34,43 @@ func TestTappableImage_Disable_FadesResourceRegardlessOfType(t *testing.T) {
 
 	img.Enable()
 	assert.Equal(t, float64(0), img.image.Translucency)
+}
+
+func TestTappableImage_SetResourceFieldDirectly_PropagatesOnRefresh(t *testing.T) {
+	// Resource is exported so callers may follow Fyne's own widget convention
+	// of assigning the field directly instead of calling SetResource.
+	test.NewApp()
+	img := NewTappableImage(theme.HomeIcon(), nil)
+
+	img.Resource = theme.ComputerIcon()
+	img.Refresh()
+
+	assert.Equal(t, theme.ComputerIcon(), img.image.Resource)
+}
+
+func TestTappableImage_SetFillModeFieldDirectly_PropagatesOnRefresh(t *testing.T) {
+	test.NewApp()
+	img := NewTappableImage(theme.HomeIcon(), nil)
+
+	img.FillMode = canvas.ImageFillContain
+	img.Refresh()
+
+	assert.Equal(t, canvas.ImageFillContain, img.image.FillMode)
+}
+
+func TestTappableImage_SetResourceFieldBeforeFirstRender_AppliesOnCreateRenderer(t *testing.T) {
+	// Setting the field before the widget has ever been rendered must still
+	// be picked up once CreateRenderer lazily builds the image.
+	test.NewApp()
+	img := NewTappableImage(theme.HomeIcon(), nil)
+	img.Resource = theme.ComputerIcon()
+	img.FillMode = canvas.ImageFillContain
+
+	renderer := img.CreateRenderer()
+	defer renderer.Destroy()
+
+	assert.Equal(t, theme.ComputerIcon(), img.image.Resource)
+	assert.Equal(t, canvas.ImageFillContain, img.image.FillMode)
 }
 
 func TestTappableImage_Disabled_CursorNeverShowsPointer(t *testing.T) {

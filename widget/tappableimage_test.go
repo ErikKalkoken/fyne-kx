@@ -39,6 +39,35 @@ func TestTappableImage_CanSetResource(t *testing.T) {
 	test.AssertImageMatches(t, "tappableimage/set_resource.png", w.Canvas().Capture())
 }
 
+func TestTappableImage_CanSetResourceFieldDirectly(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	image := widget.NewTappableImage(theme.HomeIcon(), nil)
+	image.SetFillMode(canvas.ImageFillContain)
+	image.SetMinSize(fyne.NewSquareSize(50))
+	w := test.NewWindow(image)
+	defer w.Close()
+
+	// Assigning the exported Resource field directly, Fyne-widget style,
+	// must render identically to calling SetResource.
+	image.Resource = theme.ComputerIcon()
+	image.Refresh()
+
+	test.AssertImageMatches(t, "tappableimage/set_resource.png", w.Canvas().Capture())
+}
+
+func TestTappableImage_CanSetFillModeFieldDirectly(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	image := widget.NewTappableImage(theme.HomeIcon(), nil)
+	image.FillMode = canvas.ImageFillContain
+	image.SetMinSize(fyne.NewSquareSize(50))
+	w := test.NewWindow(image)
+	defer w.Close()
+
+	test.AssertImageMatches(t, "tappableimage/default.png", w.Canvas().Capture())
+}
+
 func TestTappableImage_CanTap(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
