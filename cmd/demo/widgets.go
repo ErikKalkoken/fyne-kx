@@ -318,7 +318,12 @@ func makeSpinner() fyne.CanvasObject {
 func makeSlider() fyne.CanvasObject {
 	slider := kxwidget.NewSlider(0, 100)
 	slider.SetValue(25)
-	return slider
+
+	disabled := kxwidget.NewSlider(0, 100)
+	disabled.SetValue(60)
+	disabled.Disable()
+
+	return container.NewVBox(slider, disabled)
 }
 
 func makeSwitch() fyne.CanvasObject {

@@ -11,12 +11,14 @@ import (
 
 // Slider is a variant of the Fyne Slider widget that also displays the current value.
 type Slider struct {
-	widget.BaseWidget
+	widget.DisableableWidget
 
 	OnChangeEnded func(float64)
 
 	min, max, step, value float64
 }
+
+var _ fyne.Disableable = (*Slider)(nil)
 
 // NewSlider returns a new instance of a [Slider] widget.
 func NewSlider(min, max float64) *Slider {
@@ -135,6 +137,13 @@ func (r *sliderRenderer) Refresh() {
 	if r.slider.Value != r.widget.value {
 		r.slider.Value = r.widget.value
 		r.slider.Refresh()
+	}
+	if r.widget.Disabled() {
+		r.slider.Disable()
+		r.label.Importance = widget.LowImportance
+	} else {
+		r.slider.Enable()
+		r.label.Importance = widget.MediumImportance
 	}
 	r.updateColumnWidths()
 	r.label.SetText(ftoa(r.widget.value))

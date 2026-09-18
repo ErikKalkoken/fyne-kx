@@ -45,6 +45,20 @@ func TestSlider_SetValueClampsOutOfRange(t *testing.T) {
 	assert.EqualValues(t, 10, slider.Value())
 }
 
+func TestSlider_CanDisable(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	slider := kxwidget.NewSlider(0, 10)
+	slider.SetValue(7)
+	w := test.NewWindow(slider)
+	defer w.Close()
+
+	slider.Disable()
+
+	assert.True(t, slider.Disabled())
+	test.AssertImageMatches(t, "slider/disabled.png", w.Canvas().Capture())
+}
+
 func TestSlider_CanShowFractions(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
