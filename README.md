@@ -77,7 +77,7 @@ Further, additional custom themes are provided:
 
 The widgets can be used just like any other widget from the Fyne standard library. All widgets are themeable. Please also see the included [demo](#demo) app that shows them all in action.
 
-![widgets](https://github.com/user-attachments/assets/d4acd8d0-bd6d-4c19-a134-e54fd0717b31)
+<img width="1140" height="895" alt="Image" src="https://github.com/user-attachments/assets/4a42cb24-78b3-450f-a39c-618029576f0f" />
 
 - [Badge](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Badge) is a variant of the Fyne label widget that renders a rounded box around the text.
 - [FilterChip](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChip) an interactive chip for filtering content. It has a label and can be turned on or off.

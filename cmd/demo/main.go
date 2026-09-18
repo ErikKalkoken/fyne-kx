@@ -34,7 +34,7 @@ func main() {
 
 	pages := []treeItem{
 		{"Welcome", makeWelcome()},
-		{"All", makeAll()},
+		{"Widgets", makeAll()},
 		{"Badge", makeBadge()},
 		{"Columns", makeColumns()},
 		{"Dialogs", makeDialogs(w)},
@@ -90,7 +90,6 @@ func main() {
 				return s
 			case "Widgets":
 				s := []widget.TreeNodeID{
-					"All",
 					"Badge",
 					"FilterChip",
 					"FilterChipGroup",
@@ -122,7 +121,7 @@ func main() {
 		},
 	)
 	nav.OnSelected = func(id widget.TreeNodeID) {
-		if nav.IsBranch(id) {
+		if nav.IsBranch(id) && id != "Widgets" {
 			nav.UnselectAll()
 			return
 		}
