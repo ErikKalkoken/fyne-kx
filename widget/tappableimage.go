@@ -3,26 +3,40 @@ package widget
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
-	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
-// disabledImageTranslucency is how much a disabled [TappableImage] fades its
-// image. Translucency is applied to the rendered image, not the resource
-// content, so it works the same regardless of whether the resource is a
-// bitmap or a vector image, unlike [theme.NewDisabledResource] which only
-// recolors SVG content.
+// disabledImageTranslucency is how much a disabled [TappableImage] fades its image.
 const disabledImageTranslucency = 0.5
 
-// TappableImage is widget which shows an image and calls a callback when tapped.
+// TappableImage is widget which shows an image and runs a callback when tapped.
 type TappableImage struct {
 	widget.DisableableWidget
 
-	// The function that is called when the label is tapped.
+	// The function that is called when the image is tapped.
 	OnTapped func()
 
-	image   *canvas.Image
+	// Resource is the resource shown by this image.
+	Resource fyne.Resource
+
+	// FillMode is the fill mode of the image.
+	FillMode canvas.ImageFill
+
+	// ScaleMode sets the scaling filter used to scale the image.
+	ScaleMode canvas.ImageScale
+
+	// CornerRadius specifies a radius to apply to round the corners of the image.
+	CornerRadius float32
+
+	// Translucency sets a base translucency value > 0.0 to fade the image.
+	// While disabled, the disabled-state fade is composited on top of this
+	// value rather than replacing it.
+	Translucency float64
+
+	image   *canvas.Image // image is created lazily in CreateRenderer
+	minSize fyne.Size
 	hovered bool
 	menu    *fyne.Menu
 	pos     fyne.Position // current mouse position
@@ -39,6 +53,12 @@ func NewTappableImageWithMenu(res fyne.Resource, menu *fyne.Menu) *TappableImage
 		fyne.LogError("TappableImage misconfigured: missing menu", nil)
 		return w
 	}
+	w.setMenu(menu)
+	return w
+}
+
+// setMenu attaches menu to the widget and wires OnTapped to show it.
+func (w *TappableImage) setMenu(menu *fyne.Menu) {
 	w.menu = menu
 	w.OnTapped = func() {
 		if len(w.menu.Items) == 0 {
@@ -48,7 +68,6 @@ func NewTappableImageWithMenu(res fyne.Resource, menu *fyne.Menu) *TappableImage
 		m := widget.NewPopUpMenu(w.menu, c)
 		m.ShowAtPosition(w.pos)
 	}
-	return w
 }
 
 // NewTappableImage returns a new instance of a [TappableImage] widget.
@@ -57,42 +76,51 @@ func NewTappableImage(res fyne.Resource, tapped func()) *TappableImage {
 }
 
 func newTappableImage(res fyne.Resource, tapped func()) *TappableImage {
-	w := &TappableImage{OnTapped: tapped, image: canvas.NewImageFromResource(res)}
+	w := &TappableImage{OnTapped: tapped, Resource: res}
 	w.ExtendBaseWidget(w)
 	return w
 }
 
-// Refresh triggers a redraw of the image, applying the current disabled state.
-func (w *TappableImage) Refresh() {
-	if w.Disabled() {
-		w.image.Translucency = disabledImageTranslucency
-	} else {
-		w.image.Translucency = 0
-	}
-	w.DisableableWidget.Refresh()
-}
-
 // SetFillMode sets the fill mode of the image.
 func (w *TappableImage) SetFillMode(fillMode canvas.ImageFill) {
-	w.image.FillMode = fillMode
+	w.FillMode = fillMode
+	w.Refresh()
 }
 
 // SetMinSize sets the minimum size of the image.
 func (w *TappableImage) SetMinSize(size fyne.Size) {
-	w.image.SetMinSize(size)
+	w.minSize = size
+	if w.image != nil {
+		w.image.SetMinSize(size)
+		w.image.Refresh()
+	}
 }
 
 // SetResource sets the resource of the image.
 func (w *TappableImage) SetResource(r fyne.Resource) {
-	w.image.Resource = r
-	w.image.Refresh()
+	w.Resource = r
+	w.Refresh()
+}
+
+func (w *TappableImage) effectiveTranslucency() float64 {
+	if !w.Disabled() {
+		return w.Translucency
+	}
+	return w.Translucency + disabledImageTranslucency*(1-w.Translucency)
 }
 
 // SetMenuItems replaces the menu items.
-// Does nothing when the widget has not bee created with [NewTappableImageWithMenu].
+//
+// Logs an error if this overwrites a caller-set OnTapped, since attaching a
+// menu always takes over tap handling.
 func (w *TappableImage) SetMenuItems(menuItems []*fyne.MenuItem) {
 	if w.menu == nil {
-		return
+		if w.OnTapped != nil {
+			fyne.LogError("TappableImage misconfigured: overwriting OnTapped to show the menu", nil)
+		}
+		w.setMenu(fyne.NewMenu(""))
+	} else if w.OnTapped == nil {
+		w.setMenu(w.menu)
 	}
 	w.menu.Items = menuItems
 	w.menu.Refresh()
@@ -125,7 +153,7 @@ func (w *TappableImage) MouseIn(me *desktop.MouseEvent) {
 }
 
 func (w *TappableImage) MouseMoved(me *desktop.MouseEvent) {
-	if w.Disabled() {
+	if w.Disabled() || w.image == nil {
 		return
 	}
 	w.pos = me.AbsolutePosition
@@ -142,5 +170,53 @@ func (w *TappableImage) MouseOut() {
 }
 
 func (w *TappableImage) CreateRenderer() fyne.WidgetRenderer {
-	return widget.NewSimpleRenderer(container.NewPadded(w.image))
+	if w.image == nil {
+		w.image = canvas.NewImageFromResource(w.Resource)
+		w.image.FillMode = w.FillMode
+		w.image.ScaleMode = w.ScaleMode
+		w.image.CornerRadius = w.CornerRadius
+		w.image.SetMinSize(w.minSize)
+		w.image.Translucency = w.effectiveTranslucency()
+	}
+	return newTappableImageRenderer(w)
+}
+
+type tappableImageRenderer struct {
+	widget *TappableImage
+}
+
+var _ fyne.WidgetRenderer = (*tappableImageRenderer)(nil)
+
+func newTappableImageRenderer(w *TappableImage) *tappableImageRenderer {
+	return &tappableImageRenderer{widget: w}
+}
+
+func (r *tappableImageRenderer) Destroy() {
+}
+
+func (r *tappableImageRenderer) Objects() []fyne.CanvasObject {
+	return []fyne.CanvasObject{r.widget.image}
+}
+
+func (r *tappableImageRenderer) Layout(size fyne.Size) {
+	pad := theme.Padding()
+	r.widget.image.Move(fyne.NewPos(pad, pad))
+	r.widget.image.Resize(fyne.NewSize(size.Width-2*pad, size.Height-2*pad))
+}
+
+func (r *tappableImageRenderer) MinSize() fyne.Size {
+	pad := theme.Padding()
+	imgMin := r.widget.image.MinSize()
+	return fyne.NewSize(imgMin.Width+2*pad, imgMin.Height+2*pad)
+}
+
+func (r *tappableImageRenderer) Refresh() {
+	w := r.widget
+	w.image.Resource = w.Resource
+	w.image.FillMode = w.FillMode
+	w.image.ScaleMode = w.ScaleMode
+	w.image.CornerRadius = w.CornerRadius
+	w.image.Translucency = w.effectiveTranslucency()
+	w.image.Refresh()
+	canvas.Refresh(w)
 }
