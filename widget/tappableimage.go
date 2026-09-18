@@ -3,8 +3,8 @@ package widget
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
-	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -142,5 +142,44 @@ func (w *TappableImage) MouseOut() {
 }
 
 func (w *TappableImage) CreateRenderer() fyne.WidgetRenderer {
-	return widget.NewSimpleRenderer(container.NewPadded(w.image))
+	return newTappableImageRenderer(w)
+}
+
+// tappableImageRenderer is a custom [fyne.WidgetRenderer] for [TappableImage].
+//
+// It lays out the widget's image with a themed padding on every side,
+// replicating the behavior previously provided by wrapping the image in a
+// [container.NewPadded].
+type tappableImageRenderer struct {
+	widget *TappableImage
+}
+
+var _ fyne.WidgetRenderer = (*tappableImageRenderer)(nil)
+
+func newTappableImageRenderer(w *TappableImage) *tappableImageRenderer {
+	return &tappableImageRenderer{widget: w}
+}
+
+func (r *tappableImageRenderer) Destroy() {
+}
+
+func (r *tappableImageRenderer) Objects() []fyne.CanvasObject {
+	return []fyne.CanvasObject{r.widget.image}
+}
+
+func (r *tappableImageRenderer) Layout(size fyne.Size) {
+	pad := theme.Padding()
+	r.widget.image.Move(fyne.NewPos(pad, pad))
+	r.widget.image.Resize(fyne.NewSize(size.Width-2*pad, size.Height-2*pad))
+}
+
+func (r *tappableImageRenderer) MinSize() fyne.Size {
+	pad := theme.Padding()
+	imgMin := r.widget.image.MinSize()
+	return fyne.NewSize(imgMin.Width+2*pad, imgMin.Height+2*pad)
+}
+
+func (r *tappableImageRenderer) Refresh() {
+	r.widget.image.Refresh()
+	canvas.Refresh(r.widget)
 }
