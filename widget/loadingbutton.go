@@ -48,7 +48,7 @@ func NewLoadingButton(label string, icon fyne.Resource, action func(done func())
 		OnAction: action,
 	}
 	w.ExtendBaseWidget(w)
-	w.activity.ColorName = loadingButtonForegroundColor(w.button.Importance)
+	w.activity.ColorName = buttonForegroundColor(w.button.Importance)
 	w.activity.Hide()
 	w.activity.Stop()
 	w.button.OnTapped = func() {
@@ -103,26 +103,8 @@ func (w *LoadingButton) CreateRenderer() fyne.WidgetRenderer {
 // Unlike SetText/SetIcon, this applies immediately even while locked.
 func (w *LoadingButton) SetImportance(v widget.Importance) {
 	w.button.Importance = v
-	w.activity.SetColorName(loadingButtonForegroundColor(v))
+	w.activity.SetColorName(buttonForegroundColor(v))
 	w.button.Refresh()
-}
-
-// loadingButtonForegroundColor returns the same foreground color name a
-// Fyne button uses for its label and icon at the given importance, so the
-// loading indicator's dots can be made to match it.
-func loadingButtonForegroundColor(importance widget.Importance) fyne.ThemeColorName {
-	switch importance {
-	case widget.DangerImportance:
-		return theme.ColorNameForegroundOnError
-	case widget.HighImportance:
-		return theme.ColorNameForegroundOnPrimary
-	case widget.SuccessImportance:
-		return theme.ColorNameForegroundOnSuccess
-	case widget.WarningImportance:
-		return theme.ColorNameForegroundOnWarning
-	default: // MediumImportance, LowImportance
-		return theme.ColorNameForeground
-	}
 }
 
 // SetText sets the text of the button. While locked, the new text is

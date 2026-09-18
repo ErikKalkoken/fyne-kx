@@ -41,13 +41,16 @@ func (w *Badge) CreateRenderer() fyne.WidgetRenderer {
 	innerBg := canvas.NewRectangle(color.Transparent)
 	innerBg.CornerRadius = theme.Size(theme.SizeNameDialogRadius)
 
-	label := widget.NewLabel(w.Text)
+	segment := &widget.TextSegment{Text: w.Text}
+	text := widget.NewRichText(segment)
+	text.ExtendBaseWidget(text)
 
 	r := &badgeRenderer{
 		badge:           w,
 		background:      bg,
 		innerBackground: innerBg,
-		label:           label,
+		text:            text,
+		segment:         segment,
 	}
 	r.Refresh()
 	return r
@@ -57,13 +60,14 @@ type badgeRenderer struct {
 	badge           *Badge
 	background      *canvas.Rectangle
 	innerBackground *canvas.Rectangle
-	label           *widget.Label
+	text            *widget.RichText
+	segment         *widget.TextSegment
 }
 
 func (r *badgeRenderer) Destroy() {}
 
 func (r *badgeRenderer) Layout(size fyne.Size) {
-	labelSize := r.label.MinSize()
+	labelSize := r.text.MinSize()
 	bgSize := labelSize
 	padding := theme.Padding()
 
@@ -105,23 +109,24 @@ func (r *badgeRenderer) Layout(size fyne.Size) {
 
 	// Position the label centered relative to the background
 	labelXPos := xPos + (bgSize.Width-labelSize.Width)/2
-	r.label.Move(fyne.NewPos(labelXPos, yPosLabel))
-	r.label.Resize(labelSize)
+	r.text.Move(fyne.NewPos(labelXPos, yPosLabel))
+	r.text.Resize(labelSize)
 }
 
 func (r *badgeRenderer) MinSize() fyne.Size {
-	return r.label.MinSize()
+	return r.text.MinSize()
 }
 
 func (r *badgeRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.background, r.innerBackground, r.label}
+	return []fyne.CanvasObject{r.background, r.innerBackground, r.text}
 }
 
 func (r *badgeRenderer) Refresh() {
-	r.label.Text = r.badge.Text
-	r.label.Alignment = r.badge.Alignment
-	r.label.SizeName = r.badge.SizeName
-	r.label.Refresh()
+	r.segment.Text = r.badge.Text
+	r.segment.Style.Alignment = r.badge.Alignment
+	r.segment.Style.SizeName = r.badge.SizeName
+	r.segment.Style.ColorName = buttonForegroundColor(r.badge.Importance)
+	r.text.Refresh()
 
 	th := r.badge.Theme()
 	v := fyne.CurrentApp().Settings().ThemeVariant()
@@ -136,13 +141,13 @@ func (r *badgeRenderer) Refresh() {
 	case widget.HighImportance:
 		r.innerBackground.FillColor = th.Color(theme.ColorNamePrimary, v)
 	case widget.LowImportance:
-		r.innerBackground.FillColor = th.Color(theme.ColorNameDisabled, v)
+		r.innerBackground.FillColor = th.Color(theme.ColorNameInputBackground, v)
 	case widget.SuccessImportance:
 		r.innerBackground.FillColor = th.Color(theme.ColorNameSuccess, v)
 	case widget.WarningImportance:
 		r.innerBackground.FillColor = th.Color(theme.ColorNameWarning, v)
 	default:
-		r.innerBackground.FillColor = th.Color(theme.ColorNameInputBackground, v)
+		r.innerBackground.FillColor = th.Color(theme.ColorNameDisabled, v)
 	}
 
 	r.background.Refresh()
