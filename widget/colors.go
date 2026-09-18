@@ -1,6 +1,12 @@
 package widget
 
-import "image/color"
+import (
+	"image/color"
+
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
+)
 
 type modifiedColorMode uint
 
@@ -72,4 +78,22 @@ func max(values ...float32) float32 {
 		}
 	}
 	return m
+}
+
+// buttonForegroundColor returns the same foreground color name a Fyne
+// button uses for its label and icon at the given importance, so other
+// widgets can match a button's text color for a given importance.
+func buttonForegroundColor(importance widget.Importance) fyne.ThemeColorName {
+	switch importance {
+	case widget.DangerImportance:
+		return theme.ColorNameForegroundOnError
+	case widget.HighImportance:
+		return theme.ColorNameForegroundOnPrimary
+	case widget.SuccessImportance:
+		return theme.ColorNameForegroundOnSuccess
+	case widget.WarningImportance:
+		return theme.ColorNameForegroundOnWarning
+	default: // MediumImportance, LowImportance
+		return theme.ColorNameForeground
+	}
 }
