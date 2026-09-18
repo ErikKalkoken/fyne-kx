@@ -82,6 +82,18 @@ func TestTappableImage_Disabled_CursorNeverShowsPointer(t *testing.T) {
 	assert.Equal(t, desktop.DefaultCursor, img.Cursor())
 }
 
+func TestTappableImage_MouseMoved_BeforeFirstRender_DoesNotPanic(t *testing.T) {
+	// image is nil until CreateRenderer runs; MouseMoved (and MouseIn, which
+	// delegates to it) must not dereference it before that has happened.
+	test.NewApp()
+	img := NewTappableImage(theme.HomeIcon(), nil)
+
+	assert.NotPanics(t, func() {
+		img.MouseIn(&desktop.MouseEvent{PointEvent: fyne.PointEvent{Position: fyne.NewPos(10, 10)}})
+	})
+	assert.False(t, img.hovered)
+}
+
 func TestTappableImage_MouseMoved_InsidePaddingStrip_DoesNotHover(t *testing.T) {
 	img := newSizedTappableImage(t, 300, 300)
 

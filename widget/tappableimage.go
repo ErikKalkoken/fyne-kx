@@ -11,11 +11,11 @@ import (
 // disabledImageTranslucency is how much a disabled [TappableImage] fades its image.
 const disabledImageTranslucency = 0.5
 
-// TappableImage is widget which shows an image and calls a callback when tapped.
+// TappableImage is widget which shows an image and runs a callback when tapped.
 type TappableImage struct {
 	widget.DisableableWidget
 
-	// The function that is called when the label is tapped.
+	// The function that is called when the image is tapped.
 	OnTapped func()
 
 	// Resource is the resource shown by this image.
@@ -31,6 +31,8 @@ type TappableImage struct {
 	CornerRadius float32
 
 	// Translucency sets a base translucency value > 0.0 to fade the image.
+	// While disabled, the disabled-state fade is composited on top of this
+	// value rather than replacing it.
 	Translucency float64
 
 	image   *canvas.Image // image is created lazily in CreateRenderer
@@ -51,6 +53,12 @@ func NewTappableImageWithMenu(res fyne.Resource, menu *fyne.Menu) *TappableImage
 		fyne.LogError("TappableImage misconfigured: missing menu", nil)
 		return w
 	}
+	w.setMenu(menu)
+	return w
+}
+
+// setMenu attaches menu to the widget and wires OnTapped to show it.
+func (w *TappableImage) setMenu(menu *fyne.Menu) {
 	w.menu = menu
 	w.OnTapped = func() {
 		if len(w.menu.Items) == 0 {
@@ -60,7 +68,6 @@ func NewTappableImageWithMenu(res fyne.Resource, menu *fyne.Menu) *TappableImage
 		m := widget.NewPopUpMenu(w.menu, c)
 		m.ShowAtPosition(w.pos)
 	}
-	return w
 }
 
 // NewTappableImage returns a new instance of a [TappableImage] widget.
@@ -103,10 +110,17 @@ func (w *TappableImage) effectiveTranslucency() float64 {
 }
 
 // SetMenuItems replaces the menu items.
-// Does nothing when the widget has not bee created with [NewTappableImageWithMenu].
+//
+// Logs an error if this overwrites a caller-set OnTapped, since attaching a
+// menu always takes over tap handling.
 func (w *TappableImage) SetMenuItems(menuItems []*fyne.MenuItem) {
 	if w.menu == nil {
-		return
+		if w.OnTapped != nil {
+			fyne.LogError("TappableImage misconfigured: overwriting OnTapped to show the menu", nil)
+		}
+		w.setMenu(fyne.NewMenu(""))
+	} else if w.OnTapped == nil {
+		w.setMenu(w.menu)
 	}
 	w.menu.Items = menuItems
 	w.menu.Refresh()
@@ -139,7 +153,7 @@ func (w *TappableImage) MouseIn(me *desktop.MouseEvent) {
 }
 
 func (w *TappableImage) MouseMoved(me *desktop.MouseEvent) {
-	if w.Disabled() {
+	if w.Disabled() || w.image == nil {
 		return
 	}
 	w.pos = me.AbsolutePosition

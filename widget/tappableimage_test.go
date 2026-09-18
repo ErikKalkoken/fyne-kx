@@ -147,16 +147,51 @@ func TestTappableImage_WithMenu_TapDoesNothingWhenMenuEmpty(t *testing.T) {
 	assert.NotPanics(t, func() { test.Tap(image) })
 }
 
-func TestTappableImage_SetMenuItemsDoesNothingWithoutMenu(t *testing.T) {
+func TestTappableImage_SetMenuItemsCreatesMenuWhenMissing(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 	image := widget.NewTappableImage(theme.HomeIcon(), nil)
 	w := test.NewWindow(image)
 	defer w.Close()
 
-	assert.NotPanics(t, func() {
-		image.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("new", nil)})
+	image.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("new", nil)})
+
+	// The lazily created menu must be wired up and show without panicking.
+	assert.NotPanics(t, func() { test.Tap(image) })
+}
+
+func TestTappableImage_SetMenuItemsOverwritesOnTapped(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	var tapped bool
+	image := widget.NewTappableImage(theme.HomeIcon(), func() {
+		tapped = true
 	})
+	w := test.NewWindow(image)
+	defer w.Close()
+
+	image.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("new", nil)})
+	test.Tap(image)
+
+	assert.False(t, tapped, "attaching a menu must overwrite the previous OnTapped")
+}
+
+func TestTappableImage_SetMenuItemsRewiresTapAfterOnTappedCleared(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	menu := fyne.NewMenu("", fyne.NewMenuItem("old", nil))
+	image := widget.NewTappableImageWithMenu(theme.HomeIcon(), menu)
+	w := test.NewWindow(image)
+	defer w.Close()
+
+	// Following SetMenuItems' documented recovery advice (clear OnTapped, call
+	// again) on a widget that already has a menu must rewire it, not leave it
+	// permanently inert.
+	image.OnTapped = nil
+	image.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("new", nil)})
+
+	assert.NotNil(t, image.OnTapped, "OnTapped must be rewired to show the menu again")
+	assert.NotPanics(t, func() { test.Tap(image) })
 }
 
 func TestTappableImage_SetMenuItemsReplacesItems(t *testing.T) {
