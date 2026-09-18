@@ -445,7 +445,23 @@ func makeTappableLabel() fyne.CanvasObject {
 	label := kxwidget.NewTappableLabel("Tap me", func() {
 		log.Println("TappableLabel tapped")
 	})
-	return container.NewHBox(label, widget.NewLabel("<- tap"))
+
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if label.Disabled() {
+			label.Enable()
+			b.SetText("Disable")
+		} else {
+			label.Disable()
+			b.SetText("Enable")
+		}
+	}
+
+	return container.NewVBox(
+		container.NewHBox(label, widget.NewLabel("<- tap")),
+		container.NewPadded(),
+		b,
+	)
 }
 
 func makeToolbarActionMenu() fyne.CanvasObject {
