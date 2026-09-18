@@ -20,6 +20,30 @@ func newSizedTappableImage(t *testing.T, w, h float32) *TappableImage {
 	return img
 }
 
+func TestTappableImage_Disable_FadesResourceRegardlessOfType(t *testing.T) {
+	// iconQuestionmark32Png is a raster (PNG) resource, unlike the SVG icons
+	// used elsewhere in this file. Translucency is applied to the rendered
+	// image rather than the resource content, so it must fade a bitmap
+	// resource exactly the same way as a vector one.
+	test.NewApp()
+	img := NewTappableImage(iconQuestionmark32Png, nil)
+
+	img.Disable()
+	assert.Equal(t, float64(disabledImageTranslucency), img.image.Translucency)
+
+	img.Enable()
+	assert.Equal(t, float64(0), img.image.Translucency)
+}
+
+func TestTappableImage_Disabled_CursorNeverShowsPointer(t *testing.T) {
+	test.NewApp()
+	img := NewTappableImage(theme.HomeIcon(), nil)
+	img.hovered = true
+	img.Disable()
+
+	assert.Equal(t, desktop.DefaultCursor, img.Cursor())
+}
+
 func TestTappableImage_MouseMoved_InsidePaddingStrip_DoesNotHover(t *testing.T) {
 	img := newSizedTappableImage(t, 300, 300)
 

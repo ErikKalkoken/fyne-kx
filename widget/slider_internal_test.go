@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"fyne.io/fyne/v2/test"
+	"fyne.io/fyne/v2/widget"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,6 +36,23 @@ func TestSlider_DefaultStepMatchesFyneSliderDefault(t *testing.T) {
 	r := w.CreateRenderer().(*sliderRenderer)
 
 	assert.Equal(t, float64(1), r.slider.Step)
+}
+
+func TestSlider_DisableEnablePropagatesToInnerSlider(t *testing.T) {
+	test.NewTempApp(t)
+
+	w := NewSlider(0, 10)
+	r := w.CreateRenderer().(*sliderRenderer)
+
+	w.Disable()
+	r.Refresh()
+	assert.True(t, r.slider.Disabled())
+	assert.Equal(t, widget.LowImportance, r.label.Importance)
+
+	w.Enable()
+	r.Refresh()
+	assert.False(t, r.slider.Disabled())
+	assert.Equal(t, widget.MediumImportance, r.label.Importance)
 }
 
 func TestSlider_QuantizesValueByDefaultStep(t *testing.T) {

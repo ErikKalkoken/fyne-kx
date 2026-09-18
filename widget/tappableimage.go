@@ -8,9 +8,16 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+// disabledImageTranslucency is how much a disabled [TappableImage] fades its
+// image. Translucency is applied to the rendered image, not the resource
+// content, so it works the same regardless of whether the resource is a
+// bitmap or a vector image, unlike [theme.NewDisabledResource] which only
+// recolors SVG content.
+const disabledImageTranslucency = 0.5
+
 // TappableImage is widget which shows an image and calls a callback when tapped.
 type TappableImage struct {
-	widget.BaseWidget
+	widget.DisableableWidget
 
 	// The function that is called when the label is tapped.
 	OnTapped func()
@@ -23,6 +30,7 @@ type TappableImage struct {
 
 var _ fyne.Tappable = (*TappableImage)(nil)
 var _ desktop.Hoverable = (*TappableImage)(nil)
+var _ fyne.Disableable = (*TappableImage)(nil)
 
 // NewTappableImageWithMenu returns a new instance of a [TappableImage] widget with a context menu.
 func NewTappableImageWithMenu(res fyne.Resource, menu *fyne.Menu) *TappableImage {
@@ -54,6 +62,16 @@ func newTappableImage(res fyne.Resource, tapped func()) *TappableImage {
 	return w
 }
 
+// Refresh triggers a redraw of the image, applying the current disabled state.
+func (w *TappableImage) Refresh() {
+	if w.Disabled() {
+		w.image.Translucency = disabledImageTranslucency
+	} else {
+		w.image.Translucency = 0
+	}
+	w.DisableableWidget.Refresh()
+}
+
 // SetFillMode sets the fill mode of the image.
 func (w *TappableImage) SetFillMode(fillMode canvas.ImageFill) {
 	w.image.FillMode = fillMode
@@ -81,6 +99,9 @@ func (w *TappableImage) SetMenuItems(menuItems []*fyne.MenuItem) {
 }
 
 func (w *TappableImage) Tapped(pe *fyne.PointEvent) {
+	if w.Disabled() {
+		return
+	}
 	w.pos = pe.AbsolutePosition
 	if w.OnTapped != nil {
 		w.OnTapped()
@@ -92,7 +113,7 @@ func (w *TappableImage) TappedSecondary(_ *fyne.PointEvent) {
 
 // Cursor returns the cursor type of this widget
 func (w *TappableImage) Cursor() desktop.Cursor {
-	if w.hovered {
+	if !w.Disabled() && w.hovered {
 		return desktop.PointerCursor
 	}
 	return desktop.DefaultCursor
@@ -104,6 +125,9 @@ func (w *TappableImage) MouseIn(me *desktop.MouseEvent) {
 }
 
 func (w *TappableImage) MouseMoved(me *desktop.MouseEvent) {
+	if w.Disabled() {
+		return
+	}
 	w.pos = me.AbsolutePosition
 	pos := w.image.Position()
 	s := w.image.Size()

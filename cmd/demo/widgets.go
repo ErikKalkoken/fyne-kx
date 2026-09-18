@@ -318,7 +318,19 @@ func makeSpinner() fyne.CanvasObject {
 func makeSlider() fyne.CanvasObject {
 	slider := kxwidget.NewSlider(0, 100)
 	slider.SetValue(25)
-	return slider
+
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if slider.Disabled() {
+			slider.Enable()
+			b.SetText("Disable")
+		} else {
+			slider.Disable()
+			b.SetText("Enable")
+		}
+	}
+
+	return container.NewVBox(slider, container.NewPadded(), b)
 }
 
 func makeSwitch() fyne.CanvasObject {
@@ -357,14 +369,26 @@ func makeSwitch() fyne.CanvasObject {
 	switch4.Disable()
 	c4 := makeContainer(switch4, widget.NewLabel("off disabled"))
 
-	return container.NewGridWithRows(4, c1, c2, c3, c4)
+	return container.NewVBox(c1, c2, c3, c4)
 }
 
 func makeTappableIcon() fyne.CanvasObject {
 	icon := kxwidget.NewTappableIcon(theme.AccountIcon(), func() {
 		log.Println("TappableIcon tapped")
 	})
-	return container.NewVBox(icon)
+
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if icon.Disabled() {
+			icon.Enable()
+			b.SetText("Disable")
+		} else {
+			icon.Disable()
+			b.SetText("Enable")
+		}
+	}
+
+	return container.NewVBox(icon, container.NewPadded(), b)
 }
 
 func makeTappableImage() fyne.CanvasObject {
@@ -396,14 +420,48 @@ func makeTappableImage() fyne.CanvasObject {
 	im4 := kxwidget.NewTappableImageWithMenu(resourceIconPng, menu)
 	im4.SetFillMode(canvas.ImageFillContain)
 	im4.SetMinSize(size)
-	return container.NewBorder(im1, im2, im3, im4, imgStandard)
+
+	images := []*kxwidget.TappableImage{imgStandard, im1, im2, im3, im4}
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if imgStandard.Disabled() {
+			for _, im := range images {
+				im.Enable()
+			}
+			b.SetText("Disable")
+		} else {
+			for _, im := range images {
+				im.Disable()
+			}
+			b.SetText("Enable")
+		}
+	}
+
+	grid := container.NewBorder(im1, im2, im3, im4, imgStandard)
+	return container.NewBorder(nil, container.NewVBox(container.NewPadded(), b), nil, nil, grid)
 }
 
 func makeTappableLabel() fyne.CanvasObject {
 	label := kxwidget.NewTappableLabel("Tap me", func() {
 		log.Println("TappableLabel tapped")
 	})
-	return container.NewHBox(label, widget.NewLabel("<- tap"))
+
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if label.Disabled() {
+			label.Enable()
+			b.SetText("Disable")
+		} else {
+			label.Disable()
+			b.SetText("Enable")
+		}
+	}
+
+	return container.NewVBox(
+		container.NewHBox(label, widget.NewLabel("<- tap")),
+		container.NewPadded(),
+		b,
+	)
 }
 
 func makeToolbarActionMenu() fyne.CanvasObject {
@@ -416,8 +474,23 @@ func makeToolbarActionMenu() fyne.CanvasObject {
 			log.Println("second selected")
 		}),
 	))
-	ntb := widget.NewToolbar(menu, widget.NewToolbarAction(theme.AccountIcon(), func() {
+	action := widget.NewToolbarAction(theme.AccountIcon(), func() {
 		log.Println("Account tapped")
-	}))
-	return container.NewVBox(ntb)
+	})
+	ntb := widget.NewToolbar(menu, action)
+
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if menu.Disabled() {
+			menu.Enable()
+			action.Enable()
+			b.SetText("Disable")
+		} else {
+			menu.Disable()
+			action.Disable()
+			b.SetText("Enable")
+		}
+	}
+
+	return container.NewVBox(ntb, container.NewPadded(), b)
 }

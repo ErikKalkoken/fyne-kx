@@ -45,6 +45,35 @@ func TestTappableLabel_IgnoreTapWhenNoCallback(t *testing.T) {
 	test.Tap(icon)
 }
 
+func TestTappableLabel_CanDisable(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	label := widget.NewTappableLabel("Test", nil)
+	w := test.NewWindow(label)
+	defer w.Close()
+
+	label.Disable()
+
+	assert.True(t, label.Disabled())
+	test.AssertImageMatches(t, "tappablelabel/disabled.png", w.Canvas().Capture())
+}
+
+func TestTappableLabel_DisabledIgnoresTap(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	var tapped bool
+	label := widget.NewTappableLabel("Test", func() {
+		tapped = true
+	})
+	w := test.NewWindow(label)
+	defer w.Close()
+	label.Disable()
+
+	test.Tap(label)
+
+	assert.False(t, tapped, "a disabled TappableLabel must not fire its tap callback")
+}
+
 func TestTappableLabel_MouseInOutTogglesPointerCursor(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())

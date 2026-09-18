@@ -67,6 +67,37 @@ func TestTappableImage_IgnoreTapWhenNoCallback(t *testing.T) {
 	test.Tap(image)
 }
 
+func TestTappableImage_CanDisable(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	image := widget.NewTappableImage(theme.HomeIcon(), nil)
+	image.SetFillMode(canvas.ImageFillContain)
+	image.SetMinSize(fyne.NewSquareSize(50))
+	w := test.NewWindow(image)
+	defer w.Close()
+
+	image.Disable()
+
+	assert.True(t, image.Disabled())
+	test.AssertImageMatches(t, "tappableimage/disabled.png", w.Canvas().Capture())
+}
+
+func TestTappableImage_DisabledIgnoresTap(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	var tapped bool
+	image := widget.NewTappableImage(theme.HomeIcon(), func() {
+		tapped = true
+	})
+	w := test.NewWindow(image)
+	defer w.Close()
+	image.Disable()
+
+	test.Tap(image)
+
+	assert.False(t, tapped, "a disabled TappableImage must not fire its tap callback")
+}
+
 func TestTappableImage_WithMenu_NilMenuLeavesTapNoOp(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
