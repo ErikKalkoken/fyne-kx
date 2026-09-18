@@ -24,6 +24,15 @@ type TappableImage struct {
 	// FillMode is the fill mode of the image.
 	FillMode canvas.ImageFill
 
+	// ScaleMode sets the scaling filter used to scale the image.
+	ScaleMode canvas.ImageScale
+
+	// CornerRadius specifies a radius to apply to round the corners of the image.
+	CornerRadius float32
+
+	// Translucency sets a base translucency value > 0.0 to fade the image.
+	Translucency float64
+
 	image   *canvas.Image // image is created lazily in CreateRenderer
 	minSize fyne.Size
 	hovered bool
@@ -86,6 +95,13 @@ func (w *TappableImage) SetResource(r fyne.Resource) {
 	w.Refresh()
 }
 
+func (w *TappableImage) effectiveTranslucency() float64 {
+	if !w.Disabled() {
+		return w.Translucency
+	}
+	return w.Translucency + disabledImageTranslucency*(1-w.Translucency)
+}
+
 // SetMenuItems replaces the menu items.
 // Does nothing when the widget has not bee created with [NewTappableImageWithMenu].
 func (w *TappableImage) SetMenuItems(menuItems []*fyne.MenuItem) {
@@ -143,10 +159,10 @@ func (w *TappableImage) CreateRenderer() fyne.WidgetRenderer {
 	if w.image == nil {
 		w.image = canvas.NewImageFromResource(w.Resource)
 		w.image.FillMode = w.FillMode
+		w.image.ScaleMode = w.ScaleMode
+		w.image.CornerRadius = w.CornerRadius
 		w.image.SetMinSize(w.minSize)
-		if w.Disabled() {
-			w.image.Translucency = disabledImageTranslucency
-		}
+		w.image.Translucency = w.effectiveTranslucency()
 	}
 	return newTappableImageRenderer(w)
 }
@@ -184,11 +200,9 @@ func (r *tappableImageRenderer) Refresh() {
 	w := r.widget
 	w.image.Resource = w.Resource
 	w.image.FillMode = w.FillMode
-	if w.Disabled() {
-		w.image.Translucency = disabledImageTranslucency
-	} else {
-		w.image.Translucency = 0
-	}
+	w.image.ScaleMode = w.ScaleMode
+	w.image.CornerRadius = w.CornerRadius
+	w.image.Translucency = w.effectiveTranslucency()
 	w.image.Refresh()
 	canvas.Refresh(w)
 }
