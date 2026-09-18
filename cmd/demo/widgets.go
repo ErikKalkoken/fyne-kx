@@ -376,7 +376,19 @@ func makeTappableIcon() fyne.CanvasObject {
 	icon := kxwidget.NewTappableIcon(theme.AccountIcon(), func() {
 		log.Println("TappableIcon tapped")
 	})
-	return container.NewVBox(icon)
+
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if icon.Disabled() {
+			icon.Enable()
+			b.SetText("Disable")
+		} else {
+			icon.Disable()
+			b.SetText("Enable")
+		}
+	}
+
+	return container.NewVBox(icon, container.NewPadded(), b)
 }
 
 func makeTappableImage() fyne.CanvasObject {
