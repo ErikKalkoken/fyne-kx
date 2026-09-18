@@ -369,7 +369,7 @@ func makeSwitch() fyne.CanvasObject {
 	switch4.Disable()
 	c4 := makeContainer(switch4, widget.NewLabel("off disabled"))
 
-	return container.NewGridWithRows(4, c1, c2, c3, c4)
+	return container.NewVBox(c1, c2, c3, c4)
 }
 
 func makeTappableIcon() fyne.CanvasObject {
@@ -474,8 +474,23 @@ func makeToolbarActionMenu() fyne.CanvasObject {
 			log.Println("second selected")
 		}),
 	))
-	ntb := widget.NewToolbar(menu, widget.NewToolbarAction(theme.AccountIcon(), func() {
+	action := widget.NewToolbarAction(theme.AccountIcon(), func() {
 		log.Println("Account tapped")
-	}))
-	return container.NewVBox(ntb)
+	})
+	ntb := widget.NewToolbar(menu, action)
+
+	b := widget.NewButton("Disable", nil)
+	b.OnTapped = func() {
+		if menu.Disabled() {
+			menu.Enable()
+			action.Enable()
+			b.SetText("Disable")
+		} else {
+			menu.Disable()
+			action.Disable()
+			b.SetText("Enable")
+		}
+	}
+
+	return container.NewVBox(ntb, container.NewPadded(), b)
 }
