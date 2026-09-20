@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // newSizedSwitch resizes a Switch much larger than its graphic, so tests can prove the hitbox is limited to the graphic.
@@ -132,4 +133,77 @@ func TestSwitch_Cursor_ReflectsHoverState(t *testing.T) {
 	center := fyne.NewPos(float32(switchWidth)/2+2, float32(300)/2)
 	sw.MouseIn(&desktop.MouseEvent{PointEvent: fyne.PointEvent{Position: center}})
 	assert.Equal(t, desktop.PointerCursor, sw.Cursor())
+}
+
+func TestSwitch_Renderer_InitiallyOff_ProgressStartsAtZeroWithoutAnimating(t *testing.T) {
+	sw := newSizedSwitch(t, 300, 300)
+
+	r := test.WidgetRenderer(sw).(*switchRenderer)
+
+	assert.Equal(t, float32(0), r.progress, "a switch created off should start with the thumb already at progress 0")
+	assert.Nil(t, r.anim, "creating the renderer should not start an animation")
+}
+
+func TestSwitch_Renderer_InitiallyOn_ProgressStartsAtOneWithoutAnimating(t *testing.T) {
+	test.NewApp()
+	sw := NewSwitch(nil)
+	sw.On = true
+	sw.Resize(fyne.NewSize(300, 300))
+
+	r := test.WidgetRenderer(sw).(*switchRenderer)
+
+	assert.Equal(t, float32(1), r.progress, "a switch created already on should start with the thumb already at progress 1")
+	assert.Nil(t, r.anim, "creating the renderer should not start an animation")
+}
+
+func TestSwitch_Renderer_TogglingOn_AnimatesProgressToOne(t *testing.T) {
+	sw := newSizedSwitch(t, 300, 300)
+	r := test.WidgetRenderer(sw).(*switchRenderer)
+	require.Equal(t, float32(0), r.progress)
+
+	sw.SetOn(true)
+
+	assert.Equal(t, float32(1), r.progress, "toggling on should animate the thumb's progress to 1")
+	assert.True(t, r.lastOn)
+}
+
+func TestSwitch_Renderer_TogglingOff_AnimatesProgressToZero(t *testing.T) {
+	test.NewApp()
+	sw := NewSwitch(nil)
+	sw.On = true
+	sw.Resize(fyne.NewSize(300, 300))
+	r := test.WidgetRenderer(sw).(*switchRenderer)
+	require.Equal(t, float32(1), r.progress)
+
+	sw.SetOn(false)
+
+	assert.Equal(t, float32(0), r.progress, "toggling off should animate the thumb's progress back to 0")
+	assert.False(t, r.lastOn)
+}
+
+func TestSwitch_Renderer_ReTogglingWhileAnimating_ReversesFromCurrentProgress(t *testing.T) {
+	sw := newSizedSwitch(t, 300, 300)
+	r := test.WidgetRenderer(sw).(*switchRenderer)
+
+	// simulate a toggle-on animation interrupted partway through
+	sw.On = true
+	r.lastOn = true
+	r.progress = 0.4
+
+	sw.SetOn(false)
+
+	assert.Equal(t, float32(0), r.progress,
+		"reversing mid-animation should still land exactly on the new target")
+	assert.False(t, r.lastOn)
+}
+
+func TestSwitch_Renderer_HoverOnly_DoesNotStartAnimation(t *testing.T) {
+	sw := newSizedSwitch(t, 300, 300)
+	r := test.WidgetRenderer(sw).(*switchRenderer)
+
+	center := fyne.NewPos(float32(switchWidth)/2+2, float32(300)/2)
+	sw.MouseIn(&desktop.MouseEvent{PointEvent: fyne.PointEvent{Position: center}})
+
+	assert.Nil(t, r.anim, "a hover change alone must not trigger the thumb animation")
+	assert.Equal(t, float32(0), r.progress)
 }
