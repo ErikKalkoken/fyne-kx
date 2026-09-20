@@ -141,6 +141,10 @@ func (w *Switch) CreateRenderer() fyne.WidgetRenderer {
 		thumb:  canvas.NewCircle(color.Transparent),
 		track:  track,
 		widget: w,
+		lastOn: w.On,
+	}
+	if w.On {
+		r.progress = 1
 	}
 	r.updateState()
 	return r
@@ -158,12 +162,15 @@ const (
 
 // switchRenderer represents the renderer for the Switch widget.
 type switchRenderer struct {
-	focus  *canvas.Circle
-	orig   fyne.Position
-	shadow *canvas.Circle
-	thumb  *canvas.Circle
-	track  *canvas.Rectangle
-	widget *Switch
+	anim     *fyne.Animation
+	focus    *canvas.Circle
+	lastOn   bool // lets updateState tell an actual toggle apart from an unrelated refresh
+	orig     fyne.Position
+	progress float32 // decoupled from On so a reversed toggle can animate from mid-flight
+	shadow   *canvas.Circle
+	thumb    *canvas.Circle
+	track    *canvas.Rectangle
+	widget   *Switch
 }
 
 func (r *switchRenderer) Objects() []fyne.CanvasObject {
@@ -194,13 +201,14 @@ func (r *switchRenderer) Layout(size fyne.Size) {
 func (r *switchRenderer) updateThumbPosition() {
 	focusOffset := (switchFocusHeight - switchHeight) / float32(2)
 	const delta = 1
-	if r.widget.On {
-		r.thumb.Position1 = r.orig.AddXY(switchWidth-switchHeight, 0)
-		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
-	} else {
-		r.thumb.Position1 = r.orig
-		r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
-	}
+
+	offX := r.orig.X
+	onX := r.orig.X + switchWidth - switchHeight
+	x := offX + (onX-offX)*r.progress
+
+	r.thumb.Position1 = fyne.NewPos(x, r.orig.Y)
+	r.thumb.Position2 = r.thumb.Position1.AddXY(switchHeight, switchHeight)
+
 	r.shadow.Position1 = r.thumb.Position1.AddXY(-delta, delta)
 	r.shadow.Position2 = r.thumb.Position2.AddXY(-delta, delta)
 	r.focus.Position1 = r.thumb.Position1.AddXY(-focusOffset, -focusOffset)
@@ -218,7 +226,43 @@ func (r *switchRenderer) Refresh() {
 
 func (r *switchRenderer) updateState() {
 	r.updateColors()
-	r.updateThumbPosition()
+	if r.widget.On != r.lastOn {
+		r.lastOn = r.widget.On
+		r.animateThumb()
+	} else {
+		r.updateThumbPosition()
+	}
+}
+
+// Stops any animation in flight first, so retapping mid-toggle reverses smoothly
+// from wherever the thumb is instead of jumping.
+func (r *switchRenderer) animateThumb() {
+	if r.anim != nil {
+		r.anim.Stop()
+	}
+
+	target := float32(0)
+	if r.widget.On {
+		target = 1
+	}
+
+	if !fyne.CurrentApp().Settings().ShowAnimations() {
+		r.progress = target
+		r.updateThumbPosition()
+		return
+	}
+
+	from := r.progress
+	delta := target - from
+	r.anim = fyne.NewAnimation(canvas.DurationShort, func(done float32) {
+		r.progress = from + delta*done
+		r.updateThumbPosition()
+		canvas.Refresh(r.thumb)
+		canvas.Refresh(r.shadow)
+		canvas.Refresh(r.focus)
+	})
+	r.anim.Curve = fyne.AnimationEaseInOut
+	r.anim.Start()
 }
 
 func (r *switchRenderer) updateColors() {
