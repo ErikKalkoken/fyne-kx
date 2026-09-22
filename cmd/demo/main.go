@@ -43,6 +43,7 @@ func main() {
 		{"FilterChipSelect", makeFilterChipSelect(w)},
 		{"IconButton", makeIconButton()},
 		{"Modals", makeModals(w)},
+		{"Snackbar", makeSnackbar(w)},
 		{"LoadingButton", makeLoadingButton()},
 		{"Slider", makeSlider()},
 		{"SortChip", makeSortChip()},
@@ -80,6 +81,7 @@ func main() {
 					"Dialogs",
 					"Layouts",
 					"Modals",
+					"Snackbar",
 					"Widgets",
 				}
 				return s
