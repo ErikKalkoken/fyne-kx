@@ -65,7 +65,7 @@ They are useful when you have a longer running process that the user needs to wa
 
 [Progress modals](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/modal#hdr-Progress_modals) are modals that show a progress indicator while an action function is running. The library provides several variants.
 
-[Progress modal demo](https://github.com/user-attachments/assets/047c0464-0324-45c4-940e-f7d489b1ad11)
+[Progress modal demo](https://github.com/user-attachments/assets/576440e8-b153-4da7-816a-a6ac69f848ff)
 
 ### Themes
 
@@ -77,7 +77,7 @@ Further, additional custom themes are provided:
 
 The widgets can be used just like any other widget from the Fyne standard library. All widgets are themeable. Please also see the included [demo](#demo) app that shows them all in action.
 
-<img width="1140" height="895" alt="Image" src="https://github.com/user-attachments/assets/4a42cb24-78b3-450f-a39c-618029576f0f" />
+![widgets](https://github.com/user-attachments/assets/d4128efe-8703-496e-89fb-da4b2291b4be)
 
 - [Badge](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Badge) is a variant of the Fyne label widget that renders a rounded box around the text.
 - [FilterChip](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#FilterChip) an interactive chip for filtering content. It has a label and can be turned on or off.
@@ -86,6 +86,7 @@ The widgets can be used just like any other widget from the Fyne standard librar
 - [IconButton](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#IconButton) is a widget which helps users take minor actions with one tap.
 - [LoadingButton](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#LoadingButton) is a button that shows a loading indicator while its action is running.
 - [Slider](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Slider) is a variation of the Slider widget that also displays the current value.
+- [Snackbar](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Snackbar) shows short update messages at the bottom of the window, which disappear on their own after a short while.
 - [SortChip](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#SortChip) is a chip widget that shows current sorting (column & order) and allows the user to change it by selecting from a drop down menu.
 - [Spinner](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Spinner) indicates that an operation is in progress with unknown duration. It shows an animated ring, similar to a Material Design circular progress indicator.
 - [Switch](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#Switch) is a widget implementing a digital switch with two mutually exclusive states: on/off.
@@ -93,11 +94,17 @@ The widgets can be used just like any other widget from the Fyne standard librar
 - [TappableImage](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableImage) is widget which shows an image and runs a function when tapped.
 - [TappableLabel](https://pkg.go.dev/github.com/ErikKalkoken/fyne-kx/widget#TappableLabel) is a variant of the Fyne Label which runs a function when tapped.
 
-### LoadingButton demo
+### Demos
 
-The following is a video demonstration of different LoadingButtons in action.
+Below you can video demonstrations of selected widgets:
+
+#### LoadingButton
 
 [Loading button](https://github.com/user-attachments/assets/a1439d7f-dd9e-47b3-bee3-fdf040950a13)
+
+#### Snackbar
+
+[Snackbar](https://github.com/user-attachments/assets/a2c092aa-f1a7-4bd4-83ae-3e3d258b7c64)
 
 ### Example
 
