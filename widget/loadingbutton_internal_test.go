@@ -3,7 +3,6 @@ package widget
 import (
 	"sync/atomic"
 	"testing"
-	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
@@ -30,14 +29,16 @@ func TestLoadingButton_TapRunsActionAndRestoresState(t *testing.T) {
 
 	started := make(chan struct{})
 	proceed := make(chan struct{})
+	finished := make(chan struct{})
 	var ran atomic.Bool
 
 	pb := NewLoadingButton("Click", theme.HomeIcon(), func(done func()) {
 		go func() {
-			defer done()
 			ran.Store(true)
 			close(started)
 			<-proceed
+			done()
+			close(finished)
 		}()
 	})
 	w := test.NewWindow(pb)
@@ -51,10 +52,9 @@ func TestLoadingButton_TapRunsActionAndRestoresState(t *testing.T) {
 	assert.True(t, pb.activity.Visible())
 
 	close(proceed)
+	<-finished
 
-	assert.Eventually(t, func() bool {
-		return !pb.button.locked
-	}, time.Second, 5*time.Millisecond)
+	assert.False(t, pb.button.locked)
 	assert.True(t, ran.Load())
 	assert.False(t, pb.activity.Visible())
 	assert.Equal(t, "Click", pb.button.Text)
@@ -78,14 +78,16 @@ func TestLoadingButton_SecondTapWhileRunningIsIgnored(t *testing.T) {
 
 	started := make(chan struct{})
 	proceed := make(chan struct{})
+	finished := make(chan struct{})
 	var runCount atomic.Int32
 
 	pb := NewLoadingButton("Click", theme.HomeIcon(), func(done func()) {
 		go func() {
-			defer done()
 			runCount.Add(1)
 			close(started)
 			<-proceed
+			done()
+			close(finished)
 		}()
 	})
 	w := test.NewWindow(pb)
@@ -96,7 +98,9 @@ func TestLoadingButton_SecondTapWhileRunningIsIgnored(t *testing.T) {
 	test.Tap(pb.button) // no-op: button is locked while running
 
 	close(proceed)
-	assert.Eventually(t, func() bool { return !pb.button.locked }, time.Second, 5*time.Millisecond)
+	<-finished
+
+	assert.False(t, pb.button.locked)
 	assert.EqualValues(t, 1, runCount.Load())
 }
 
@@ -124,12 +128,14 @@ func TestLoadingButton_SetTextIconWhileRunningIsDeferredUntilCompletion(t *testi
 
 	started := make(chan struct{})
 	proceed := make(chan struct{})
+	finished := make(chan struct{})
 
 	pb := NewLoadingButton("Click", theme.HomeIcon(), func(done func()) {
 		go func() {
-			defer done()
 			close(started)
 			<-proceed
+			done()
+			close(finished)
 		}()
 	})
 	w := test.NewWindow(pb)
@@ -144,8 +150,9 @@ func TestLoadingButton_SetTextIconWhileRunningIsDeferredUntilCompletion(t *testi
 	assert.Equal(t, "Later", pb.label)          // pending value stored for restoration
 
 	close(proceed)
+	<-finished
 
-	assert.Eventually(t, func() bool { return !pb.button.locked }, time.Second, 5*time.Millisecond)
+	assert.False(t, pb.button.locked)
 	assert.Equal(t, "Later", pb.button.Text)
 	assert.Equal(t, theme.CancelIcon(), pb.button.Icon)
 }
@@ -181,12 +188,14 @@ func TestLoadingButton_DisableWhileRunningAppliesAfterCompletion(t *testing.T) {
 
 	started := make(chan struct{})
 	proceed := make(chan struct{})
+	finished := make(chan struct{})
 
 	pb := NewLoadingButton("Click", theme.HomeIcon(), func(done func()) {
 		go func() {
-			defer done()
 			close(started)
 			<-proceed
+			done()
+			close(finished)
 		}()
 	})
 	w := test.NewWindow(pb)
@@ -200,8 +209,9 @@ func TestLoadingButton_DisableWhileRunningAppliesAfterCompletion(t *testing.T) {
 	assert.False(t, pb.button.Disabled()) // underlying button not disabled yet
 
 	close(proceed)
+	<-finished
 
-	assert.Eventually(t, func() bool { return !pb.button.locked }, time.Second, 5*time.Millisecond)
+	assert.False(t, pb.button.locked)
 	assert.True(t, pb.button.Disabled())
 	assert.True(t, pb.Disabled())
 }

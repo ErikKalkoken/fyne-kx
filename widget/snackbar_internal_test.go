@@ -20,6 +20,15 @@ const (
 	pollTimeout  = time.Second
 )
 
+// stopSnackbar stops sb and waits for its goroutine to exit, so it can't
+// render text concurrently with later tests.
+func stopSnackbar(t *testing.T, sb *Snackbar) {
+	t.Helper()
+	sb.Stop()
+	require.Eventually(t, func() bool { return !sb.isRunning.Load() }, pollTimeout, pollInterval,
+		"expected snackbar goroutine to exit after Stop()")
+}
+
 func TestSnackbar_LifecycleAndTimeout(t *testing.T) {
 	app := test.NewTempApp(t)
 
@@ -27,8 +36,9 @@ func TestSnackbar_LifecycleAndTimeout(t *testing.T) {
 	window.Resize(fyne.NewSize(400, 300))
 
 	sb := NewSnackbar(window.Canvas())
+	sb.BottomMargin = 20
 	sb.Start()
-	defer sb.Stop()
+	t.Cleanup(func() { stopSnackbar(t, sb) })
 
 	require.False(t, sb.popup.Visible(), "expected snackbar popup to be hidden initially")
 
@@ -48,7 +58,7 @@ func TestSnackbar_CustomTimeout(t *testing.T) {
 
 	sb := NewSnackbar(window.Canvas())
 	sb.Start()
-	defer sb.Stop()
+	t.Cleanup(func() { stopSnackbar(t, sb) })
 
 	customTimeout := 300 * time.Millisecond
 	sb.DisplayWithTimeout("Custom Timeout Message", customTimeout)
@@ -70,7 +80,7 @@ func TestSnackbar_ManualDismissByTap(t *testing.T) {
 
 	sb := NewSnackbar(window.Canvas())
 	sb.Start()
-	defer sb.Stop()
+	t.Cleanup(func() { stopSnackbar(t, sb) })
 
 	sb.Display("Tap me to dismiss")
 	require.Eventually(t, sb.popup.Visible, pollTimeout, pollInterval, "expected snackbar popup to be visible")
@@ -89,7 +99,7 @@ func TestSnackbar_SequentialQueueing(t *testing.T) {
 
 	sb := NewSnackbar(window.Canvas())
 	sb.Start()
-	defer sb.Stop()
+	t.Cleanup(func() { stopSnackbar(t, sb) })
 
 	// Enqueue two messages.
 	sb.DisplayWithTimeout("Message 1", 200*time.Millisecond)
@@ -121,7 +131,7 @@ func TestSnackbar_QueueingBeforeStart(t *testing.T) {
 
 	// Starting the snackbar should pick up queued messages.
 	sb.Start()
-	defer sb.Stop()
+	t.Cleanup(func() { stopSnackbar(t, sb) })
 
 	require.Eventually(t, sb.popup.Visible, pollTimeout, pollInterval,
 		"expected snackbar to display queued message after Start()")
@@ -142,13 +152,11 @@ func TestSnackbar_StopAndRestart(t *testing.T) {
 	require.Eventually(t, sb.popup.Visible, pollTimeout, pollInterval, "expected snackbar to show active message")
 
 	// Stop aborts current context.
-	sb.Stop()
-	require.Eventually(t, func() bool { return !sb.isRunning.Load() }, pollTimeout, pollInterval,
-		"expected isRunning to be false after Stop()")
+	stopSnackbar(t, sb)
 
 	// Restart and show new message.
 	sb.Start()
-	defer sb.Stop()
+	t.Cleanup(func() { stopSnackbar(t, sb) })
 
 	sb.DisplayWithTimeout("Restarted Message", 200*time.Millisecond)
 	require.Eventually(t, sb.popup.Visible, pollTimeout, pollInterval,
@@ -163,7 +171,7 @@ func TestSnackbar_MessageContent(t *testing.T) {
 
 	sb := NewSnackbar(window.Canvas())
 	sb.Start()
-	defer sb.Stop()
+	t.Cleanup(func() { stopSnackbar(t, sb) })
 
 	sb.DisplayWithTimeout("First message", 200*time.Millisecond)
 	require.Eventually(t, func() bool { return sb.text.String() == "First message" }, pollTimeout, pollInterval)
@@ -182,7 +190,7 @@ func TestSnackbar_ConcurrentDisplay(t *testing.T) {
 
 	sb := NewSnackbar(window.Canvas())
 	sb.Start()
-	defer sb.Stop()
+	t.Cleanup(func() { stopSnackbar(t, sb) })
 
 	const n = 10
 	const timeout = 50 * time.Millisecond
@@ -222,7 +230,7 @@ func TestSnackbar_TextWrappingCalculation(t *testing.T) {
 
 	sb := NewSnackbar(window.Canvas())
 	sb.Start()
-	defer sb.Stop()
+	t.Cleanup(func() { stopSnackbar(t, sb) })
 
 	// Short text shouldn't trigger word wrap.
 	sb.DisplayWithTimeout("Hi", 100*time.Millisecond)
@@ -236,4 +244,17 @@ func TestSnackbar_TextWrappingCalculation(t *testing.T) {
 	sb.DisplayWithTimeout(longText, 100*time.Millisecond)
 	require.Eventually(t, sb.popup.Visible, pollTimeout, pollInterval)
 	assert.Equal(t, fyne.TextWrapWord, sb.text.Wrapping)
+}
+
+func TestSnackbar_StartCalledTwice(t *testing.T) {
+	app := test.NewTempApp(t)
+
+	window := app.NewWindow("Test Window")
+
+	sb := NewSnackbar(window.Canvas())
+	sb.Start()
+	t.Cleanup(func() { stopSnackbar(t, sb) })
+
+	sb.Start() // Second call should just log a warning.
+	assert.True(t, sb.isRunning.Load())
 }
