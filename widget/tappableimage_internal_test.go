@@ -126,3 +126,19 @@ func TestTappableImage_MouseMoved_InsideImage_Hovers(t *testing.T) {
 
 	assert.True(t, img.hovered, "a point well within the image bounds should set hover")
 }
+
+type embeddedTappableImage struct {
+	TappableImage
+}
+
+func TestTappableImage_Super(t *testing.T) {
+	t.Run("returns itself when used directly", func(t *testing.T) {
+		w := NewTappableImage(theme.HomeIcon(), nil)
+		assert.Same(t, w, w.super())
+	})
+	t.Run("returns outer widget when embedded", func(t *testing.T) {
+		w := &embeddedTappableImage{}
+		w.ExtendBaseWidget(w)
+		assert.Same(t, w, w.super())
+	})
+}

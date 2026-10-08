@@ -5,6 +5,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/test"
 	"fyne.io/fyne/v2/theme"
 	"github.com/stretchr/testify/assert"
@@ -130,68 +131,139 @@ func TestTappableImage_DisabledIgnoresTap(t *testing.T) {
 func TestTappableImage_WithMenu_NilMenuLeavesTapNoOp(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
-
 	image := widget.NewTappableImageWithMenu(theme.HomeIcon(), nil)
+	w := test.NewWindow(container.NewCenter(image))
+	defer w.Close()
 
-	assert.NotNil(t, image)
-	assert.Nil(t, image.OnTapped, "a misconfigured menu must not wire up a tap handler")
+	test.Tap(image)
+
+	assert.Nil(t, w.Canvas().Overlays().Top())
 }
 
 func TestTappableImage_WithMenu_TapDoesNothingWhenMenuEmpty(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 	image := widget.NewTappableImageWithMenu(theme.HomeIcon(), fyne.NewMenu(""))
-	w := test.NewWindow(image)
+	w := test.NewWindow(container.NewCenter(image))
 	defer w.Close()
 
-	assert.NotPanics(t, func() { test.Tap(image) })
+	test.Tap(image)
+
+	assert.Nil(t, w.Canvas().Overlays().Top())
 }
 
-func TestTappableImage_SetMenuItemsCreatesMenuWhenMissing(t *testing.T) {
+func TestTappableImage_WithMenu_ShowsMenuWhenTapped(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
-	image := widget.NewTappableImage(theme.HomeIcon(), nil)
-	w := test.NewWindow(image)
+	image := widget.NewTappableImageWithMenu(theme.HomeIcon(), fyne.NewMenu("", fyne.NewMenuItem("item", nil)))
+	w := test.NewWindow(container.NewCenter(image))
 	defer w.Close()
 
-	image.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("new", nil)})
+	test.Tap(image)
 
-	// The lazily created menu must be wired up and show without panicking.
-	assert.NotPanics(t, func() { test.Tap(image) })
+	assert.NotNil(t, w.Canvas().Overlays().Top(), "should show menu")
 }
 
-func TestTappableImage_SetMenuItemsOverwritesOnTapped(t *testing.T) {
+func TestTappableImage_SetMenuItemsAddsMenu(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
 	var tapped bool
 	image := widget.NewTappableImage(theme.HomeIcon(), func() {
 		tapped = true
 	})
-	w := test.NewWindow(image)
+	w := test.NewWindow(container.NewCenter(image))
 	defer w.Close()
 
 	image.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("new", nil)})
 	test.Tap(image)
 
-	assert.False(t, tapped, "attaching a menu must overwrite the previous OnTapped")
+	assert.NotNil(t, w.Canvas().Overlays().Top(), "should show menu")
+	assert.False(t, tapped, "should have cleared OnTapped")
 }
 
-func TestTappableImage_SetMenuItemsRewiresTapAfterOnTappedCleared(t *testing.T) {
+func TestTappableImage_OnTappedTakesPrecedenceOverMenu(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
-	menu := fyne.NewMenu("", fyne.NewMenuItem("old", nil))
-	image := widget.NewTappableImageWithMenu(theme.HomeIcon(), menu)
-	w := test.NewWindow(image)
+	image := widget.NewTappableImageWithMenu(theme.HomeIcon(), fyne.NewMenu("", fyne.NewMenuItem("item", nil)))
+	w := test.NewWindow(container.NewCenter(image))
 	defer w.Close()
+	var tapped bool
+	image.OnTapped = func() {
+		tapped = true
+	}
 
-	// Following SetMenuItems' documented recovery advice (clear OnTapped, call
-	// again) on a widget that already has a menu must rewire it, not leave it
-	// permanently inert.
+	test.Tap(image)
+
+	assert.True(t, tapped)
+	assert.Nil(t, w.Canvas().Overlays().Top(), "should not show menu")
+}
+
+func TestTappableImage_ShowMenuAgainWhenOnTappedCleared(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	image := widget.NewTappableImageWithMenu(theme.HomeIcon(), fyne.NewMenu("", fyne.NewMenuItem("item", nil)))
+	w := test.NewWindow(container.NewCenter(image))
+	defer w.Close()
+	image.OnTapped = func() {}
 	image.OnTapped = nil
-	image.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("new", nil)})
 
-	assert.NotNil(t, image.OnTapped, "OnTapped must be rewired to show the menu again")
-	assert.NotPanics(t, func() { test.Tap(image) })
+	test.Tap(image)
+
+	assert.NotNil(t, w.Canvas().Overlays().Top(), "should show menu")
+}
+
+type embeddedTappableImage struct {
+	widget.TappableImage
+}
+
+func newEmbeddedTappableImage() *embeddedTappableImage {
+	w := &embeddedTappableImage{}
+	w.Resource = theme.HomeIcon()
+	w.ExtendBaseWidget(w)
+	return w
+}
+
+func TestTappableImage_Embedded(t *testing.T) {
+	t.Run("can tap", func(t *testing.T) {
+		test.NewTempApp(t)
+		test.ApplyTheme(t, test.Theme())
+		var tapped bool
+		image := newEmbeddedTappableImage()
+		image.OnTapped = func() {
+			tapped = true
+		}
+		w := test.NewWindow(image)
+		defer w.Close()
+
+		test.Tap(image)
+
+		assert.True(t, tapped)
+	})
+	t.Run("can show menu", func(t *testing.T) {
+		test.NewTempApp(t)
+		test.ApplyTheme(t, test.Theme())
+		image := newEmbeddedTappableImage()
+		image.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("item", nil)})
+		w := test.NewWindow(container.NewCenter(image))
+		defer w.Close()
+
+		test.Tap(image)
+
+		assert.NotNil(t, w.Canvas().Overlays().Top(), "should show menu")
+	})
+	t.Run("shows no menu when disabled", func(t *testing.T) {
+		test.NewTempApp(t)
+		test.ApplyTheme(t, test.Theme())
+		image := newEmbeddedTappableImage()
+		image.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("item", nil)})
+		image.Disable()
+		w := test.NewWindow(container.NewCenter(image))
+		defer w.Close()
+
+		test.Tap(image)
+
+		assert.Nil(t, w.Canvas().Overlays().Top())
+	})
 }
 
 func TestTappableImage_SetMenuItemsReplacesItems(t *testing.T) {
