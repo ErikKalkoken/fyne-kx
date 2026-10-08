@@ -11,16 +11,22 @@ import (
 // TODO: Add hover shadow
 
 // IconButton is a widget which help people take minor actions with one tap.
+//
+// It can be extended by embedding it by value and calling ExtendBaseWidget.
+// Overrides of ExtendBaseWidget and Refresh must call the IconButton versions.
+// When combined with another hoverable type (e.g. a tooltip extension),
+// MouseIn, MouseOut and MouseMoved must be forwarded to both.
 type IconButton struct {
 	widget.DisableableWidget
 
-	// This callback runs when the icon is tapped.
+	// This callback runs when the icon is tapped. Takes precedence over the menu.
 	OnTapped func()
 
 	hovered          bool
 	menu             *fyne.Menu
 	resource         fyne.Resource
 	resourceDisabled fyne.Resource
+	self             fyne.Widget // outermost widget, differs from w when embedded
 }
 
 var _ fyne.Tappable = (*IconButton)(nil)
@@ -44,20 +50,21 @@ func NewIconButtonWithMenu(icon fyne.Resource, menu *fyne.Menu) *IconButton {
 		return w
 	}
 	w.menu = menu
-	w.OnTapped = func() {
-		if w.menu == nil || len(w.menu.Items) == 0 {
-			return
-		}
-		m := widget.NewPopUpMenu(menu, fyne.CurrentApp().Driver().CanvasForObject(w))
-		m.ShowAtRelativePosition(
-			fyne.NewPos(
-				-m.Size().Width+w.Size().Width,
-				w.Size().Height,
-			),
-			w,
-		)
-	}
 	return w
+}
+
+// ExtendBaseWidget is used by an extending widget to make use of BaseWidget functionality.
+func (w *IconButton) ExtendBaseWidget(wid fyne.Widget) {
+	w.self = wid
+	w.DisableableWidget.ExtendBaseWidget(wid)
+}
+
+// super returns the outermost widget, which Fyne knows as part of the canvas tree.
+func (w *IconButton) super() fyne.CanvasObject {
+	if w.self == nil {
+		return w
+	}
+	return w.self
 }
 
 // SetIcon replaces the current icon.
@@ -75,13 +82,14 @@ func (w *IconButton) setIconResource(icon fyne.Resource) {
 	}
 }
 
-// SetMenuItems replaces the menu items.
-// Does nothing when the widget has not bee created with [NewIconButtonWithMenu].
+// SetMenuItems replaces the menu items and adds a menu if needed.
+// Clears OnTapped so taps show the menu.
 func (w *IconButton) SetMenuItems(menuItems []*fyne.MenuItem) {
 	if w.menu == nil {
-		return
+		w.menu = fyne.NewMenu("")
 	}
 	w.menu.Items = menuItems
+	w.OnTapped = nil
 	w.Refresh()
 }
 
@@ -93,9 +101,34 @@ func (w *IconButton) Refresh() {
 }
 
 func (w *IconButton) Tapped(_ *fyne.PointEvent) {
-	if !w.Disabled() && w.OnTapped != nil {
-		w.OnTapped()
+	if w.Disabled() {
+		return
 	}
+	if w.OnTapped != nil {
+		w.OnTapped()
+		return
+	}
+	if w.menu != nil {
+		w.showMenu()
+	}
+}
+
+func (w *IconButton) showMenu() {
+	if len(w.menu.Items) == 0 {
+		return
+	}
+	o := w.super()
+	m := widget.NewPopUpMenu(w.menu, fyne.CurrentApp().Driver().CanvasForObject(o))
+	if m == nil {
+		return // not on a canvas
+	}
+	m.ShowAtRelativePosition(
+		fyne.NewPos(
+			-m.Size().Width+w.Size().Width,
+			w.Size().Height,
+		),
+		o,
+	)
 }
 
 func (w *IconButton) TappedSecondary(_ *fyne.PointEvent) {
@@ -177,7 +210,7 @@ func (r *iconButtonRenderer) MinSize() fyne.Size {
 func (r *iconButtonRenderer) Refresh() {
 	r.updateState()
 	r.icon.Refresh()
-	canvas.Refresh(r.button)
+	canvas.Refresh(r.button.super())
 }
 
 // updateState sets the icon's resource depending on whether the button is

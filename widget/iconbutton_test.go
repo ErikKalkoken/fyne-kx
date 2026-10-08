@@ -144,15 +144,120 @@ func TestIconButton_MouseInDoesNotHoverWhenDisabled(t *testing.T) {
 	assert.Equal(t, desktop.DefaultCursor, icon.Cursor(), "a disabled button should never show a hover cursor")
 }
 
-func TestIconButton_SetMenuItemsDoesNothingWithoutMenu(t *testing.T) {
+func TestIconButton_SetMenuItemsAddsMenu(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
-	icon := kxwidget.NewIconButton(theme.HomeIcon(), nil)
-	w := test.NewWindow(icon)
+	var tapped bool
+	icon := kxwidget.NewIconButton(theme.HomeIcon(), func() {
+		tapped = true
+	})
+	w := test.NewWindow(container.NewCenter(icon))
 	defer w.Close()
 
-	assert.NotPanics(t, func() {
-		icon.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("new", nil)})
+	icon.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("new", nil)})
+	test.Tap(icon)
+
+	assert.NotNil(t, w.Canvas().Overlays().Top(), "should show menu")
+	assert.False(t, tapped, "should have cleared OnTapped")
+}
+
+func TestIconButton_OnTappedTakesPrecedenceOverMenu(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	icon := kxwidget.NewIconButtonWithMenu(theme.HomeIcon(), fyne.NewMenu("", fyne.NewMenuItem("item", nil)))
+	w := test.NewWindow(container.NewCenter(icon))
+	defer w.Close()
+	var tapped bool
+	icon.OnTapped = func() {
+		tapped = true
+	}
+
+	test.Tap(icon)
+
+	assert.True(t, tapped)
+	assert.Nil(t, w.Canvas().Overlays().Top(), "should not show menu")
+}
+
+func TestIconButton_ShowMenuAgainWhenOnTappedCleared(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	icon := kxwidget.NewIconButtonWithMenu(theme.HomeIcon(), fyne.NewMenu("", fyne.NewMenuItem("item", nil)))
+	w := test.NewWindow(container.NewCenter(icon))
+	defer w.Close()
+	icon.OnTapped = func() {}
+	icon.OnTapped = nil
+
+	test.Tap(icon)
+
+	assert.NotNil(t, w.Canvas().Overlays().Top(), "should show menu")
+}
+
+func TestIconButton_ShowNoMenuWhenMenuEmpty(t *testing.T) {
+	test.NewTempApp(t)
+	test.ApplyTheme(t, test.Theme())
+	icon := kxwidget.NewIconButtonWithMenu(theme.HomeIcon(), fyne.NewMenu(""))
+	w := test.NewWindow(container.NewCenter(icon))
+	defer w.Close()
+
+	test.Tap(icon)
+
+	assert.Nil(t, w.Canvas().Overlays().Top())
+}
+
+type embeddedIconButton struct {
+	kxwidget.IconButton
+}
+
+func newEmbeddedIconButton() *embeddedIconButton {
+	w := &embeddedIconButton{}
+	w.ExtendBaseWidget(w)
+	w.SetIcon(theme.HomeIcon())
+	return w
+}
+
+func TestIconButton_Embedded(t *testing.T) {
+	t.Run("can tap", func(t *testing.T) {
+		test.NewTempApp(t)
+		test.ApplyTheme(t, test.Theme())
+		var tapped bool
+		icon := newEmbeddedIconButton()
+		icon.OnTapped = func() {
+			tapped = true
+		}
+		w := test.NewWindow(icon)
+		defer w.Close()
+
+		test.Tap(icon)
+
+		assert.True(t, tapped)
+		test.AssertImageMatches(t, "iconbutton/normal.png", w.Canvas().Capture())
+	})
+	t.Run("can show menu", func(t *testing.T) {
+		test.NewTempApp(t)
+		test.ApplyTheme(t, test.Theme())
+		icon := newEmbeddedIconButton()
+		icon.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("item", nil)})
+		w := test.NewWindow(container.NewCenter(icon))
+		defer w.Close()
+		w.Resize(fyne.NewSize(100, 150))
+
+		test.Tap(icon)
+
+		test.AssertImageMatches(t, "iconbutton/menu_enabled.png", w.Canvas().Capture())
+	})
+	t.Run("shows no menu when disabled", func(t *testing.T) {
+		test.NewTempApp(t)
+		test.ApplyTheme(t, test.Theme())
+		icon := newEmbeddedIconButton()
+		icon.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("item", nil)})
+		icon.Disable()
+		w := test.NewWindow(container.NewCenter(icon))
+		defer w.Close()
+		w.Resize(fyne.NewSize(100, 150))
+
+		test.Tap(icon)
+
+		test.AssertImageMatches(t, "iconbutton/menu_disabled.png", w.Canvas().Capture())
 	})
 }
 
