@@ -77,7 +77,7 @@ func TestTappableIcon_DisabledIgnoresTap(t *testing.T) {
 func TestTappableIcon_MouseInOutTogglesPointerCursor(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
-	icon := widget.NewTappableIcon(theme.HomeIcon(), nil)
+	icon := widget.NewTappableIcon(theme.HomeIcon(), func() {})
 	w := test.NewWindow(icon)
 	defer w.Close()
 
@@ -88,4 +88,20 @@ func TestTappableIcon_MouseInOutTogglesPointerCursor(t *testing.T) {
 
 	icon.MouseOut()
 	assert.Equal(t, desktop.DefaultCursor, icon.Cursor())
+}
+
+func TestTappableIcon_Cursor(t *testing.T) {
+	t.Run("no pointer without callback", func(t *testing.T) {
+		test.NewTempApp(t)
+		icon := widget.NewTappableIcon(theme.HomeIcon(), nil)
+		icon.MouseIn(&desktop.MouseEvent{})
+		assert.Equal(t, desktop.DefaultCursor, icon.Cursor())
+	})
+	t.Run("pointer when callback set while hovered", func(t *testing.T) {
+		test.NewTempApp(t)
+		icon := widget.NewTappableIcon(theme.HomeIcon(), nil)
+		icon.MouseIn(&desktop.MouseEvent{})
+		icon.OnTapped = func() {}
+		assert.Equal(t, desktop.PointerCursor, icon.Cursor())
+	})
 }

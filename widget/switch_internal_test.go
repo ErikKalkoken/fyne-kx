@@ -207,3 +207,11 @@ func TestSwitch_Renderer_HoverOnly_DoesNotStartAnimation(t *testing.T) {
 	assert.Nil(t, r.anim, "a hover change alone must not trigger the thumb animation")
 	assert.Equal(t, float32(0), r.progress)
 }
+
+func TestSwitch_Cursor_DisabledNeverShowsPointer(t *testing.T) {
+	sw := newSizedSwitch(t, 300, 300)
+	sw.hovered = true
+	sw.Disable()
+
+	assert.Equal(t, desktop.DefaultCursor, sw.Cursor())
+}

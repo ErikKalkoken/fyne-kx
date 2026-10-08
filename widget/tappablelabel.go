@@ -66,15 +66,13 @@ func (w *TappableLabel) Tapped(_ *fyne.PointEvent) {
 	}
 }
 
-// Cursor returns the cursor type of this widget
 func (w *TappableLabel) Cursor() desktop.Cursor {
-	if !w.disabled && w.hovered {
+	if !w.disabled && w.hovered && w.OnTapped != nil {
 		return desktop.PointerCursor
 	}
 	return desktop.DefaultCursor
 }
 
-// MouseIn is a hook that is called if the mouse pointer enters the element.
 func (w *TappableLabel) MouseIn(e *desktop.MouseEvent) {
 	if w.disabled {
 		return
@@ -86,7 +84,6 @@ func (w *TappableLabel) MouseMoved(*desktop.MouseEvent) {
 	// needed to satisfy the interface only
 }
 
-// MouseOut is a hook that is called if the mouse pointer leaves the element.
 func (w *TappableLabel) MouseOut() {
 	w.hovered = false
 }

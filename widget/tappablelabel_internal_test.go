@@ -22,7 +22,7 @@ func TestTappableLabel_DisableEnableTogglesImportance(t *testing.T) {
 
 func TestTappableLabel_Disabled_CursorNeverShowsPointer(t *testing.T) {
 	test.NewApp()
-	label := NewTappableLabel("Test", nil)
+	label := NewTappableLabel("Test", func() {})
 	label.hovered = true
 	label.Disable()
 

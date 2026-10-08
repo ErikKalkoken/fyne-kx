@@ -155,15 +155,19 @@ func (w *TappableImage) showMenu() {
 func (w *TappableImage) TappedSecondary(_ *fyne.PointEvent) {
 }
 
-// Cursor returns the cursor type of this widget
+// Cursor returns the cursor type of this widget.
+// Shows a pointer only when a tap would do something.
 func (w *TappableImage) Cursor() desktop.Cursor {
-	if !w.Disabled() && w.hovered {
+	if !w.Disabled() && w.hovered && w.isTappable() {
 		return desktop.PointerCursor
 	}
 	return desktop.DefaultCursor
 }
 
-// MouseIn is a hook that is called if the mouse pointer enters the element.
+func (w *TappableImage) isTappable() bool {
+	return w.OnTapped != nil || (w.menu != nil && len(w.menu.Items) > 0)
+}
+
 func (w *TappableImage) MouseIn(me *desktop.MouseEvent) {
 	w.MouseMoved(me)
 }
@@ -180,7 +184,6 @@ func (w *TappableImage) MouseMoved(me *desktop.MouseEvent) {
 			me.Position.Y >= pos.Y && me.Position.Y <= pos.Y+s.Height)
 }
 
-// MouseOut is a hook that is called if the mouse pointer leaves the element.
 func (w *TappableImage) MouseOut() {
 	w.hovered = false
 }

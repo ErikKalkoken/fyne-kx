@@ -134,12 +134,17 @@ func (w *IconButton) showMenu() {
 func (w *IconButton) TappedSecondary(_ *fyne.PointEvent) {
 }
 
-// Cursor returns the cursor type of this widget
+// Cursor returns the cursor type of this widget.
+// Shows a pointer only when a tap would do something.
 func (w *IconButton) Cursor() desktop.Cursor {
-	if w.hovered {
+	if !w.Disabled() && w.hovered && w.isTappable() {
 		return desktop.PointerCursor
 	}
 	return desktop.DefaultCursor
+}
+
+func (w *IconButton) isTappable() bool {
+	return w.OnTapped != nil || (w.menu != nil && len(w.menu.Items) > 0)
 }
 
 // MouseIn is a hook that is called if the mouse pointer enters the element.

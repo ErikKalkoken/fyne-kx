@@ -77,7 +77,7 @@ func TestTappableLabel_DisabledIgnoresTap(t *testing.T) {
 func TestTappableLabel_MouseInOutTogglesPointerCursor(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
-	label := widget.NewTappableLabel("Test", nil)
+	label := widget.NewTappableLabel("Test", func() {})
 	w := test.NewWindow(label)
 	defer w.Close()
 
@@ -88,4 +88,20 @@ func TestTappableLabel_MouseInOutTogglesPointerCursor(t *testing.T) {
 
 	label.MouseOut()
 	assert.Equal(t, desktop.DefaultCursor, label.Cursor())
+}
+
+func TestTappableLabel_Cursor(t *testing.T) {
+	t.Run("no pointer without callback", func(t *testing.T) {
+		test.NewTempApp(t)
+		label := widget.NewTappableLabel("Test", nil)
+		label.MouseIn(&desktop.MouseEvent{})
+		assert.Equal(t, desktop.DefaultCursor, label.Cursor())
+	})
+	t.Run("pointer when callback set while hovered", func(t *testing.T) {
+		test.NewTempApp(t)
+		label := widget.NewTappableLabel("Test", nil)
+		label.MouseIn(&desktop.MouseEvent{})
+		label.OnTapped = func() {}
+		assert.Equal(t, desktop.PointerCursor, label.Cursor())
+	})
 }

@@ -35,7 +35,7 @@ func TestTappableIcon_Disable_KeepsNonSVGResourceUnchanged(t *testing.T) {
 
 func TestTappableIcon_Disabled_CursorNeverShowsPointer(t *testing.T) {
 	test.NewApp()
-	icon := NewTappableIcon(theme.HomeIcon(), nil)
+	icon := NewTappableIcon(theme.HomeIcon(), func() {})
 	icon.hovered = true
 	icon.Disable()
 

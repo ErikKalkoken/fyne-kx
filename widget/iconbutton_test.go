@@ -118,7 +118,7 @@ func TestIconButton_ShowNoMenuWhenTappedAndDisabled(t *testing.T) {
 func TestIconButton_MouseInOutTogglesPointerCursorWhenEnabled(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
-	icon := kxwidget.NewIconButton(theme.HomeIcon(), nil)
+	icon := kxwidget.NewIconButton(theme.HomeIcon(), func() {})
 	w := test.NewWindow(icon)
 	defer w.Close()
 
@@ -134,7 +134,7 @@ func TestIconButton_MouseInOutTogglesPointerCursorWhenEnabled(t *testing.T) {
 func TestIconButton_MouseInDoesNotHoverWhenDisabled(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
-	icon := kxwidget.NewIconButton(theme.HomeIcon(), nil)
+	icon := kxwidget.NewIconButton(theme.HomeIcon(), func() {})
 	icon.Disable()
 	w := test.NewWindow(icon)
 	defer w.Close()
@@ -273,4 +273,36 @@ func TestIconButton_SetMenuItemsReplacesItems(t *testing.T) {
 	icon.SetMenuItems(newItems)
 
 	assert.Equal(t, newItems, menu.Items)
+}
+
+func TestIconButton_Cursor(t *testing.T) {
+	cases := []struct {
+		name  string
+		setup func(icon *kxwidget.IconButton)
+		want  desktop.Cursor
+	}{
+		{"no callback", func(icon *kxwidget.IconButton) {}, desktop.DefaultCursor},
+		{"menu with items", func(icon *kxwidget.IconButton) {
+			icon.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("item", nil)})
+		}, desktop.PointerCursor},
+		{"empty menu", func(icon *kxwidget.IconButton) {
+			icon.SetMenuItems(nil)
+		}, desktop.DefaultCursor},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			test.NewTempApp(t)
+			icon := kxwidget.NewIconButton(theme.HomeIcon(), nil)
+			tc.setup(icon)
+			icon.MouseIn(&desktop.MouseEvent{})
+			assert.Equal(t, tc.want, icon.Cursor())
+		})
+	}
+	t.Run("callback set while hovered", func(t *testing.T) {
+		test.NewTempApp(t)
+		icon := kxwidget.NewIconButton(theme.HomeIcon(), nil)
+		icon.MouseIn(&desktop.MouseEvent{})
+		icon.OnTapped = func() {}
+		assert.Equal(t, desktop.PointerCursor, icon.Cursor())
+	})
 }
