@@ -17,6 +17,9 @@ import (
 type FilterChipSelect struct {
 	chip
 
+	// Whether to disable the clear choices feature.
+	ClearDisabled bool
+
 	// The label shown for clearing a selection.
 	ClearLabel string
 
@@ -115,7 +118,7 @@ func (w *FilterChipSelect) SetOptions(options []string) {
 
 func (w *FilterChipSelect) showDropDownMenu() {
 	items := make([]*fyne.MenuItem, 0)
-	if w.text != "" && w.Selected != "" {
+	if w.text != "" && w.Selected != "" && !w.ClearDisabled {
 		it := fyne.NewMenuItem(w.ClearLabel, func() {
 			w.SetSelected("")
 		})
@@ -217,16 +220,16 @@ func (w *FilterChipSelect) showSearchDialog(window fyne.Window) {
 
 	entry := widget.NewEntry()
 	entry.PlaceHolder = "Type to start searching..."
-	clearButton := NewIconButton(theme.CancelIcon(), func() {
+	clearEntryButton := NewIconButton(theme.CancelIcon(), func() {
 		entry.SetText("")
 	})
-	clearButton.Hide()
-	entry.ActionItem = clearButton
+	clearEntryButton.Hide()
+	entry.ActionItem = clearEntryButton
 	entry.OnChanged = func(search string) {
 		if search != "" {
-			clearButton.Show()
+			clearEntryButton.Show()
 		} else {
-			clearButton.Hide()
+			clearEntryButton.Hide()
 		}
 		if len(search) < 2 {
 			itemsFiltered = slices.Clone(baseItems)
@@ -242,15 +245,14 @@ func (w *FilterChipSelect) showSearchDialog(window fyne.Window) {
 		}
 		list.Refresh()
 	}
-	clear := widget.NewButton("Clear", func() {
+	clearChoicesButton := widget.NewButton(w.ClearLabel, func() {
 		w.SetSelected("")
 		d.Hide()
 	})
-	if w.Selected != "" {
-		entry.Disable()
-		clear.Show()
+	if w.Selected != "" && !w.ClearDisabled {
+		clearChoicesButton.Show()
 	} else {
-		clear.Hide()
+		clearChoicesButton.Hide()
 	}
 	empty := widget.NewLabel("No entries")
 	empty.Importance = widget.LowImportance
@@ -263,7 +265,7 @@ func (w *FilterChipSelect) showSearchDialog(window fyne.Window) {
 	c := container.NewBorder(
 		container.NewBorder(
 			nil,
-			clear,
+			clearChoicesButton,
 			nil,
 			widget.NewButton("Cancel", func() {
 				d.Hide()
