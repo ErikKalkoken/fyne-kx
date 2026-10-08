@@ -115,35 +115,6 @@ func TestIconButton_ShowNoMenuWhenTappedAndDisabled(t *testing.T) {
 	test.AssertImageMatches(t, "iconbutton/menu_disabled.png", w.Canvas().Capture())
 }
 
-func TestIconButton_MouseInOutTogglesPointerCursorWhenEnabled(t *testing.T) {
-	test.NewTempApp(t)
-	test.ApplyTheme(t, test.Theme())
-	icon := kxwidget.NewIconButton(theme.HomeIcon(), func() {})
-	w := test.NewWindow(icon)
-	defer w.Close()
-
-	assert.Equal(t, desktop.DefaultCursor, icon.Cursor())
-
-	icon.MouseIn(&desktop.MouseEvent{})
-	assert.Equal(t, desktop.PointerCursor, icon.Cursor())
-
-	icon.MouseOut()
-	assert.Equal(t, desktop.DefaultCursor, icon.Cursor())
-}
-
-func TestIconButton_MouseInDoesNotHoverWhenDisabled(t *testing.T) {
-	test.NewTempApp(t)
-	test.ApplyTheme(t, test.Theme())
-	icon := kxwidget.NewIconButton(theme.HomeIcon(), func() {})
-	icon.Disable()
-	w := test.NewWindow(icon)
-	defer w.Close()
-
-	icon.MouseIn(&desktop.MouseEvent{})
-
-	assert.Equal(t, desktop.DefaultCursor, icon.Cursor(), "a disabled button should never show a hover cursor")
-}
-
 func TestIconButton_SetMenuItemsAddsMenu(t *testing.T) {
 	test.NewTempApp(t)
 	test.ApplyTheme(t, test.Theme())
@@ -275,34 +246,29 @@ func TestIconButton_SetMenuItemsReplacesItems(t *testing.T) {
 	assert.Equal(t, newItems, menu.Items)
 }
 
-func TestIconButton_Cursor(t *testing.T) {
-	cases := []struct {
-		name  string
-		setup func(icon *kxwidget.IconButton)
-		want  desktop.Cursor
-	}{
-		{"no callback", func(icon *kxwidget.IconButton) {}, desktop.DefaultCursor},
-		{"menu with items", func(icon *kxwidget.IconButton) {
-			icon.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("item", nil)})
-		}, desktop.PointerCursor},
-		{"empty menu", func(icon *kxwidget.IconButton) {
-			icon.SetMenuItems(nil)
-		}, desktop.DefaultCursor},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			test.NewTempApp(t)
-			icon := kxwidget.NewIconButton(theme.HomeIcon(), nil)
-			tc.setup(icon)
-			icon.MouseIn(&desktop.MouseEvent{})
-			assert.Equal(t, tc.want, icon.Cursor())
-		})
-	}
-	t.Run("callback set while hovered", func(t *testing.T) {
+func TestIconButton_Hover(t *testing.T) {
+	t.Run("shows background when hovered", func(t *testing.T) {
 		test.NewTempApp(t)
-		icon := kxwidget.NewIconButton(theme.HomeIcon(), nil)
+		test.ApplyTheme(t, test.Theme())
+		icon := kxwidget.NewIconButton(theme.HomeIcon(), func() {})
+		w := test.NewWindow(icon)
+		defer w.Close()
+
 		icon.MouseIn(&desktop.MouseEvent{})
+		test.AssertImageMatches(t, "iconbutton/hovered.png", w.Canvas().Capture())
+
+		icon.MouseOut()
+		test.AssertImageMatches(t, "iconbutton/normal.png", w.Canvas().Capture())
+	})
+	t.Run("shows background when embedded", func(t *testing.T) {
+		test.NewTempApp(t)
+		test.ApplyTheme(t, test.Theme())
+		icon := newEmbeddedIconButton()
 		icon.OnTapped = func() {}
-		assert.Equal(t, desktop.PointerCursor, icon.Cursor())
+		w := test.NewWindow(icon)
+		defer w.Close()
+
+		icon.MouseIn(&desktop.MouseEvent{})
+		test.AssertImageMatches(t, "iconbutton/hovered.png", w.Canvas().Capture())
 	})
 }

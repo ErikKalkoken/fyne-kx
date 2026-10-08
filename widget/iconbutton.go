@@ -1,6 +1,8 @@
 package widget
 
 import (
+	"image/color"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/driver/desktop"
@@ -8,9 +10,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// TODO: Add hover shadow
-
 // IconButton is a widget which help people take minor actions with one tap.
+// It shows a hover background when tapping would do something.
 //
 // It can be extended by embedding it by value and calling ExtendBaseWidget.
 // Overrides of ExtendBaseWidget and Refresh must call the IconButton versions.
@@ -134,15 +135,6 @@ func (w *IconButton) showMenu() {
 func (w *IconButton) TappedSecondary(_ *fyne.PointEvent) {
 }
 
-// Cursor returns the cursor type of this widget.
-// Shows a pointer only when a tap would do something.
-func (w *IconButton) Cursor() desktop.Cursor {
-	if !w.Disabled() && w.hovered && w.isTappable() {
-		return desktop.PointerCursor
-	}
-	return desktop.DefaultCursor
-}
-
 func (w *IconButton) isTappable() bool {
 	return w.OnTapped != nil || (w.menu != nil && len(w.menu.Items) > 0)
 }
@@ -152,7 +144,7 @@ func (w *IconButton) MouseIn(_ *desktop.MouseEvent) {
 	if w.Disabled() {
 		return
 	}
-	w.hovered = true
+	w.setHovered(true)
 }
 
 func (w *IconButton) MouseMoved(_ *desktop.MouseEvent) {
@@ -161,7 +153,19 @@ func (w *IconButton) MouseMoved(_ *desktop.MouseEvent) {
 
 // MouseOut is a hook that is called if the mouse pointer leaves the element.
 func (w *IconButton) MouseOut() {
-	w.hovered = false
+	w.setHovered(false)
+}
+
+func (w *IconButton) setHovered(hovered bool) {
+	if w.hovered == hovered {
+		return
+	}
+	w.hovered = hovered
+	w.BaseWidget.Refresh() // skips refreshing the menu
+}
+
+func (w *IconButton) showsHover() bool {
+	return !w.Disabled() && w.hovered && w.isTappable()
 }
 
 func (w *IconButton) CreateRenderer() fyne.WidgetRenderer {
@@ -170,12 +174,12 @@ func (w *IconButton) CreateRenderer() fyne.WidgetRenderer {
 
 // iconButtonRenderer is a custom [fyne.WidgetRenderer] for [IconButton].
 //
-// It owns the rendered icon image and lays it out with a themed padding on
-// every side, replicating the behavior previously provided by wrapping the
-// icon in a [container.NewPadded].
+// It shows the icon at a fixed size with a themed inner padding
+// and a hover background behind it.
 type iconButtonRenderer struct {
-	button *IconButton
-	icon   *canvas.Image
+	background *canvas.Circle
+	button     *IconButton
+	icon       *canvas.Image
 }
 
 var _ fyne.WidgetRenderer = (*iconButtonRenderer)(nil)
@@ -183,10 +187,10 @@ var _ fyne.WidgetRenderer = (*iconButtonRenderer)(nil)
 func newIconButtonRenderer(w *IconButton) *iconButtonRenderer {
 	i := canvas.NewImageFromResource(w.resource)
 	i.FillMode = canvas.ImageFillContain
-	i.SetMinSize(fyne.NewSquareSize(theme.Size(theme.SizeNameInlineIcon)))
 	r := &iconButtonRenderer{
-		button: w,
-		icon:   i,
+		background: canvas.NewCircle(color.Transparent),
+		button:     w,
+		icon:       i,
 	}
 	r.updateState()
 	return r
@@ -196,34 +200,54 @@ func (r *iconButtonRenderer) Destroy() {
 }
 
 func (r *iconButtonRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.icon}
+	return []fyne.CanvasObject{r.background, r.icon}
 }
 
+// Layout centers icon and background at a fixed size, like Fyne's Button.
 func (r *iconButtonRenderer) Layout(size fyne.Size) {
-	pad := theme.Padding()
-	innerSize := fyne.NewSize(size.Width-2*pad, size.Height-2*pad)
-	r.icon.Resize(innerSize)
-	r.icon.Move(fyne.NewPos(pad, pad))
+	bg := r.MinSize()
+	r.background.Resize(bg)
+	r.background.Move(centerIn(size, bg))
+	icon := fyne.NewSquareSize(r.iconSize())
+	r.icon.Resize(icon)
+	r.icon.Move(centerIn(size, icon))
 }
 
 func (r *iconButtonRenderer) MinSize() fyne.Size {
-	pad := theme.Padding()
-	iconMin := r.icon.MinSize()
-	return fyne.NewSize(iconMin.Width+2*pad, iconMin.Height+2*pad)
+	return fyne.NewSquareSize(r.iconSize() + 2*r.padding())
+}
+
+func (r *iconButtonRenderer) iconSize() float32 {
+	return r.button.Theme().Size(theme.SizeNameInlineIcon)
+}
+
+// padding returns the space around the icon, same as Fyne's icon-only buttons.
+func (r *iconButtonRenderer) padding() float32 {
+	return r.button.Theme().Size(theme.SizeNameInnerPadding)
+}
+
+func centerIn(outer, inner fyne.Size) fyne.Position {
+	return fyne.NewPos((outer.Width-inner.Width)/2, (outer.Height-inner.Height)/2)
 }
 
 func (r *iconButtonRenderer) Refresh() {
 	r.updateState()
+	r.background.Refresh()
 	r.icon.Refresh()
 	canvas.Refresh(r.button.super())
 }
 
-// updateState sets the icon's resource depending on whether the button is
-// enabled or disabled.
+// updateState applies the disabled and hover state.
 func (r *iconButtonRenderer) updateState() {
 	if r.button.Disabled() {
 		r.icon.Resource = r.button.resourceDisabled
 	} else {
 		r.icon.Resource = r.button.resource
+	}
+	if r.button.showsHover() {
+		v := fyne.CurrentApp().Settings().ThemeVariant()
+		r.background.FillColor = r.button.Theme().Color(theme.ColorNameHover, v)
+	} else {
+		r.background.FillColor = color.Transparent
 	}
 }
