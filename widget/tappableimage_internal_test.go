@@ -75,7 +75,7 @@ func TestTappableImage_SetResourceFieldBeforeFirstRender_AppliesOnCreateRenderer
 
 func TestTappableImage_Disabled_CursorNeverShowsPointer(t *testing.T) {
 	test.NewApp()
-	img := NewTappableImage(theme.HomeIcon(), nil)
+	img := NewTappableImage(theme.HomeIcon(), func() {})
 	img.hovered = true
 	img.Disable()
 
@@ -125,4 +125,44 @@ func TestTappableImage_MouseMoved_InsideImage_Hovers(t *testing.T) {
 	img.MouseMoved(&desktop.MouseEvent{PointEvent: fyne.PointEvent{Position: center}})
 
 	assert.True(t, img.hovered, "a point well within the image bounds should set hover")
+}
+
+type embeddedTappableImage struct {
+	TappableImage
+}
+
+func TestTappableImage_Super(t *testing.T) {
+	t.Run("returns itself when used directly", func(t *testing.T) {
+		w := NewTappableImage(theme.HomeIcon(), nil)
+		assert.Same(t, w, w.super())
+	})
+	t.Run("returns outer widget when embedded", func(t *testing.T) {
+		w := &embeddedTappableImage{}
+		w.ExtendBaseWidget(w)
+		assert.Same(t, w, w.super())
+	})
+}
+
+func TestTappableImage_Cursor(t *testing.T) {
+	cases := []struct {
+		name  string
+		setup func(img *TappableImage)
+		want  desktop.Cursor
+	}{
+		{"no callback", func(img *TappableImage) {}, desktop.DefaultCursor},
+		{"callback", func(img *TappableImage) { img.OnTapped = func() {} }, desktop.PointerCursor},
+		{"menu with items", func(img *TappableImage) {
+			img.SetMenuItems([]*fyne.MenuItem{fyne.NewMenuItem("item", nil)})
+		}, desktop.PointerCursor},
+		{"empty menu", func(img *TappableImage) { img.SetMenuItems(nil) }, desktop.DefaultCursor},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			test.NewApp()
+			img := NewTappableImage(theme.HomeIcon(), nil)
+			tc.setup(img)
+			img.hovered = true
+			assert.Equal(t, tc.want, img.Cursor())
+		})
+	}
 }

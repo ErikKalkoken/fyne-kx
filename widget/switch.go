@@ -89,7 +89,7 @@ func (w *Switch) Tapped(pe *fyne.PointEvent) {
 func (w *Switch) TappedSecondary(_ *fyne.PointEvent) {}
 
 func (w *Switch) Cursor() desktop.Cursor {
-	if w.hovered {
+	if !w.Disabled() && w.hovered {
 		return desktop.PointerCursor
 	}
 	return desktop.DefaultCursor

@@ -43,7 +43,6 @@ func (w *TappableIcon) SetResource(res fyne.Resource) {
 	w.Refresh()
 }
 
-// Refresh triggers a redraw of the icon, applying the current disabled state.
 func (w *TappableIcon) Refresh() {
 	if w.disabled {
 		w.Icon.Resource = w.resourceDisabled
@@ -88,15 +87,13 @@ func (w *TappableIcon) Tapped(_ *fyne.PointEvent) {
 func (w *TappableIcon) TappedSecondary(_ *fyne.PointEvent) {
 }
 
-// Cursor returns the cursor type of this widget
 func (w *TappableIcon) Cursor() desktop.Cursor {
-	if !w.disabled && w.hovered {
+	if !w.disabled && w.hovered && w.OnTapped != nil {
 		return desktop.PointerCursor
 	}
 	return desktop.DefaultCursor
 }
 
-// MouseIn is a hook that is called if the mouse pointer enters the element.
 func (w *TappableIcon) MouseIn(e *desktop.MouseEvent) {
 	if w.disabled {
 		return
@@ -108,7 +105,6 @@ func (w *TappableIcon) MouseMoved(*desktop.MouseEvent) {
 	// needed to satisfy the interface only
 }
 
-// MouseOut is a hook that is called if the mouse pointer leaves the element.
 func (w *TappableIcon) MouseOut() {
 	w.hovered = false
 }

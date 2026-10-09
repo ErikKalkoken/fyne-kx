@@ -12,10 +12,15 @@ import (
 const disabledImageTranslucency = 0.5
 
 // TappableImage is widget which shows an image and runs a callback when tapped.
+//
+// It can be extended by embedding it by value and calling ExtendBaseWidget.
+// Overrides of ExtendBaseWidget must call the TappableImage version.
+// When combined with another hoverable type (e.g. a tooltip extension),
+// MouseIn, MouseOut and MouseMoved must be forwarded to both.
 type TappableImage struct {
 	widget.DisableableWidget
 
-	// The function that is called when the image is tapped.
+	// The function that is called when the image is tapped. Takes precedence over the menu.
 	OnTapped func()
 
 	// Resource is the resource shown by this image.
@@ -40,6 +45,7 @@ type TappableImage struct {
 	hovered bool
 	menu    *fyne.Menu
 	pos     fyne.Position // current mouse position
+	self    fyne.Widget   // outermost widget, differs from w when embedded
 }
 
 var _ fyne.Tappable = (*TappableImage)(nil)
@@ -53,21 +59,8 @@ func NewTappableImageWithMenu(res fyne.Resource, menu *fyne.Menu) *TappableImage
 		fyne.LogError("TappableImage misconfigured: missing menu", nil)
 		return w
 	}
-	w.setMenu(menu)
-	return w
-}
-
-// setMenu attaches menu to the widget and wires OnTapped to show it.
-func (w *TappableImage) setMenu(menu *fyne.Menu) {
 	w.menu = menu
-	w.OnTapped = func() {
-		if len(w.menu.Items) == 0 {
-			return
-		}
-		c := fyne.CurrentApp().Driver().CanvasForObject(w)
-		m := widget.NewPopUpMenu(w.menu, c)
-		m.ShowAtPosition(w.pos)
-	}
+	return w
 }
 
 // NewTappableImage returns a new instance of a [TappableImage] widget.
@@ -79,6 +72,20 @@ func newTappableImage(res fyne.Resource, tapped func()) *TappableImage {
 	w := &TappableImage{OnTapped: tapped, Resource: res}
 	w.ExtendBaseWidget(w)
 	return w
+}
+
+// ExtendBaseWidget is used by an extending widget to make use of BaseWidget functionality.
+func (w *TappableImage) ExtendBaseWidget(wid fyne.Widget) {
+	w.self = wid
+	w.DisableableWidget.ExtendBaseWidget(wid)
+}
+
+// super returns the outermost widget, which Fyne knows as part of the canvas tree.
+func (w *TappableImage) super() fyne.CanvasObject {
+	if w.self == nil {
+		return w
+	}
+	return w.self
 }
 
 // SetFillMode sets the fill mode of the image.
@@ -109,20 +116,14 @@ func (w *TappableImage) effectiveTranslucency() float64 {
 	return w.Translucency + disabledImageTranslucency*(1-w.Translucency)
 }
 
-// SetMenuItems replaces the menu items.
-//
-// Logs an error if this overwrites a caller-set OnTapped, since attaching a
-// menu always takes over tap handling.
+// SetMenuItems replaces the menu items and adds a menu if needed.
+// Clears OnTapped so taps show the menu.
 func (w *TappableImage) SetMenuItems(menuItems []*fyne.MenuItem) {
 	if w.menu == nil {
-		if w.OnTapped != nil {
-			fyne.LogError("TappableImage misconfigured: overwriting OnTapped to show the menu", nil)
-		}
-		w.setMenu(fyne.NewMenu(""))
-	} else if w.OnTapped == nil {
-		w.setMenu(w.menu)
+		w.menu = fyne.NewMenu("")
 	}
 	w.menu.Items = menuItems
+	w.OnTapped = nil
 	w.menu.Refresh()
 }
 
@@ -133,21 +134,40 @@ func (w *TappableImage) Tapped(pe *fyne.PointEvent) {
 	w.pos = pe.AbsolutePosition
 	if w.OnTapped != nil {
 		w.OnTapped()
+		return
 	}
+	if w.menu != nil {
+		w.showMenu()
+	}
+}
+
+func (w *TappableImage) showMenu() {
+	if len(w.menu.Items) == 0 {
+		return
+	}
+	m := widget.NewPopUpMenu(w.menu, fyne.CurrentApp().Driver().CanvasForObject(w.super()))
+	if m == nil {
+		return // not on a canvas
+	}
+	m.ShowAtPosition(w.pos)
 }
 
 func (w *TappableImage) TappedSecondary(_ *fyne.PointEvent) {
 }
 
-// Cursor returns the cursor type of this widget
+// Cursor returns the cursor type of this widget.
+// Shows a pointer only when a tap would do something.
 func (w *TappableImage) Cursor() desktop.Cursor {
-	if !w.Disabled() && w.hovered {
+	if !w.Disabled() && w.hovered && w.isTappable() {
 		return desktop.PointerCursor
 	}
 	return desktop.DefaultCursor
 }
 
-// MouseIn is a hook that is called if the mouse pointer enters the element.
+func (w *TappableImage) isTappable() bool {
+	return w.OnTapped != nil || (w.menu != nil && len(w.menu.Items) > 0)
+}
+
 func (w *TappableImage) MouseIn(me *desktop.MouseEvent) {
 	w.MouseMoved(me)
 }
@@ -164,7 +184,6 @@ func (w *TappableImage) MouseMoved(me *desktop.MouseEvent) {
 			me.Position.Y >= pos.Y && me.Position.Y <= pos.Y+s.Height)
 }
 
-// MouseOut is a hook that is called if the mouse pointer leaves the element.
 func (w *TappableImage) MouseOut() {
 	w.hovered = false
 }
@@ -218,5 +237,5 @@ func (r *tappableImageRenderer) Refresh() {
 	w.image.CornerRadius = w.CornerRadius
 	w.image.Translucency = w.effectiveTranslucency()
 	w.image.Refresh()
-	canvas.Refresh(w)
+	canvas.Refresh(w.super())
 }
