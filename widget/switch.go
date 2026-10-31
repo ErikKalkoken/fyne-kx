@@ -14,13 +14,18 @@ import (
 type Switch struct {
 	widget.DisableableWidget
 
-	On        bool
+	// On is the state of the switch.
+	// Set it and call Refresh to change it without animation and without calling OnChanged.
+	On bool
+
+	// OnChanged is called when the state changes.
 	OnChanged func(on bool)
 
-	focused bool
-	hovered bool
+	animateNext bool // whether to animate on a refresh
+	focused     bool
+	hovered     bool
 
-	// graphicPosition and graphicSize are the cached hitbox of the switch graphic
+	// graphicPosition and graphicSize are the cached hit-box of the switch graphic
 	graphicPosition fyne.Position
 	graphicSize     fyne.Size
 }
@@ -41,11 +46,16 @@ func NewSwitch(changed func(on bool)) *Switch {
 }
 
 // SetOn sets the state for a switch.
+// It animates the thumb and calls OnChanged.
 func (w *Switch) SetOn(on bool) {
 	if on == w.On {
 		return
 	}
 	w.On = on
+	// set before OnChanged, which may refresh the switch itself
+	prev := w.animateNext // restore, not clear: a nested SetOn from OnChanged must keep the outer flag
+	w.animateNext = true
+	defer func() { w.animateNext = prev }()
 	if w.OnChanged != nil {
 		w.OnChanged(on)
 	}
@@ -119,7 +129,7 @@ func (w *Switch) updateHover(pos *fyne.Position) {
 	}
 }
 
-// graphicContains reports whether pos falls within the switch graphic's hitbox.
+// graphicContains reports whether pos falls within the switch graphic's hit-box.
 func (w *Switch) graphicContains(pos fyne.Position) bool {
 	orig := w.graphicPosition
 	size := w.graphicSize
@@ -141,11 +151,8 @@ func (w *Switch) CreateRenderer() fyne.WidgetRenderer {
 		thumb:  canvas.NewCircle(color.Transparent),
 		track:  track,
 		widget: w,
-		lastOn: w.On,
 	}
-	if w.On {
-		r.progress = 1
-	}
+	r.progress = r.targetProgress() // a renderer created by SetOn's refresh must not animate
 	r.updateState()
 	return r
 }
@@ -162,22 +169,24 @@ const (
 
 // switchRenderer represents the renderer for the Switch widget.
 type switchRenderer struct {
-	anim     *fyne.Animation
-	focus    *canvas.Circle
-	lastOn   bool // lets updateState tell an actual toggle apart from an unrelated refresh
-	orig     fyne.Position
-	progress float32 // decoupled from On so a reversed toggle can animate from mid-flight
-	shadow   *canvas.Circle
-	thumb    *canvas.Circle
-	track    *canvas.Rectangle
-	widget   *Switch
+	anim       *fyne.Animation // running animation, which controls the thumb position; nil when none
+	animTarget float32         // progress the running animation heads for
+	focus      *canvas.Circle
+	orig       fyne.Position
+	progress   float32 // decoupled from On so a reversed toggle can animate from mid-flight
+	shadow     *canvas.Circle
+	thumb      *canvas.Circle
+	track      *canvas.Rectangle
+	widget     *Switch
 }
 
 func (r *switchRenderer) Objects() []fyne.CanvasObject {
 	return []fyne.CanvasObject{r.track, r.focus, r.shadow, r.thumb}
 }
 
-func (r *switchRenderer) Destroy() {}
+func (r *switchRenderer) Destroy() {
+	r.stopAnimation()
+}
 
 func (r *switchRenderer) MinSize() fyne.Size {
 	th := r.widget.Theme()
@@ -193,7 +202,7 @@ func (r *switchRenderer) Layout(size fyne.Size) {
 	r.track.Resize(fyne.NewSize(switchWidth, switchInnerHeight))
 	r.updateThumbPosition()
 
-	// cache the graphic's hitbox for Tapped/MouseIn/MouseMoved
+	// cache the graphic's hit-box for Tapped/MouseIn/MouseMoved
 	r.widget.graphicPosition = r.orig
 	r.widget.graphicSize = fyne.NewSize(switchWidth, switchHeight)
 }
@@ -226,43 +235,63 @@ func (r *switchRenderer) Refresh() {
 
 func (r *switchRenderer) updateState() {
 	r.updateColors()
-	if r.widget.On != r.lastOn {
-		r.lastOn = r.widget.On
+	target := r.targetProgress()
+	switch {
+	case r.anim != nil && r.animTarget == target:
+		// the running animation already heads for the current state
+	case r.widget.animateNext && r.progress != target:
 		r.animateThumb()
-	} else {
-		r.updateThumbPosition()
+	default:
+		r.stopAnimation() // On changed without SetOn mid-animation, so jump
+		r.progress = target
+	}
+	r.updateThumbPosition()
+}
+
+func (r *switchRenderer) targetProgress() float32 {
+	if r.widget.On {
+		return 1
+	}
+	return 0
+}
+
+func (r *switchRenderer) stopAnimation() {
+	if r.anim != nil {
+		r.anim.Stop()
+		r.anim = nil
 	}
 }
 
+// animateThumb animates the thumb from its current position to the state of the switch.
 // Stops any animation in flight first, so retapping mid-toggle reverses smoothly
 // from wherever the thumb is instead of jumping.
 func (r *switchRenderer) animateThumb() {
-	if r.anim != nil {
-		r.anim.Stop()
-	}
-
-	target := float32(0)
-	if r.widget.On {
-		target = 1
-	}
-
+	r.stopAnimation()
+	to := r.targetProgress()
 	if !fyne.CurrentApp().Settings().ShowAnimations() {
-		r.progress = target
-		r.updateThumbPosition()
+		r.progress = to
 		return
 	}
 
 	from := r.progress
-	delta := target - from
-	r.anim = fyne.NewAnimation(canvas.DurationShort, func(done float32) {
-		r.progress = from + delta*done
+	var a *fyne.Animation
+	a = fyne.NewAnimation(canvas.DurationShort, func(done float32) {
+		if r.anim != a {
+			return // replaced by a newer animation
+		}
+		r.progress = from + (to-from)*done
+		if done == 1 {
+			r.anim = nil
+		}
 		r.updateThumbPosition()
 		canvas.Refresh(r.thumb)
 		canvas.Refresh(r.shadow)
 		canvas.Refresh(r.focus)
 	})
-	r.anim.Curve = fyne.AnimationEaseInOut
-	r.anim.Start()
+	a.Curve = fyne.AnimationEaseInOut
+	r.anim = a // before Start: the test driver ticks to done inside it
+	r.animTarget = to
+	a.Start()
 }
 
 func (r *switchRenderer) updateColors() {
