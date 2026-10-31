@@ -341,23 +341,29 @@ func makeSwitch() fyne.CanvasObject {
 		return "off"
 	}
 
-	makeContainer := func(sw *kxwidget.Switch, label *widget.Label) *fyne.Container {
+	makeContainer := func(sw *kxwidget.Switch, label fyne.CanvasObject) *fyne.Container {
 		return container.NewHBox(sw, container.NewCenter(label))
 	}
 
-	label1 := widget.NewLabel("")
+	label1 := kxwidget.NewTappableLabel("", nil)
 	switch1 := kxwidget.NewSwitch(func(on bool) {
 		label1.SetText(textForBool(on))
 	})
 	switch1.On = true
 	label1.Text = textForBool(switch1.On)
+	label1.OnTapped = func() {
+		switch1.SetOn(!switch1.On)
+	}
 	c1 := makeContainer(switch1, label1)
 
-	label2 := widget.NewLabel("")
+	label2 := kxwidget.NewTappableLabel("", nil)
 	switch2 := kxwidget.NewSwitch(func(on bool) {
 		label2.SetText(textForBool(on))
 	})
 	label2.Text = textForBool(switch2.On)
+	label2.OnTapped = func() {
+		switch2.SetOn(!switch2.On)
+	}
 	c2 := makeContainer(switch2, label2)
 
 	switch3 := kxwidget.NewSwitch(nil)
